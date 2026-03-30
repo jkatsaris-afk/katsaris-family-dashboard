@@ -7,13 +7,11 @@ export default function UpcomingEvents() {
     const ICS_URL =
       "https://calendar.google.com/calendar/ical/family17054290429573763975%40group.calendar.google.com/public/basic.ics";
 
-    fetch(
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(
-        ICS_URL
-      )}&t=${Date.now()}`
-    )
+    fetch(`https://corsproxy.io/?${encodeURIComponent(ICS_URL)}`)
       .then((res) => res.text())
       .then((data) => {
+        console.log("RAW DATA:", data);
+
         const parsed = data
           .split("BEGIN:VEVENT")
           .slice(1)
@@ -24,7 +22,7 @@ export default function UpcomingEvents() {
               event.match(/DTSTART:(.*)/)?.[1] ||
               event.match(/DTSTART;VALUE=DATE:(.*)/)?.[1];
 
-            if (!rawDate) return null;
+            if (!rawDate || !title) return null;
 
             let date;
 
@@ -52,8 +50,11 @@ export default function UpcomingEvents() {
           .sort((a, b) => a.date - b.date)
           .slice(0, 5);
 
+        console.log("PARSED EVENTS:", parsed);
+
         setEvents(parsed);
-      });
+      })
+      .catch((err) => console.error("FETCH ERROR:", err));
   }, []);
 
   // 📅 Format Date
