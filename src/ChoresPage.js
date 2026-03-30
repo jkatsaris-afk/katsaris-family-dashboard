@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwhfB5uyXFqF5Re48YDgD5TYz6nNnpyzN21SiGp_1C21DDAeN8_anrvT5tQmybPkjuv/exec";
 
 const kidColors = {
   Sam: "#4f8cff",
