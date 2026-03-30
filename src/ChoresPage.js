@@ -14,7 +14,6 @@ export default function ChoresPage({ goHome }) {
 
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
-  const [selectedKid, setSelectedKid] = useState("All");
 
   // LOAD DATA
   useEffect(() => {
@@ -54,18 +53,17 @@ export default function ChoresPage({ goHome }) {
   };
 
   // TOGGLE
-  const toggleChore = (index) => {
-    const updated = [...chores];
-    updated[index].done = !updated[index].done;
-
-    const chore = updated[index];
+  const toggleChore = (chore) => {
+    const updated = chores.map(c =>
+      c.id === chore.id ? { ...c, done: !c.done } : c
+    );
 
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         update: true,
         id: chore.id,
-        done: chore.done
+        done: !chore.done
       })
     });
 
@@ -91,37 +89,7 @@ export default function ChoresPage({ goHome }) {
         <h2 style={{ margin: 0 }}>Chores</h2>
       </div>
 
-      {/* KID FILTER (clean pills) */}
-      <div style={{
-        display: "flex",
-        gap: "10px",
-        marginBottom: "20px"
-      }}>
-        {["All", ...kids].map(kid => (
-          <div
-            key={kid}
-            onClick={() => setSelectedKid(kid)}
-            style={{
-              padding: "8px 14px",
-              borderRadius: "20px",
-              background:
-                selectedKid === kid
-                  ? "#111"
-                  : "#e5e7eb",
-              color:
-                selectedKid === kid
-                  ? "#fff"
-                  : "#000",
-              fontSize: "14px",
-              cursor: "pointer"
-            }}
-          >
-            {kid}
-          </div>
-        ))}
-      </div>
-
-      {/* ADD ROW (clean inline) */}
+      {/* ADD CHORE (simple) */}
       <div style={{
         display: "flex",
         gap: "10px",
@@ -157,47 +125,60 @@ export default function ChoresPage({ goHome }) {
         <button onClick={addChore}>Add</button>
       </div>
 
-      {/* CHORE CARDS */}
-      {chores
-        .filter(c => selectedKid === "All" || c.assignedTo === selectedKid)
-        .map((chore, index) => (
+      {/* 👇 DASHBOARD BY KID */}
+      {kids.map(kid => {
+        const kidChores = chores.filter(c => c.assignedTo === kid);
+
+        return (
           <div
-            key={index}
-            onClick={() => toggleChore(index)}
+            key={kid}
             style={{
               background: "#fff",
-              padding: "15px",
-              borderRadius: "16px",
-              marginBottom: "10px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              cursor: "pointer",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+              borderRadius: "20px",
+              padding: "20px",
+              marginBottom: "20px",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.06)"
             }}
           >
-            <div>
-              <div style={{
-                fontWeight: "600",
-                fontSize: "16px"
-              }}>
-                {chore.text}
-              </div>
-
-              <div style={{
-                fontSize: "13px",
-                marginTop: "4px",
-                color: kidColors[chore.assignedTo]
-              }}>
-                {chore.assignedTo}
-              </div>
+            {/* KID HEADER */}
+            <div style={{
+              fontWeight: "600",
+              fontSize: "18px",
+              marginBottom: "15px",
+              color: kidColors[kid]
+            }}>
+              {kid}
             </div>
 
-            <div style={{ fontSize: "20px" }}>
-              {chore.done ? "✅" : "⬜"}
-            </div>
+            {/* CHORES */}
+            {kidChores.length === 0 && (
+              <div style={{ color: "#999" }}>
+                No chores
+              </div>
+            )}
+
+            {kidChores.map(chore => (
+              <div
+                key={chore.id}
+                onClick={() => toggleChore(chore)}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "10px 0",
+                  borderBottom: "1px solid #eee",
+                  cursor: "pointer"
+                }}
+              >
+                <div>{chore.text}</div>
+
+                <div style={{ fontSize: "18px" }}>
+                  {chore.done ? "✅" : "⬜"}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 }
