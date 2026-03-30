@@ -5,11 +5,16 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyX2N0YU9GUrn38IjUU4iuc
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
 
+  const kidColors = {
+    Sam: "#dbeafe",   // blue
+    Kade: "#dcfce7",  // green
+    Ava: "#fce7f3"    // pink
+  };
+
   const [chores, setChores] = useState([]);
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // 🔄 LOAD CHORES
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -21,7 +26,6 @@ export default function ChoresPage() {
             text: row[2],
             done: row[3] === true || row[3] === "TRUE"
           }));
-
           setChores(formatted);
         });
     };
@@ -31,7 +35,6 @@ export default function ChoresPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -47,7 +50,6 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE
   const toggleChore = (chore) => {
     fetch(API_URL, {
       method: "POST",
@@ -150,7 +152,7 @@ export default function ChoresPage() {
 
           return (
             <div key={kid} style={{
-              background: "#fff",
+              background: kidColors[kid],
               padding: "15px",
               borderRadius: "18px",
               boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
@@ -167,20 +169,16 @@ export default function ChoresPage() {
                   key={chore.id}
                   onClick={() => toggleChore(chore)}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "6px 0",
-                    cursor: "pointer"
+                    padding: "8px 10px",
+                    marginBottom: "6px",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    background: chore.done ? "#e5e7eb" : "#ffffff",
+                    textDecoration: chore.done ? "line-through" : "none",
+                    color: chore.done ? "#6b7280" : "#111827"
                   }}
                 >
-                  <div style={{
-                    textDecoration: chore.done ? "line-through" : "none",
-                    color: chore.done ? "#999" : "#000"
-                  }}>
-                    {chore.text}
-                  </div>
-
-                  <div>{chore.done ? "✅" : "⬜"}</div>
+                  {chore.text}
                 </div>
               ))}
             </div>
