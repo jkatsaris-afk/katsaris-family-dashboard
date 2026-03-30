@@ -4,27 +4,47 @@ export default function UpcomingEvents() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const ICS_URL = "https://calendar.google.com/calendar/ical/family17054290429573763975%40group.calendar.google.com/private-7783461977905064bf6ec3ea53a69f3b/basic.ics";
+    const ICS_URL =
+      "https://calendar.google.com/calendar/ical/family17054290429573763975%40group.calendar.google.com/public/basic.ics";
 
-    fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(ICS_URL)}`)
-      .then(res => res.text())
-      .then(data => {
+    fetch(
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(
+        ICS_URL
+      )}&t=${Date.now()}`
+    )
+      .then((res) => res.text())
+      .then((data) => {
         const parsed = data
           .split("BEGIN:VEVENT")
           .slice(1)
-          .map(event => {
+          .map((event) => {
             const title = event.match(/SUMMARY:(.*)/)?.[1];
-            const rawDate = event.match(/DTSTART:(.*)/)?.[1];
+
+            const rawDate =
+              event.match(/DTSTART:(.*)/)?.[1] ||
+              event.match(/DTSTART;VALUE=DATE:(.*)/)?.[1];
 
             if (!rawDate) return null;
 
-            const date = new Date(
-              rawDate.substring(0, 4),
-              rawDate.substring(4, 6) - 1,
-              rawDate.substring(6, 8),
-              rawDate.substring(9, 11) || 0,
-              rawDate.substring(11, 13) || 0
-            );
+            let date;
+
+            if (rawDate.includes("T")) {
+              // Timed event
+              date = new Date(
+                rawDate.substring(0, 4),
+                rawDate.substring(4, 6) - 1,
+                rawDate.substring(6, 8),
+                rawDate.substring(9, 11) || 0,
+                rawDate.substring(11, 13) || 0
+              );
+            } else {
+              // All-day event
+              date = new Date(
+                rawDate.substring(0, 4),
+                rawDate.substring(4, 6) - 1,
+                rawDate.substring(6, 8)
+              );
+            }
 
             return { title, date };
           })
@@ -36,7 +56,7 @@ export default function UpcomingEvents() {
       });
   }, []);
 
-  // 🔥 NICE DATE FORMATTING
+  // 📅 Format Date
   const formatDate = (date) => {
     const now = new Date();
 
@@ -53,25 +73,28 @@ export default function UpcomingEvents() {
     return date.toLocaleDateString(undefined, {
       weekday: "short",
       month: "short",
-      day: "numeric"
+      day: "numeric",
     });
   };
 
   return (
-    <div style={{
-      background: "#fff",
-      padding: "20px",
-      borderRadius: "20px",
-      boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-    }}>
-      
+    <div
+      style={{
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "20px",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
+      }}
+    >
       {/* HEADER */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "15px"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "15px",
+        }}
+      >
         <strong>Upcoming</strong>
 
         {/* ➕ ADD EVENT */}
@@ -89,7 +112,7 @@ export default function UpcomingEvents() {
             background: "#10b981",
             color: "#fff",
             cursor: "pointer",
-            fontSize: "12px"
+            fontSize: "12px",
           }}
         >
           + Add
@@ -98,9 +121,7 @@ export default function UpcomingEvents() {
 
       {/* EVENTS */}
       {events.length === 0 && (
-        <div style={{ color: "#999" }}>
-          No upcoming events
-        </div>
+        <div style={{ color: "#999" }}>No upcoming events</div>
       )}
 
       {events.map((e, i) => (
@@ -108,21 +129,26 @@ export default function UpcomingEvents() {
           key={i}
           style={{
             padding: "10px 0",
-            borderBottom: i !== events.length - 1 ? "1px solid #eee" : "none"
+            borderBottom:
+              i !== events.length - 1 ? "1px solid #eee" : "none",
           }}
         >
-          <div style={{
-            fontWeight: "500",
-            fontSize: "14px"
-          }}>
+          <div
+            style={{
+              fontWeight: "500",
+              fontSize: "14px",
+            }}
+          >
             {e.title}
           </div>
 
-          <div style={{
-            fontSize: "12px",
-            color: "#666",
-            marginTop: "2px"
-          }}>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#666",
+              marginTop: "2px",
+            }}
+          >
             {formatDate(e.date)}
           </div>
         </div>
