@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzMhNEAhNLCFm0uqAqEzyFgaO7c53F5NuyZojagI2CrTCNfkFViM03RvgJ6_pgwp7Kr/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxI7M5QOzcNfGoU372FYXzyhJpLDsP6IYrWzRxbkkIanRxOM0Lp1JNjvCkLyPhEjMNb/exec";
 
 export default function ChoresPage() {
   const [kids] = useState(["Sam", "Kade", "Ava"]);
@@ -9,23 +9,22 @@ export default function ChoresPage() {
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // LOAD DATA
+  // 🔄 LOAD + AUTO REFRESH
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-          const formatted = data.slice(1).map((row, index) => ({
+          const formatted = data.slice(1).map(row => ({
             id: row[0],
             assignedTo: row[1],
             text: row[2],
-            done: row[3] === true || row[3] === "TRUE",
-            row: index + 2
+            done: row[3] === true || row[3] === "TRUE"
           }));
 
           setChores(formatted);
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("Load error:", err));
     };
 
     loadData();
@@ -33,7 +32,7 @@ export default function ChoresPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ADD CHORE
+  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -49,6 +48,7 @@ export default function ChoresPage() {
     setChores([
       ...chores,
       {
+        id: Date.now(), // temp ID until refresh
         text: newChore,
         assignedTo,
         done: false
@@ -58,7 +58,7 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // TOGGLE DONE + SAVE
+  // ✅ TOGGLE + SAVE
   const toggleChore = (index) => {
     const updated = [...chores];
     updated[index].done = !updated[index].done;
@@ -69,7 +69,7 @@ export default function ChoresPage() {
       method: "POST",
       body: JSON.stringify({
         update: true,
-        row: chore.row,
+        id: chore.id,
         done: chore.done
       })
     });
@@ -82,7 +82,7 @@ export default function ChoresPage() {
       
       <h1 style={{ marginBottom: "20px" }}>Chore Dashboard</h1>
 
-      {/* ADD CHORE */}
+      {/* ADD CHORE CARD */}
       <div style={{
         background: "#fff",
         padding: "20px",
