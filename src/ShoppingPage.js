@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwhfB5uyXFqF5Re48YDgD5TYz6nNnpyzN21SiGp_1C21DDAeN8_anrvT5tQmybPkjuv/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzhcPTLS8wpLA-4OQEbqd-05p6cBRcL-RRbLDxf5qGSc3cC_Iz_Vfv0E0qwV3XkcXRx/exec";
 
 export default function ShoppingPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
 
-  // LOAD DATA
+  // 🔄 LOAD SHOPPING DATA
   useEffect(() => {
     const loadData = () => {
-      fetch(API_URL)
+      fetch(API_URL + "?type=shopping")
         .then((res) => res.json())
         .then((data) => {
           const formatted = data.slice(1).map((row) => ({
@@ -27,7 +27,7 @@ export default function ShoppingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ADD ITEM
+  // ➕ ADD ITEM
   const addItem = () => {
     if (!newItem) return;
 
@@ -43,7 +43,7 @@ export default function ShoppingPage() {
     setNewItem("");
   };
 
-  // TOGGLE ITEM
+  // ✅ TOGGLE ITEM
   const toggleItem = (item) => {
     fetch(API_URL, {
       method: "POST",
@@ -133,7 +133,7 @@ export default function ShoppingPage() {
         ))}
       </div>
 
-      {/* WALMART BUTTON */}
+      {/* 🛒 WALMART BUTTON */}
       <div style={{ marginTop: "20px" }}>
         <button
           onClick={() => window.open("https://www.walmart.com", "_blank")}
