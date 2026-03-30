@@ -18,29 +18,31 @@ export default function UpcomingEvents() {
           .map((event) => {
             const title = event.match(/SUMMARY:(.*)/)?.[1];
 
-            const rawDate =
-              event.match(/DTSTART:(.*)/)?.[1] ||
-              event.match(/DTSTART;VALUE=DATE:(.*)/)?.[1];
+            // 🔥 Handles ALL Google date formats
+            const rawDate = event.match(/DTSTART[^:]*:(.*)/)?.[1];
 
             if (!rawDate || !title) return null;
 
+            // Remove Z (UTC indicator)
+            let cleanDate = rawDate.replace("Z", "");
+
             let date;
 
-            if (rawDate.includes("T")) {
+            if (cleanDate.includes("T")) {
               // Timed event
               date = new Date(
-                rawDate.substring(0, 4),
-                rawDate.substring(4, 6) - 1,
-                rawDate.substring(6, 8),
-                rawDate.substring(9, 11) || 0,
-                rawDate.substring(11, 13) || 0
+                cleanDate.substring(0, 4),
+                cleanDate.substring(4, 6) - 1,
+                cleanDate.substring(6, 8),
+                cleanDate.substring(9, 11) || 0,
+                cleanDate.substring(11, 13) || 0
               );
             } else {
               // All-day event
               date = new Date(
-                rawDate.substring(0, 4),
-                rawDate.substring(4, 6) - 1,
-                rawDate.substring(6, 8)
+                cleanDate.substring(0, 4),
+                cleanDate.substring(4, 6) - 1,
+                cleanDate.substring(6, 8)
               );
             }
 
