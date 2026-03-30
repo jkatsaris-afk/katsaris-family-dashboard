@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec";
 
+// 🎨 Kid colors
 const kidColors = {
-  Sam: "#3b82f6",
-  Kade: "#10b981",
-  Ava: "#ec4899"
+  Sam: "#4f8cff",
+  Kade: "#4cc38a",
+  Ava: "#b96bff"
 };
 
 export default function ChoresPage({ goHome }) {
@@ -15,7 +16,7 @@ export default function ChoresPage({ goHome }) {
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // LOAD DATA
+  // 🔄 LOAD DATA
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL)
@@ -36,7 +37,7 @@ export default function ChoresPage({ goHome }) {
     return () => clearInterval(interval);
   }, []);
 
-  // ADD
+  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -52,12 +53,8 @@ export default function ChoresPage({ goHome }) {
     setNewChore("");
   };
 
-  // TOGGLE
+  // ✅ TOGGLE
   const toggleChore = (chore) => {
-    const updated = chores.map(c =>
-      c.id === chore.id ? { ...c, done: !c.done } : c
-    );
-
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -66,30 +63,90 @@ export default function ChoresPage({ goHome }) {
         done: !chore.done
       })
     });
-
-    setChores(updated);
   };
+
+  // 🏆 LEADERBOARD DATA
+  const leaderboard = kids.map(kid => {
+    const doneCount = chores.filter(c => c.assignedTo === kid && c.done).length;
+    return { kid, doneCount };
+  });
 
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#f3f4f6",
+      background: "#eef1f5",
       padding: "20px"
     }}>
 
       {/* HEADER */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        marginBottom: "20px"
-      }}>
-        <button onClick={goHome} style={{ marginRight: "15px" }}>
-          ←
-        </button>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+        <button onClick={goHome} style={{ marginRight: "15px" }}>←</button>
         <h2 style={{ margin: 0 }}>Chores</h2>
       </div>
 
-      {/* ADD CHORE (simple) */}
+      {/* 🏆 LEADERBOARD */}
+      <div style={{
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "20px",
+        marginBottom: "20px",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+      }}>
+
+        <div style={{
+          marginBottom: "20px",
+          fontWeight: "600",
+          fontSize: "16px"
+        }}>
+          🏆 Leaderboard
+        </div>
+
+        {leaderboard
+          .sort((a, b) => b.doneCount - a.doneCount)
+          .map((item, index) => {
+            const max = Math.max(...leaderboard.map(l => l.doneCount), 1);
+            const width = (item.doneCount / max) * 100;
+            const isTop = index === 0;
+
+            return (
+              <div key={item.kid} style={{ marginBottom: "16px" }}>
+
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "6px",
+                  fontSize: "14px",
+                  fontWeight: isTop ? "600" : "500"
+                }}>
+                  <span>
+                    {isTop ? "👑 " : ""}
+                    {item.kid}
+                  </span>
+                  <span>{item.doneCount}</span>
+                </div>
+
+                <div style={{
+                  height: "10px",
+                  background: "#e5e7eb",
+                  borderRadius: "999px",
+                  overflow: "hidden"
+                }}>
+                  <div style={{
+                    width: `${width}%`,
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: isTop
+                      ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+                      : `linear-gradient(90deg, ${kidColors[item.kid]}, #a5b4fc)`
+                  }} />
+                </div>
+
+              </div>
+            );
+          })}
+      </div>
+
+      {/* ➕ ADD CHORE */}
       <div style={{
         display: "flex",
         gap: "10px",
@@ -125,38 +182,51 @@ export default function ChoresPage({ goHome }) {
         <button onClick={addChore}>Add</button>
       </div>
 
-      {/* 👇 DASHBOARD BY KID */}
+      {/* 👇 KID DASHBOARD */}
       {kids.map(kid => {
         const kidChores = chores.filter(c => c.assignedTo === kid);
+        const done = kidChores.filter(c => c.done).length;
+        const total = kidChores.length;
+        const percent = total ? (done / total) * 100 : 0;
 
         return (
-          <div
-            key={kid}
-            style={{
-              background: "#fff",
-              borderRadius: "20px",
-              padding: "20px",
-              marginBottom: "20px",
-              boxShadow: "0 6px 14px rgba(0,0,0,0.06)"
-            }}
-          >
-            {/* KID HEADER */}
+          <div key={kid} style={{
+            background: "#fff",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "20px",
+            boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+          }}>
+
+            {/* NAME */}
             <div style={{
               fontWeight: "600",
-              fontSize: "18px",
-              marginBottom: "15px",
+              marginBottom: "10px",
               color: kidColors[kid]
             }}>
               {kid}
             </div>
 
-            {/* CHORES */}
-            {kidChores.length === 0 && (
-              <div style={{ color: "#999" }}>
-                No chores
-              </div>
-            )}
+            {/* PROGRESS BAR */}
+            <div style={{
+              height: "8px",
+              background: "#eee",
+              borderRadius: "10px",
+              marginBottom: "10px"
+            }}>
+              <div style={{
+                width: `${percent}%`,
+                height: "100%",
+                background: kidColors[kid],
+                borderRadius: "10px"
+              }} />
+            </div>
 
+            <div style={{ fontSize: "13px", marginBottom: "10px" }}>
+              {done} / {total} completed
+            </div>
+
+            {/* CHORES */}
             {kidChores.map(chore => (
               <div
                 key={chore.id}
@@ -164,16 +234,12 @@ export default function ChoresPage({ goHome }) {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  padding: "10px 0",
-                  borderBottom: "1px solid #eee",
+                  padding: "8px 0",
                   cursor: "pointer"
                 }}
               >
                 <div>{chore.text}</div>
-
-                <div style={{ fontSize: "18px" }}>
-                  {chore.done ? "✅" : "⬜"}
-                </div>
+                <div>{chore.done ? "✅" : "⬜"}</div>
               </div>
             ))}
           </div>
