@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbynS2I5zx05kzrgvtAQ7RXyohpJiRX6A0E1rkfih__cXyKQMEbEVDAbcxz2PsYLXDYe/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyX2N0YU9GUrn38IjUU4iucTq5dFQ4EcPaGjAnwcLMdMdNsNn2wq8Ni7McYSvj1vQQA/exec";
 
 export default function ChoresPage() {
   const [kids] = useState(["Sam", "Kade", "Ava"]);
   const [chores, setChores] = useState([]);
-
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // 🔄 LOAD CHORES
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -22,7 +20,8 @@ export default function ChoresPage() {
             done: row[3] === true || row[3] === "TRUE"
           }));
           setChores(formatted);
-        });
+        })
+        .catch(err => console.error("Chores load error:", err));
     };
 
     loadData();
@@ -30,7 +29,6 @@ export default function ChoresPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -46,7 +44,6 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE
   const toggleChore = (chore) => {
     fetch(API_URL, {
       method: "POST",
@@ -64,7 +61,6 @@ export default function ChoresPage() {
         Chores
       </div>
 
-      {/* ADD */}
       <div style={{
         background: "#fff",
         padding: "15px",
@@ -77,22 +73,13 @@ export default function ChoresPage() {
             placeholder="Chore..."
             value={newChore}
             onChange={(e) => setNewChore(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
+            style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
           />
 
           <select
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
+            style={{ padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
           >
             <option value="">Kid</option>
             {kids.map(k => <option key={k}>{k}</option>)}
@@ -110,7 +97,6 @@ export default function ChoresPage() {
         </div>
       </div>
 
-      {/* LIST */}
       <div style={{
         background: "#fff",
         borderRadius: "20px",
@@ -129,10 +115,7 @@ export default function ChoresPage() {
               cursor: "pointer"
             }}
           >
-            <div>
-              {chore.assignedTo}: {chore.text}
-            </div>
-
+            <div>{chore.assignedTo}: {chore.text}</div>
             <div>{chore.done ? "✅" : "⬜"}</div>
           </div>
         ))}
