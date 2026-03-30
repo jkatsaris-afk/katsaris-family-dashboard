@@ -33,7 +33,7 @@ export default function MediaPage() {
     <div style={{ padding: "20px" }}>
       
       {/* HEADER */}
-      <div style={{ fontWeight: "700", marginBottom: "15px" }}>
+      <div style={{ fontWeight: "700", marginBottom: "15px", fontSize: "18px" }}>
         Media
       </div>
 
@@ -50,13 +50,16 @@ export default function MediaPage() {
             style={{
               background: app.color,
               color: "#fff",
-              padding: "25px",
+              height: "150px", // 🔥 taller tiles
               borderRadius: "18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               textAlign: "center",
               cursor: "pointer",
               fontWeight: "600",
-              fontSize: "16px",
-              boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+              fontSize: "18px",
+              boxShadow: "0 12px 22px rgba(0,0,0,0.25)",
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
@@ -64,6 +67,12 @@ export default function MediaPage() {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "scale(1)";
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "scale(0.97)";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
             }}
           >
             {app.name}
