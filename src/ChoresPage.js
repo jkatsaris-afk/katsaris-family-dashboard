@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec;
 
 const kidColors = {
   Sam: "#4f8cff",
@@ -64,77 +64,133 @@ export default function ChoresPage() {
     });
   };
 
+  // 🏆 LEADERBOARD
+  const leaderboard = kids.map(kid => {
+    const doneCount = chores.filter(c => c.assignedTo === kid && c.done).length;
+    return { kid, doneCount };
+  });
+
+  const max = Math.max(...leaderboard.map(l => l.doneCount), 1);
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#eef1f5"
-    }}>
+    <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
-      {/* 🔥 ADD CHORE CARD */}
-      <div style={{
-        background: "#fff",
-        padding: "15px",
-        borderRadius: "18px",
-        marginBottom: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-      }}>
+      <div style={{ padding: "20px" }}>
+
+        {/* 🏆 LEADERBOARD */}
         <div style={{
-          fontWeight: "600",
-          marginBottom: "10px"
+          background: "#fff",
+          padding: "20px",
+          borderRadius: "20px",
+          marginBottom: "20px",
+          boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
         }}>
-          Add Chore
+          <div style={{
+            marginBottom: "15px",
+            fontWeight: "600"
+          }}>
+            🏆 Leaderboard
+          </div>
+
+          {leaderboard
+            .sort((a, b) => b.doneCount - a.doneCount)
+            .map((item, index) => {
+              const width = (item.doneCount / max) * 100;
+              const isTop = index === 0;
+
+              return (
+                <div key={item.kid} style={{ marginBottom: "12px" }}>
+                  
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "4px",
+                    fontSize: "14px",
+                    fontWeight: isTop ? "600" : "500"
+                  }}>
+                    <span>
+                      {isTop ? "👑 " : ""}
+                      {item.kid}
+                    </span>
+                    <span>{item.doneCount}</span>
+                  </div>
+
+                  <div style={{
+                    height: "10px",
+                    background: "#eee",
+                    borderRadius: "999px"
+                  }}>
+                    <div style={{
+                      width: `${width}%`,
+                      height: "100%",
+                      borderRadius: "999px",
+                      background: isTop
+                        ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+                        : `linear-gradient(90deg, ${kidColors[item.kid]}, #a5b4fc)`
+                    }} />
+                  </div>
+                </div>
+              );
+            })}
         </div>
 
+        {/* ➕ ADD CHORE CARD */}
         <div style={{
-          display: "flex",
-          gap: "10px"
+          background: "#fff",
+          padding: "15px",
+          borderRadius: "18px",
+          marginBottom: "20px",
+          boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
         }}>
-          <input
-            placeholder="Enter chore..."
-            value={newChore}
-            onChange={(e) => setNewChore(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd",
-              fontSize: "14px"
-            }}
-          />
+          <div style={{ fontWeight: "600", marginBottom: "10px" }}>
+            Add Chore
+          </div>
 
-          <select
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
-          >
-            <option value="">Kid</option>
-            {kids.map(k => (
-              <option key={k}>{k}</option>
-            ))}
-          </select>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <input
+              placeholder="Enter chore..."
+              value={newChore}
+              onChange={(e) => setNewChore(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: "10px",
+                border: "1px solid #ddd"
+              }}
+            />
 
-          <button
-            onClick={addChore}
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: "none",
-              background: "#4f8cff",
-              color: "#fff",
-              cursor: "pointer"
-            }}
-          >
-            Add
-          </button>
+            <select
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              style={{
+                padding: "10px",
+                borderRadius: "10px",
+                border: "1px solid #ddd"
+              }}
+            >
+              <option value="">Kid</option>
+              {kids.map(k => (
+                <option key={k}>{k}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={addChore}
+              style={{
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: "none",
+                background: "#4f8cff",
+                color: "#fff",
+                cursor: "pointer"
+              }}
+            >
+              Add
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 👇 KID DASHBOARD */}
-      <div style={{ padding: "0 20px 20px" }}>
+        {/* 👇 KID DASHBOARD */}
         {kids.map(kid => {
           const kidChores = chores.filter(c => c.assignedTo === kid);
           const done = kidChores.filter(c => c.done).length;
@@ -149,8 +205,6 @@ export default function ChoresPage() {
               marginBottom: "20px",
               boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
             }}>
-
-              {/* NAME */}
               <div style={{
                 fontWeight: "600",
                 marginBottom: "10px",
@@ -159,7 +213,6 @@ export default function ChoresPage() {
                 {kid}
               </div>
 
-              {/* PROGRESS */}
               <div style={{
                 height: "8px",
                 background: "#eee",
@@ -178,7 +231,6 @@ export default function ChoresPage() {
                 {done} / {total} completed
               </div>
 
-              {/* CHORES */}
               {kidChores.map(chore => (
                 <div
                   key={chore.id}
