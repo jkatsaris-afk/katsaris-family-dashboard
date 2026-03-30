@@ -4,67 +4,30 @@ export default function UpcomingEvents() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const ICS_URL =
-      "https://calendar.google.com/calendar/ical/family17054290429573763975%40group.calendar.google.com/public/basic.ics";
+    const API_KEY = "AIzaSyBlYymKmOE64L-nCNQqYmY7rOilcB1fauk";
 
-    fetch(`https://corsproxy.io/?${encodeURIComponent(ICS_URL)}`)
-      .then((res) => res.text())
+    const CALENDAR_ID =
+      "family17054290429573763975@group.calendar.google.com";
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
+      CALENDAR_ID
+    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&maxResults=5`;
+
+    fetch(url)
+      .then((res) => res.json())
       .then((data) => {
-        console.log("RAW DATA START:", data.slice(0, 500));
+        console.log("API RESPONSE:", data);
 
-        const now = new Date();
+        const items = data.items || [];
 
-        const eventsRaw = data.split("BEGIN:VEVENT").slice(1);
+        const parsed = items.map((e) => ({
+          title: e.summary,
+          date: new Date(e.start.dateTime || e.start.date),
+        }));
 
-        const parsed = eventsRaw.map((event) => {
-          const getValue = (key) => {
-            const match = event.match(new RegExp(`${key}[^:]*:(.*)`));
-            return match ? match[1].trim() : null;
-          };
-
-          const title = getValue("SUMMARY");
-          const rawDate = getValue("DTSTART");
-
-          if (!title || !rawDate) return null;
-
-          let clean = rawDate.replace("Z", "");
-
-          let date;
-
-          try {
-            if (clean.includes("T")) {
-              date = new Date(
-                clean.substring(0, 4),
-                clean.substring(4, 6) - 1,
-                clean.substring(6, 8),
-                clean.substring(9, 11) || 0,
-                clean.substring(11, 13) || 0
-              );
-            } else {
-              date = new Date(
-                clean.substring(0, 4),
-                clean.substring(4, 6) - 1,
-                clean.substring(6, 8)
-              );
-            }
-          } catch {
-            return null;
-          }
-
-          return { title, date };
-        });
-
-        const filtered = parsed
-          .filter(Boolean)
-          .filter((e) => e.date >= now)
-          .sort((a, b) => a.date - b.date)
-          .slice(0, 5);
-
-        console.log("PARSED EVENTS:", filtered);
-
-        setEvents(filtered);
+        setEvents(parsed);
       })
-      .catch((err) => console.error("FETCH ERROR:", err));
+      .catch((err) => console.error("ERROR:", err));
   }, []);
 
   const formatDate = (date) => {
@@ -96,6 +59,7 @@ export default function UpcomingEvents() {
         boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
       }}
     >
+      {/* HEADER */}
       <div
         style={{
           display: "flex",
@@ -126,6 +90,7 @@ export default function UpcomingEvents() {
         </button>
       </div>
 
+      {/* EVENTS */}
       {events.length === 0 && (
         <div style={{ color: "#999" }}>No upcoming events</div>
       )}
@@ -139,8 +104,16 @@ export default function UpcomingEvents() {
               i !== events.length - 1 ? "1px solid #eee" : "none",
           }}
         >
-          <div style={{ fontWeight: "500" }}>{e.title}</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>
+          <div style={{ fontWeight: "500" }}>
+            {e.title}
+          </div>
+
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#666",
+            }}
+          >
             {formatDate(e.date)}
           </div>
         </div>
