@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import ChoresPage from "./ChoresPage";
+import UpcomingEvents from "./UpcomingEvents";
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -35,7 +36,7 @@ export default function App() {
         Katsaris Home
       </div>
 
-      {/* 🔥 ORIGINAL TILE STYLE (PERSISTENT) */}
+      {/* 🔥 TILE APP BAR (PERSISTENT) */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
@@ -58,7 +59,7 @@ export default function App() {
                 textAlign: "center",
                 cursor: "pointer",
 
-                // 🔥 ACTIVE FEEL
+                // ACTIVE STYLE
                 opacity: isActive ? 1 : 0.85,
                 transform: isActive ? "scale(1.05)" : "scale(1)",
 
@@ -92,15 +93,19 @@ export default function App() {
 
         {/* HOME */}
         {page === "home" && (
-          <div style={{
-            background: "#fff",
-            padding: "20px",
-            borderRadius: "20px",
-            boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-          }}>
-            <h3>Welcome Home</h3>
-            <p>Select an app above to get started.</p>
-          </div>
+          <>
+            <UpcomingEvents />
+
+            <div style={{
+              background: "#fff",
+              padding: "20px",
+              borderRadius: "20px",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+            }}>
+              <h3>Welcome Home</h3>
+              <p>Select an app above to get started.</p>
+            </div>
+          </>
         )}
 
         {/* 📅 CALENDAR */}
@@ -111,6 +116,31 @@ export default function App() {
             overflow: "hidden",
             boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
           }}>
+
+            {/* HEADER */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "15px"
+            }}>
+              <strong>Calendar</strong>
+
+              <button
+                onClick={() => window.open("https://calendar.google.com", "_blank")}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#10b981",
+                  color: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                Open Full
+              </button>
+            </div>
+
+            {/* IFRAME */}
             <iframe
               src="https://calendar.google.com/calendar/embed?src=primary&ctz=America/Los_Angeles"
               style={{
