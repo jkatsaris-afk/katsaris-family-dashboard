@@ -5,12 +5,16 @@ export default function UpcomingEvents() {
 
   useEffect(() => {
     const API_KEY = "AIzaSyBlYymKmOE64L-nCNQqYmY7rOilcB1fauk";
+
     const CALENDAR_ID =
       "family17054290429573763975@group.calendar.google.com";
 
+    // 🔥 ONLY FUTURE EVENTS
+    const now = new Date().toISOString();
+
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
       CALENDAR_ID
-    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&maxResults=5`;
+    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&timeMin=${now}&maxResults=5`;
 
     fetch(url)
       .then((res) => res.json())
@@ -33,7 +37,8 @@ export default function UpcomingEvents() {
         });
 
         setEvents(parsed);
-      });
+      })
+      .catch((err) => console.error("ERROR:", err));
   }, []);
 
   const today = new Date().toDateString();
@@ -116,7 +121,8 @@ export default function UpcomingEvents() {
 
               <div style={{
                 fontSize: "12px",
-                color: "#666"
+                color: "#666",
+                textAlign: "right"
               }}>
                 {e.date.toLocaleDateString(undefined, {
                   weekday: "short",
