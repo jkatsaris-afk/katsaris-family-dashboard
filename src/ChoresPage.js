@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyX2N0YU9GUrn38IjUU4iucTq5dFQ4EcPaGjAnwcLMdMdNsNn2wq8Ni7McYSvj1vQQA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzWqy_uDCfHALqRilZOdwT1EqHsHGQKdWolpiyUpHy1On5yO_j6yBAwQ1IoFp1RmyXp/exec";
 
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
@@ -12,9 +12,11 @@ export default function ChoresPage() {
   };
 
   const [chores, setChores] = useState([]);
+  const [allChores, setAllChores] = useState([]);
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
+  // 🔄 LOAD DATA
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -24,10 +26,23 @@ export default function ChoresPage() {
             id: row[0],
             assignedTo: row[1],
             text: row[2],
-            done: row[3] === true || row[3] === "TRUE"
+            done: row[3] === true || row[3] === "TRUE",
+            date: row[4]
           }));
-          setChores(formatted);
-        });
+
+          setAllChores(formatted);
+
+          // 🔥 ONLY SHOW TODAY'S CHORES
+          const today = new Date().toDateString();
+
+          const todays = formatted.filter(c => {
+            if (!c.date) return true;
+            return new Date(c.date).toDateString() === today;
+          });
+
+          setChores(todays);
+        })
+        .catch(err => console.error("Load error:", err));
     };
 
     loadData();
@@ -35,6 +50,7 @@ export default function ChoresPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -50,6 +66,7 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
+  // ✅ TOGGLE
   const toggleChore = (chore) => {
     fetch(API_URL, {
       method: "POST",
@@ -61,9 +78,12 @@ export default function ChoresPage() {
     });
   };
 
-  // 🏆 Leaderboard
+  // 🏆 LEADERBOARD (ALL TIME)
   const leaderboard = kids.map(kid => {
-    const score = chores.filter(c => c.assignedTo === kid && c.done).length;
+    const score = allChores.filter(
+      c => c.assignedTo === kid && c.done
+    ).length;
+
     return { name: kid, score };
   }).sort((a, b) => b.score - a.score);
 
@@ -85,7 +105,7 @@ export default function ChoresPage() {
         </div>
 
         {leaderboard.map((p, i) => (
-          <div key={i} style={{ marginBottom: "10px" }}>
+          <div key={i} style={{ marginBottom: "12px" }}>
 
             <div style={{
               display: "flex",
@@ -99,7 +119,6 @@ export default function ChoresPage() {
               <div>{p.score}</div>
             </div>
 
-            {/* progress bar */}
             <div style={{
               height: "6px",
               background: "#e5e7eb",
@@ -180,7 +199,6 @@ export default function ChoresPage() {
               boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
               border: "1px solid rgba(0,0,0,0.05)"
             }}>
-              {/* NAME */}
               <div style={{
                 fontWeight: "700",
                 marginBottom: "6px"
@@ -188,7 +206,7 @@ export default function ChoresPage() {
                 {kid}
               </div>
 
-              {/* DIVIDER */}
+              {/* divider */}
               <div style={{
                 height: "2px",
                 background: "rgba(0,0,0,0.1)",
@@ -196,7 +214,6 @@ export default function ChoresPage() {
                 borderRadius: "2px"
               }} />
 
-              {/* TASKS */}
               {kidChores.map(chore => (
                 <div
                   key={chore.id}
