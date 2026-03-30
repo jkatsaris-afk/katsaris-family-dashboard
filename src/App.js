@@ -16,7 +16,7 @@ export default function App() {
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-    { name: "Calendar", icon: <Calendar />, link: "https://calendar.google.com", color: "#10b981" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Budget", icon: <DollarSign />, color: "#8b5cf6" },
     { name: "Water", icon: <Droplet />, color: "#06b6d4" },
@@ -35,7 +35,7 @@ export default function App() {
         Katsaris Home
       </div>
 
-      {/* 🔥 APP BAR (PERSISTENT) */}
+      {/* 🔥 APP BAR */}
       <div style={{
         display: "flex",
         gap: "12px",
@@ -50,11 +50,7 @@ export default function App() {
               key={i}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                if (app.link) {
-                  window.open(app.link, "_blank");
-                } else if (app.page) {
-                  setPage(app.page);
-                }
+                if (app.page) setPage(app.page);
               }}
               style={{
                 minWidth: "100px",
@@ -63,12 +59,19 @@ export default function App() {
                 textAlign: "center",
                 cursor: "pointer",
 
-                // 🔥 ACTIVE STYLE
-                background: isActive ? "#111" : "#fff",
-                color: isActive ? "#fff" : "#000",
+                // 🎨 STYLE
+                background: isActive
+                  ? "#111"
+                  : `${app.color}20`,
+
+                color: isActive ? "#fff" : "#111",
+
+                border: isActive
+                  ? "none"
+                  : `1px solid ${app.color}40`,
 
                 boxShadow: isActive
-                  ? "0 6px 14px rgba(0,0,0,0.15)"
+                  ? "0 6px 14px rgba(0,0,0,0.2)"
                   : "0 4px 10px rgba(0,0,0,0.05)",
 
                 transition: "all 0.2s ease"
@@ -76,7 +79,8 @@ export default function App() {
             >
               <div style={{
                 fontSize: "20px",
-                marginBottom: "6px"
+                marginBottom: "6px",
+                color: isActive ? "#fff" : app.color
               }}>
                 {app.icon}
               </div>
@@ -94,6 +98,8 @@ export default function App() {
 
       {/* 🔥 PAGE CONTENT */}
       <div style={{ padding: "20px" }}>
+
+        {/* HOME */}
         {page === "home" && (
           <div style={{
             background: "#fff",
@@ -106,7 +112,31 @@ export default function App() {
           </div>
         )}
 
+        {/* 📅 CALENDAR (EMBEDDED) */}
+        {page === "calendar" && (
+          <div style={{
+            background: "#fff",
+            borderRadius: "20px",
+            overflow: "hidden",
+            boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+          }}>
+            <iframe
+              src="https://calendar.google.com/calendar/embed?src=primary&ctz=America/Los_Angeles"
+              style={{
+                border: 0,
+                width: "100%",
+                height: "700px"
+              }}
+              frameBorder="0"
+              scrolling="no"
+              title="Google Calendar"
+            />
+          </div>
+        )}
+
+        {/* 🧹 CHORES */}
         {page === "chores" && <ChoresPage />}
+
       </div>
 
     </div>
