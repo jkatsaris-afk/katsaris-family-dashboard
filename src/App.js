@@ -1,5 +1,9 @@
 import React from "react";
-import { motion } from "framer-motion";
+import ChoresPage from "./ChoresPage";
+
+export default function App() {
+  return <ChoresPage />;
+}
 import {
   Home,
   Calendar,
