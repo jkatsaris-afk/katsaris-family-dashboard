@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzhcPTLS8wpLA-4OQEbqd-05p6cBRcL-RRbLDxf5qGSc3cC_Iz_Vfv0E0qwV3XkcXRx/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbynS2I5zx05kzrgvtAQ7RXyohpJiRX6A0E1rkfih__cXyKQMEbEVDAbcxz2PsYLXDYe/exec";
 
 export default function ShoppingPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
 
-  // 🔄 LOAD SHOPPING DATA
+  // 🔄 LOAD SHOPPING
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=shopping")
-        .then((res) => res.json())
-        .then((data) => {
-          const formatted = data.slice(1).map((row) => ({
+        .then(res => res.json())
+        .then(data => {
+          const formatted = data.slice(1).map(row => ({
             id: row[0],
             text: row[1],
-            done: row[2] === true || row[2] === "TRUE",
+            done: row[2] === true || row[2] === "TRUE"
           }));
 
           setItems(formatted);
@@ -36,21 +36,21 @@ export default function ShoppingPage() {
       body: JSON.stringify({
         shopping: true,
         item: newItem,
-        done: false,
+        done: false
       }),
     });
 
     setNewItem("");
   };
 
-  // ✅ TOGGLE ITEM
+  // ✅ TOGGLE
   const toggleItem = (item) => {
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         updateShopping: true,
         id: item.id,
-        done: !item.done,
+        done: !item.done
       }),
     });
   };
@@ -58,12 +58,11 @@ export default function ShoppingPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* HEADER */}
       <div style={{ fontWeight: "600", marginBottom: "15px" }}>
         Shopping List
       </div>
 
-      {/* ADD ITEM */}
+      {/* ADD */}
       <div style={{
         background: "#fff",
         padding: "15px",
@@ -84,17 +83,13 @@ export default function ShoppingPage() {
             }}
           />
 
-          <button
-            onClick={addItem}
-            style={{
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: "none",
-              background: "#3b82f6",
-              color: "#fff",
-              cursor: "pointer"
-            }}
-          >
+          <button onClick={addItem} style={{
+            padding: "10px 14px",
+            borderRadius: "10px",
+            border: "none",
+            background: "#3b82f6",
+            color: "#fff"
+          }}>
             Add
           </button>
         </div>
@@ -107,7 +102,7 @@ export default function ShoppingPage() {
         padding: "20px",
         boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
       }}>
-        {items.map((item) => (
+        {items.map(item => (
           <div
             key={item.id}
             onClick={() => toggleItem(item)}
@@ -115,8 +110,8 @@ export default function ShoppingPage() {
               display: "flex",
               justifyContent: "space-between",
               padding: "10px 0",
-              cursor: "pointer",
-              borderBottom: "1px solid #eee"
+              borderBottom: "1px solid #eee",
+              cursor: "pointer"
             }}
           >
             <div style={{
@@ -126,9 +121,7 @@ export default function ShoppingPage() {
               {item.text}
             </div>
 
-            <div>
-              {item.done ? "✅" : "⬜"}
-            </div>
+            <div>{item.done ? "✅" : "⬜"}</div>
           </div>
         ))}
       </div>
