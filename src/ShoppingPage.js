@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbynS2I5zx05kzrgvtAQ7RXyohpJiRX6A0E1rkfih__cXyKQMEbEVDAbcxz2PsYLXDYe/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyX2N0YU9GUrn38IjUU4iucTq5dFQ4EcPaGjAnwcLMdMdNsNn2wq8Ni7McYSvj1vQQA/exec";
 
 export default function ShoppingPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
 
-  // 🔄 LOAD SHOPPING
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=shopping")
@@ -17,9 +16,9 @@ export default function ShoppingPage() {
             text: row[1],
             done: row[2] === true || row[2] === "TRUE"
           }));
-
           setItems(formatted);
-        });
+        })
+        .catch(err => console.error("Shopping load error:", err));
     };
 
     loadData();
@@ -27,7 +26,6 @@ export default function ShoppingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD ITEM
   const addItem = () => {
     if (!newItem) return;
 
@@ -43,7 +41,6 @@ export default function ShoppingPage() {
     setNewItem("");
   };
 
-  // ✅ TOGGLE
   const toggleItem = (item) => {
     fetch(API_URL, {
       method: "POST",
@@ -57,30 +54,22 @@ export default function ShoppingPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-
       <div style={{ fontWeight: "600", marginBottom: "15px" }}>
         Shopping List
       </div>
 
-      {/* ADD */}
       <div style={{
         background: "#fff",
         padding: "15px",
         borderRadius: "15px",
-        marginBottom: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+        marginBottom: "20px"
       }}>
         <div style={{ display: "flex", gap: "10px" }}>
           <input
             placeholder="Add item..."
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
+            style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
           />
 
           <button onClick={addItem} style={{
@@ -95,12 +84,10 @@ export default function ShoppingPage() {
         </div>
       </div>
 
-      {/* LIST */}
       <div style={{
         background: "#fff",
         borderRadius: "20px",
-        padding: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+        padding: "20px"
       }}>
         {items.map(item => (
           <div
@@ -115,8 +102,7 @@ export default function ShoppingPage() {
             }}
           >
             <div style={{
-              textDecoration: item.done ? "line-through" : "none",
-              color: item.done ? "#999" : "#000"
+              textDecoration: item.done ? "line-through" : "none"
             }}>
               {item.text}
             </div>
@@ -126,7 +112,6 @@ export default function ShoppingPage() {
         ))}
       </div>
 
-      {/* 🛒 WALMART BUTTON */}
       <div style={{ marginTop: "20px" }}>
         <button
           onClick={() => window.open("https://www.walmart.com", "_blank")}
@@ -137,8 +122,7 @@ export default function ShoppingPage() {
             border: "none",
             background: "#10b981",
             color: "#fff",
-            fontWeight: "600",
-            cursor: "pointer"
+            fontWeight: "600"
           }}
         >
           🛒 Open Walmart
