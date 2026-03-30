@@ -10,61 +10,63 @@ export default function UpcomingEvents() {
     fetch(`https://corsproxy.io/?${encodeURIComponent(ICS_URL)}`)
       .then((res) => res.text())
       .then((data) => {
-        console.log("RAW DATA:", data);
+        console.log("RAW DATA START:", data.slice(0, 500));
 
         const now = new Date();
 
-        const parsed = data
-          .split("BEGIN:VEVENT")
-          .slice(1)
-          .map((event) => {
-            const title = event.match(/SUMMARY:(.*)/)?.[1];
+        const eventsRaw = data.split("BEGIN:VEVENT").slice(1);
 
-            // Handles ALL Google date formats
-            const rawDate = event.match(/DTSTART[^:]*:(.*)/)?.[1];
+        const parsed = eventsRaw.map((event) => {
+          const getValue = (key) => {
+            const match = event.match(new RegExp(`${key}[^:]*:(.*)`));
+            return match ? match[1].trim() : null;
+          };
 
-            if (!rawDate || !title) return null;
+          const title = getValue("SUMMARY");
+          const rawDate = getValue("DTSTART");
 
-            let cleanDate = rawDate.replace("Z", "");
+          if (!title || !rawDate) return null;
 
-            let date;
+          let clean = rawDate.replace("Z", "");
 
-            if (cleanDate.includes("T")) {
-              // Timed event
+          let date;
+
+          try {
+            if (clean.includes("T")) {
               date = new Date(
-                cleanDate.substring(0, 4),
-                cleanDate.substring(4, 6) - 1,
-                cleanDate.substring(6, 8),
-                cleanDate.substring(9, 11) || 0,
-                cleanDate.substring(11, 13) || 0
+                clean.substring(0, 4),
+                clean.substring(4, 6) - 1,
+                clean.substring(6, 8),
+                clean.substring(9, 11) || 0,
+                clean.substring(11, 13) || 0
               );
             } else {
-              // All-day event
               date = new Date(
-                cleanDate.substring(0, 4),
-                cleanDate.substring(4, 6) - 1,
-                cleanDate.substring(6, 8)
+                clean.substring(0, 4),
+                clean.substring(4, 6) - 1,
+                clean.substring(6, 8)
               );
             }
+          } catch {
+            return null;
+          }
 
-            return { title, date };
-          })
+          return { title, date };
+        });
+
+        const filtered = parsed
           .filter(Boolean)
-
-          // 🔥 THIS FIXES YOUR ISSUE
           .filter((e) => e.date >= now)
-
           .sort((a, b) => a.date - b.date)
           .slice(0, 5);
 
-        console.log("PARSED EVENTS:", parsed);
+        console.log("PARSED EVENTS:", filtered);
 
-        setEvents(parsed);
+        setEvents(filtered);
       })
       .catch((err) => console.error("FETCH ERROR:", err));
   }, []);
 
-  // 📅 Format Date
   const formatDate = (date) => {
     const now = new Date();
 
@@ -94,18 +96,15 @@ export default function UpcomingEvents() {
         boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
       }}
     >
-      {/* HEADER */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           marginBottom: "15px",
         }}
       >
         <strong>Upcoming</strong>
 
-        {/* ➕ ADD EVENT */}
         <button
           onClick={() =>
             window.open(
@@ -127,7 +126,6 @@ export default function UpcomingEvents() {
         </button>
       </div>
 
-      {/* EVENTS */}
       {events.length === 0 && (
         <div style={{ color: "#999" }}>No upcoming events</div>
       )}
@@ -141,22 +139,8 @@ export default function UpcomingEvents() {
               i !== events.length - 1 ? "1px solid #eee" : "none",
           }}
         >
-          <div
-            style={{
-              fontWeight: "500",
-              fontSize: "14px",
-            }}
-          >
-            {e.title}
-          </div>
-
-          <div
-            style={{
-              fontSize: "12px",
-              color: "#666",
-              marginTop: "2px",
-            }}
-          >
+          <div style={{ fontWeight: "500" }}>{e.title}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
             {formatDate(e.date)}
           </div>
         </div>
