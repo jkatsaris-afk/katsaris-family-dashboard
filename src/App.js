@@ -59,7 +59,6 @@ export default function App() {
                 textAlign: "center",
                 cursor: "pointer",
 
-                // ACTIVE STYLE
                 opacity: isActive ? 1 : 0.85,
                 transform: isActive ? "scale(1.05)" : "scale(1)",
 
@@ -104,57 +103,9 @@ export default function App() {
           </div>
         )}
 
-        {/* 📅 CALENDAR PAGE */}
+        {/* 📅 CALENDAR */}
         {page === "calendar" && (
-          <>
-            {/* UPCOMING EVENTS */}
-            <UpcomingEvents />
-
-            {/* FULL CALENDAR */}
-            <div style={{
-              background: "#fff",
-              borderRadius: "20px",
-              overflow: "hidden",
-              boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-            }}>
-
-              {/* HEADER */}
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "15px"
-              }}>
-                <strong>Calendar</strong>
-
-                <button
-                  onClick={() => window.open("https://calendar.google.com", "_blank")}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: "8px",
-                    border: "none",
-                    background: "#10b981",
-                    color: "#fff",
-                    cursor: "pointer"
-                  }}
-                >
-                  Open Full
-                </button>
-              </div>
-
-              {/* IFRAME */}
-              <iframe
-                src="https://calendar.google.com/calendar/embed?src=primary&ctz=America/Los_Angeles"
-                style={{
-                  border: 0,
-                  width: "100%",
-                  height: "700px"
-                }}
-                frameBorder="0"
-                scrolling="no"
-                title="Google Calendar"
-              />
-            </div>
-          </>
+          <UpcomingEvents />
         )}
 
         {/* 🧹 CHORES */}
