@@ -18,7 +18,11 @@ const apps = [
     link: "https://calendar.google.com"
   },
   { 
-  { name: "Chores", icon: <ClipboardList />, color: "#f97316",},
+  {
+  name: "Chores",
+  icon: <ClipboardList />,
+  color: "#f97316",
+},
   { name: "Budget", icon: <DollarSign />, color: "#8b5cf6" },
   { name: "Water System", icon: <Droplet />, color: "#06b6d4" },
   { name: "Family", icon: <Users />, color: "#ec4899" },
