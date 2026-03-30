@@ -35,11 +35,11 @@ export default function App() {
         Katsaris Home
       </div>
 
-      {/* 🔥 APP BAR */}
+      {/* 🔥 ORIGINAL TILE STYLE (PERSISTENT) */}
       <div style={{
-        display: "flex",
-        gap: "12px",
-        overflowX: "auto",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+        gap: "15px",
         padding: "0 20px 20px"
       }}>
         {apps.map((app, i) => {
@@ -49,45 +49,36 @@ export default function App() {
             <motion.div
               key={i}
               whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (app.page) setPage(app.page);
-              }}
+              onClick={() => app.page && setPage(app.page)}
               style={{
-                minWidth: "100px",
-                padding: "14px",
-                borderRadius: "16px",
+                background: app.color,
+                color: "white",
+                padding: "20px",
+                borderRadius: "18px",
                 textAlign: "center",
                 cursor: "pointer",
 
-                // 🎨 STYLE
-                background: isActive
-                  ? "#111"
-                  : `${app.color}20`,
-
-                color: isActive ? "#fff" : "#111",
-
-                border: isActive
-                  ? "none"
-                  : `1px solid ${app.color}40`,
+                // 🔥 ACTIVE FEEL
+                opacity: isActive ? 1 : 0.85,
+                transform: isActive ? "scale(1.05)" : "scale(1)",
 
                 boxShadow: isActive
-                  ? "0 6px 14px rgba(0,0,0,0.2)"
-                  : "0 4px 10px rgba(0,0,0,0.05)",
+                  ? "0 10px 20px rgba(0,0,0,0.2)"
+                  : "0 6px 12px rgba(0,0,0,0.1)",
 
                 transition: "all 0.2s ease"
               }}
             >
               <div style={{
-                fontSize: "20px",
-                marginBottom: "6px",
-                color: isActive ? "#fff" : app.color
+                fontSize: "26px",
+                marginBottom: "10px"
               }}>
                 {app.icon}
               </div>
 
               <div style={{
-                fontSize: "12px",
-                fontWeight: "500"
+                fontWeight: "600",
+                fontSize: "13px"
               }}>
                 {app.name}
               </div>
@@ -112,7 +103,7 @@ export default function App() {
           </div>
         )}
 
-        {/* 📅 CALENDAR (EMBEDDED) */}
+        {/* 📅 CALENDAR */}
         {page === "calendar" && (
           <div style={{
             background: "#fff",
