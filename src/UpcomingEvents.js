@@ -9,11 +9,15 @@ export default function UpcomingEvents() {
     const CALENDAR_ID =
       "family17054290429573763975@group.calendar.google.com";
 
+    // 🔥 NOW → 2 WEEKS FROM NOW
     const now = new Date().toISOString();
+    const twoWeeks = new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 14
+    ).toISOString();
 
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
       CALENDAR_ID
-    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&timeMin=${now}&maxResults=6`;
+    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&timeMin=${now}&timeMax=${twoWeeks}&maxResults=10`;
 
     fetch(url)
       .then((res) => res.json())
@@ -72,19 +76,21 @@ export default function UpcomingEvents() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-      {/* 🔥 TODAY SECTION (always shows) */}
+      {/* 🔥 TODAY SECTION */}
       <div>
         <div style={{ fontWeight: "600", marginBottom: "10px" }}>
           Today
         </div>
 
         {todayEvents.length === 0 ? (
-          <div style={{
-            background: "#fff",
-            padding: "15px",
-            borderRadius: "15px",
-            color: "#888"
-          }}>
+          <div
+            style={{
+              background: "#fff",
+              padding: "15px",
+              borderRadius: "15px",
+              color: "#888",
+            }}
+          >
             No events today
           </div>
         ) : (
@@ -111,17 +117,19 @@ export default function UpcomingEvents() {
         )}
       </div>
 
-      {/* 📅 UPCOMING TILES */}
+      {/* 📅 UPCOMING TILE GRID */}
       <div>
         <div style={{ fontWeight: "600", marginBottom: "10px" }}>
-          Upcoming
+          Upcoming (Next 2 Weeks)
         </div>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-          gap: "12px"
-        }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gap: "12px",
+          }}
+        >
           {events.map((e, i) => (
             <div
               key={i}
@@ -132,36 +140,65 @@ export default function UpcomingEvents() {
                 boxShadow: "0 6px 12px rgba(0,0,0,0.05)",
               }}
             >
-              <div style={{
-                fontSize: "18px",
-                marginBottom: "5px"
-              }}>
+              <div style={{ fontSize: "18px", marginBottom: "5px" }}>
                 {getIcon(e.title)}
               </div>
 
-              <div style={{
-                fontWeight: "600",
-                fontSize: "14px"
-              }}>
+              <div
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                }}
+              >
                 {e.title}
               </div>
 
-              <div style={{
-                fontSize: "12px",
-                color: "#666",
-                marginTop: "5px"
-              }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  marginTop: "5px",
+                }}
+              >
                 {formatDay(e.date)}
               </div>
 
-              <div style={{
-                fontSize: "12px",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#999",
+                }}
+              >
                 {e.time}
               </div>
             </div>
           ))}
+
+          {/* ➕ ADD EVENT TILE */}
+          <div
+            onClick={() =>
+              window.open(
+                "https://calendar.google.com/calendar/u/0/r/eventedit",
+                "_blank"
+              )
+            }
+            style={{
+              background: "#10b981",
+              color: "white",
+              padding: "15px",
+              borderRadius: "18px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              boxShadow: "0 6px 12px rgba(0,0,0,0.1)",
+              fontWeight: "600",
+            }}
+          >
+            <div style={{ fontSize: "22px" }}>➕</div>
+            <div>Add Event</div>
+          </div>
         </div>
       </div>
     </div>
