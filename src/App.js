@@ -36,7 +36,7 @@ export default function App() {
         Katsaris Home
       </div>
 
-      {/* 🔥 TILE APP BAR (PERSISTENT) */}
+      {/* 🔥 TILE APP BAR */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
@@ -91,68 +91,70 @@ export default function App() {
       {/* 🔥 PAGE CONTENT */}
       <div style={{ padding: "20px" }}>
 
-        {/* HOME */}
+        {/* 🏠 HOME */}
         {page === "home" && (
-          <>
-            <UpcomingEvents />
-
-            <div style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "20px",
-              boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-            }}>
-              <h3>Welcome Home</h3>
-              <p>Select an app above to get started.</p>
-            </div>
-          </>
-        )}
-
-        {/* 📅 CALENDAR */}
-        {page === "calendar" && (
           <div style={{
             background: "#fff",
+            padding: "20px",
             borderRadius: "20px",
-            overflow: "hidden",
             boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
           }}>
-
-            {/* HEADER */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "15px"
-            }}>
-              <strong>Calendar</strong>
-
-              <button
-                onClick={() => window.open("https://calendar.google.com", "_blank")}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: "#10b981",
-                  color: "#fff",
-                  cursor: "pointer"
-                }}
-              >
-                Open Full
-              </button>
-            </div>
-
-            {/* IFRAME */}
-            <iframe
-              src="https://calendar.google.com/calendar/embed?src=primary&ctz=America/Los_Angeles"
-              style={{
-                border: 0,
-                width: "100%",
-                height: "700px"
-              }}
-              frameBorder="0"
-              scrolling="no"
-              title="Google Calendar"
-            />
+            <h3>Welcome Home</h3>
+            <p>Select an app above to get started.</p>
           </div>
+        )}
+
+        {/* 📅 CALENDAR PAGE */}
+        {page === "calendar" && (
+          <>
+            {/* UPCOMING EVENTS */}
+            <UpcomingEvents />
+
+            {/* FULL CALENDAR */}
+            <div style={{
+              background: "#fff",
+              borderRadius: "20px",
+              overflow: "hidden",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+            }}>
+
+              {/* HEADER */}
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "15px"
+              }}>
+                <strong>Calendar</strong>
+
+                <button
+                  onClick={() => window.open("https://calendar.google.com", "_blank")}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "#10b981",
+                    color: "#fff",
+                    cursor: "pointer"
+                  }}
+                >
+                  Open Full
+                </button>
+              </div>
+
+              {/* IFRAME */}
+              <iframe
+                src="https://calendar.google.com/calendar/embed?src=primary&ctz=America/Los_Angeles"
+                style={{
+                  border: 0,
+                  width: "100%",
+                  height: "700px"
+                }}
+                frameBorder="0"
+                scrolling="no"
+                title="Google Calendar"
+              />
+            </div>
+          </>
         )}
 
         {/* 🧹 CHORES */}
