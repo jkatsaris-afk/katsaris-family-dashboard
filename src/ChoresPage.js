@@ -2,17 +2,10 @@ import React, { useState, useEffect } from "react";
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec";
 
-// 🎨 Kid styling
 const kidColors = {
   Sam: "#3b82f6",
   Kade: "#10b981",
   Ava: "#ec4899"
-};
-
-const kidIcons = {
-  Sam: "🟦",
-  Kade: "🟩",
-  Ava: "🟪"
 };
 
 export default function ChoresPage({ goHome }) {
@@ -23,7 +16,7 @@ export default function ChoresPage({ goHome }) {
   const [assignedTo, setAssignedTo] = useState("");
   const [selectedKid, setSelectedKid] = useState("All");
 
-  // 🔄 LOAD
+  // LOAD DATA
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL)
@@ -33,10 +26,8 @@ export default function ChoresPage({ goHome }) {
             id: row[0],
             assignedTo: row[1],
             text: row[2],
-            done: row[3] === true || row[3] === "TRUE",
-            points: row[4] || 0
+            done: row[3] === true || row[3] === "TRUE"
           }));
-
           setChores(formatted);
         });
     };
@@ -46,7 +37,7 @@ export default function ChoresPage({ goHome }) {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD
+  // ADD
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -62,7 +53,7 @@ export default function ChoresPage({ goHome }) {
     setNewChore("");
   };
 
-  // ✅ TOGGLE
+  // TOGGLE
   const toggleChore = (index) => {
     const updated = [...chores];
     updated[index].done = !updated[index].done;
@@ -82,123 +73,131 @@ export default function ChoresPage({ goHome }) {
   };
 
   return (
-    <div style={{ padding: "20px", background: "#f3f4f6", minHeight: "100vh" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#f3f4f6",
+      padding: "20px"
+    }}>
 
-      {/* 🔙 BACK */}
-      <button onClick={goHome} style={{ marginBottom: "20px" }}>
-        ← Back
-      </button>
-
-      <h1 style={{ marginBottom: "20px" }}>Chores</h1>
-
-      {/* 👦 KID TILES */}
+      {/* HEADER */}
       <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+        display: "flex",
+        alignItems: "center",
+        marginBottom: "20px"
+      }}>
+        <button onClick={goHome} style={{ marginRight: "15px" }}>
+          ←
+        </button>
+        <h2 style={{ margin: 0 }}>Chores</h2>
+      </div>
+
+      {/* KID FILTER (clean pills) */}
+      <div style={{
+        display: "flex",
         gap: "10px",
         marginBottom: "20px"
       }}>
-        <div
-          onClick={() => setSelectedKid("All")}
-          style={{
-            padding: "15px",
-            borderRadius: "12px",
-            background: selectedKid === "All" ? "#111" : "#fff",
-            color: selectedKid === "All" ? "#fff" : "#000",
-            textAlign: "center",
-            cursor: "pointer"
-          }}
-        >
-          All
-        </div>
-
-        {kids.map(kid => (
+        {["All", ...kids].map(kid => (
           <div
             key={kid}
             onClick={() => setSelectedKid(kid)}
             style={{
-              padding: "15px",
-              borderRadius: "12px",
-              background: kidColors[kid],
-              color: "#fff",
-              textAlign: "center",
-              cursor: "pointer",
-              opacity: selectedKid === kid ? 1 : 0.6
+              padding: "8px 14px",
+              borderRadius: "20px",
+              background:
+                selectedKid === kid
+                  ? "#111"
+                  : "#e5e7eb",
+              color:
+                selectedKid === kid
+                  ? "#fff"
+                  : "#000",
+              fontSize: "14px",
+              cursor: "pointer"
             }}
           >
-            {kidIcons[kid]} {kid}
+            {kid}
           </div>
         ))}
       </div>
 
-      {/* ➕ ADD TILE */}
+      {/* ADD ROW (clean inline) */}
       <div style={{
-        background: "#fff",
-        padding: "20px",
-        borderRadius: "16px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+        display: "flex",
+        gap: "10px",
+        marginBottom: "20px"
       }}>
         <input
-          placeholder="New Chore"
+          placeholder="New chore..."
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            flex: 1,
+            padding: "10px",
+            borderRadius: "10px",
+            border: "1px solid #ddd"
+          }}
         />
 
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            padding: "10px",
+            borderRadius: "10px",
+            border: "1px solid #ddd"
+          }}
         >
-          <option value="">Assign</option>
-          {kids.map(kid => (
-            <option key={kid} value={kid}>{kid}</option>
+          <option value="">Kid</option>
+          {kids.map(k => (
+            <option key={k}>{k}</option>
           ))}
         </select>
 
         <button onClick={addChore}>Add</button>
       </div>
 
-      {/* 🧹 CHORE TILE GRID */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-        gap: "15px"
-      }}>
-        {chores
-          .filter(c => selectedKid === "All" || c.assignedTo === selectedKid)
-          .map((chore, index) => (
-            <div
-              key={index}
-              onClick={() => toggleChore(index)}
-              style={{
-                padding: "20px",
-                borderRadius: "16px",
-                background: chore.done ? "#d1fae5" : "#fff",
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-                textAlign: "center"
-              }}
-            >
-              <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+      {/* CHORE CARDS */}
+      {chores
+        .filter(c => selectedKid === "All" || c.assignedTo === selectedKid)
+        .map((chore, index) => (
+          <div
+            key={index}
+            onClick={() => toggleChore(index)}
+            style={{
+              background: "#fff",
+              padding: "15px",
+              borderRadius: "16px",
+              marginBottom: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+            }}
+          >
+            <div>
+              <div style={{
+                fontWeight: "600",
+                fontSize: "16px"
+              }}>
                 {chore.text}
               </div>
 
               <div style={{
-                marginTop: "8px",
-                fontSize: "14px",
+                fontSize: "13px",
+                marginTop: "4px",
                 color: kidColors[chore.assignedTo]
               }}>
-                {kidIcons[chore.assignedTo]} {chore.assignedTo}
-              </div>
-
-              <div style={{ marginTop: "10px", fontSize: "20px" }}>
-                {chore.done ? "✅" : "⬜"}
+                {chore.assignedTo}
               </div>
             </div>
-          ))}
-      </div>
+
+            <div style={{ fontSize: "20px" }}>
+              {chore.done ? "✅" : "⬜"}
+            </div>
+          </div>
+        ))}
     </div>
   );
 }
