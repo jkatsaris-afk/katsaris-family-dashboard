@@ -4,8 +4,7 @@ export default function UpcomingEvents() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const API_KEY = "AIzaSyBlYymKmOE64L-nCNQqYmY7rOilcB1fauk";
-
+    const API_KEY = "YOUR_API_KEY";
     const CALENDAR_ID =
       "family17054290429573763975@group.calendar.google.com";
 
@@ -16,108 +15,120 @@ export default function UpcomingEvents() {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        console.log("API RESPONSE:", data);
-
         const items = data.items || [];
 
-        const parsed = items.map((e) => ({
-          title: e.summary,
-          date: new Date(e.start.dateTime || e.start.date),
-        }));
+        const parsed = items.map((e) => {
+          const start = e.start.dateTime || e.start.date;
+
+          return {
+            title: e.summary,
+            date: new Date(start),
+            time: e.start.dateTime
+              ? new Date(start).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })
+              : "All Day",
+          };
+        });
 
         setEvents(parsed);
-      })
-      .catch((err) => console.error("ERROR:", err));
+      });
   }, []);
 
-  const formatDate = (date) => {
-    const now = new Date();
+  const today = new Date().toDateString();
 
-    const isToday = date.toDateString() === now.toDateString();
-
-    const tomorrow = new Date();
-    tomorrow.setDate(now.getDate() + 1);
-
-    const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
-    if (isToday) return "Today";
-    if (isTomorrow) return "Tomorrow";
-
-    return date.toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
+  const getIcon = (title) => {
+    const t = title.toLowerCase();
+    if (t.includes("church")) return "⛪";
+    if (t.includes("game")) return "🏈";
+    if (t.includes("practice")) return "⚽";
+    return "📅";
   };
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        padding: "20px",
-        borderRadius: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
-      }}
-    >
-      {/* HEADER */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "15px",
-        }}
-      >
-        <strong>Upcoming</strong>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-        <button
-          onClick={() =>
-            window.open(
-              "https://calendar.google.com/calendar/u/0/r/eventedit",
-              "_blank"
-            )
-          }
-          style={{
-            padding: "6px 12px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#10b981",
-            color: "#fff",
-            cursor: "pointer",
-            fontSize: "12px",
-          }}
-        >
-          + Add
-        </button>
-      </div>
-
-      {/* EVENTS */}
-      {events.length === 0 && (
-        <div style={{ color: "#999" }}>No upcoming events</div>
-      )}
-
-      {events.map((e, i) => (
-        <div
-          key={i}
-          style={{
-            padding: "10px 0",
-            borderBottom:
-              i !== events.length - 1 ? "1px solid #eee" : "none",
-          }}
-        >
-          <div style={{ fontWeight: "500" }}>
-            {e.title}
-          </div>
-
+      {/* 🔥 TODAY CARD */}
+      {events
+        .filter(e => e.date.toDateString() === today)
+        .map((e, i) => (
           <div
+            key={i}
             style={{
-              fontSize: "12px",
-              color: "#666",
+              background: "#ecfdf5",
+              borderRadius: "20px",
+              padding: "20px",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
             }}
           >
-            {formatDate(e.date)}
+            <div style={{ fontSize: "12px", color: "#16a34a" }}>
+              TODAY
+            </div>
+
+            <div style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginTop: "5px"
+            }}>
+              {getIcon(e.title)} {e.title}
+            </div>
+
+            <div style={{
+              fontSize: "14px",
+              color: "#555",
+              marginTop: "4px"
+            }}>
+              {e.time}
+            </div>
           </div>
+        ))}
+
+      {/* 📅 UPCOMING LIST */}
+      <div
+        style={{
+          background: "#fff",
+          padding: "20px",
+          borderRadius: "20px",
+          boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
+        }}
+      >
+        <div style={{ marginBottom: "15px", fontWeight: "600" }}>
+          Upcoming
         </div>
-      ))}
+
+        {events
+          .filter(e => e.date.toDateString() !== today)
+          .map((e, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 0",
+                borderBottom:
+                  i !== events.length - 1 ? "1px solid #eee" : "none",
+              }}
+            >
+              <div>
+                {getIcon(e.title)} {e.title}
+              </div>
+
+              <div style={{
+                fontSize: "12px",
+                color: "#666"
+              }}>
+                {e.date.toLocaleDateString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })}
+                <br />
+                {e.time}
+              </div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }
