@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwDALm53uXOwohhTF57V2hYN-KNuprGWQTQA-sQCupqbhTJCSyX1g-YTobL9s96yv6D/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzWqy_uDCfHALqRilZOdwT1EqHsHGQKdWolpiyUpHy1On5yO_j6yBAwQ1IoFp1RmyXp/exec";
 
 export default function ShoppingPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
 
+  // 🔄 LOAD SHOPPING
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=shopping")
@@ -26,6 +27,7 @@ export default function ShoppingPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // ➕ ADD ITEM
   const addItem = () => {
     if (!newItem) return;
 
@@ -41,6 +43,7 @@ export default function ShoppingPage() {
     setNewItem("");
   };
 
+  // ✅ TOGGLE ITEM
   const toggleItem = (item) => {
     fetch(API_URL, {
       method: "POST",
@@ -52,42 +55,78 @@ export default function ShoppingPage() {
     });
   };
 
+  // 🛒 STORE LINKS
+  const stores = [
+    {
+      name: "Amazon",
+      color: "#111827",
+      url: "https://www.amazon.com"
+    },
+    {
+      name: "Walmart",
+      color: "#2563eb",
+      url: "https://www.walmart.com"
+    },
+    {
+      name: "Lowes",
+      color: "#1d4ed8",
+      url: "https://www.lowes.com"
+    }
+  ];
+
   return (
     <div style={{ padding: "20px" }}>
-      <div style={{ fontWeight: "600", marginBottom: "15px" }}>
+
+      {/* HEADER */}
+      <div style={{ fontWeight: "700", marginBottom: "15px" }}>
         Shopping List
       </div>
 
+      {/* ADD ITEM */}
       <div style={{
         background: "#fff",
         padding: "15px",
         borderRadius: "15px",
-        marginBottom: "20px"
+        marginBottom: "20px",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
       }}>
         <div style={{ display: "flex", gap: "10px" }}>
           <input
             placeholder="Add item..."
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
-            style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #ddd" }}
+            style={{
+              flex: 1,
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #ddd"
+            }}
           />
 
-          <button onClick={addItem} style={{
-            padding: "10px 14px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#3b82f6",
-            color: "#fff"
-          }}>
+          <button
+            onClick={addItem}
+            style={{
+              padding: "10px 14px",
+              borderRadius: "10px",
+              border: "none",
+              background: "#3b82f6",
+              color: "#fff",
+              fontWeight: "600",
+              cursor: "pointer"
+            }}
+          >
             Add
           </button>
         </div>
       </div>
 
+      {/* LIST */}
       <div style={{
         background: "#fff",
         borderRadius: "20px",
-        padding: "20px"
+        padding: "20px",
+        marginBottom: "20px",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
       }}>
         {items.map(item => (
           <div
@@ -102,32 +141,54 @@ export default function ShoppingPage() {
             }}
           >
             <div style={{
-              textDecoration: item.done ? "line-through" : "none"
+              textDecoration: item.done ? "line-through" : "none",
+              color: item.done ? "#999" : "#111827",
+              fontWeight: "500"
             }}>
               {item.text}
             </div>
 
-            <div>{item.done ? "✅" : "⬜"}</div>
+            <div>{item.done ? "✅" : ""}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: "20px" }}>
-        <button
-          onClick={() => window.open("https://www.walmart.com", "_blank")}
-          style={{
-            width: "100%",
-            padding: "15px",
-            borderRadius: "15px",
-            border: "none",
-            background: "#10b981",
-            color: "#fff",
-            fontWeight: "600"
-          }}
-        >
-          🛒 Open Walmart
-        </button>
+      {/* 🛒 STORE TILES */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+        gap: "15px"
+      }}>
+        {stores.map((store, i) => (
+          <div
+            key={i}
+            onClick={() => window.open(store.url, "_blank")}
+            style={{
+              background: store.color,
+              color: "#fff",
+              height: "100px",
+              borderRadius: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              fontWeight: "600",
+              cursor: "pointer",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
+              transition: "all 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            {store.name}
+          </div>
+        ))}
       </div>
+
     </div>
   );
 }
