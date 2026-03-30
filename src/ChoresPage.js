@@ -3,39 +3,32 @@ import React, { useState, useEffect } from "react";
 const API_URL = "https://script.google.com/macros/s/AKfycbzhcPTLS8wpLA-4OQEbqd-05p6cBRcL-RRbLDxf5qGSc3cC_Iz_Vfv0E0qwV3XkcXRx/exec";
 
 export default function ChoresPage() {
-  const [kids, setKids] = useState(["Sam", "Kade", "Ava"]);
+  const [kids] = useState(["Sam", "Kade", "Ava"]);
   const [chores, setChores] = useState([]);
 
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // 🔥 LOAD + AUTO REFRESH
+  // 🔄 LOAD + AUTO REFRESH
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-          console.log("DATA FROM SHEET:", data);
-
           const formatted = data.slice(1).map(row => ({
             text: row[1],
             assignedTo: row[0],
             done: row[2] === true || row[2] === "TRUE"
           }));
-
           setChores(formatted);
-        })
-        .catch(err => console.error("Load error:", err));
+        });
     };
 
-    loadData(); // initial load
-
-    const interval = setInterval(loadData, 5000); // 🔥 auto refresh
-
+    loadData();
+    const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // 🔥 ADD CHORE (SAVES TO GOOGLE SHEET)
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -56,7 +49,6 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // 🔥 TOGGLE DONE (LOCAL ONLY FOR NOW)
   const toggleChore = (index) => {
     const updated = [...chores];
     updated[index].done = !updated[index].done;
@@ -64,32 +56,58 @@ export default function ChoresPage() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Chore List</h2>
+    <div style={{ padding: "20px", background: "#f3f4f6", minHeight: "100vh" }}>
+      
+      {/* HEADER */}
+      <h1 style={{ marginBottom: "20px" }}>Chore Dashboard</h1>
 
-      {/* ADD CHORE */}
-      <div style={{ marginBottom: "20px" }}>
+      {/* ADD CHORE CARD */}
+      <div style={{
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "16px",
+        marginBottom: "20px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
+      }}>
+        <h3>Add Chore</h3>
+
         <input
           placeholder="New Chore"
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          style={{ marginRight: "10px" }}
+          style={{ marginRight: "10px", padding: "8px" }}
         />
 
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
-          style={{ marginRight: "10px" }}
+          style={{ marginRight: "10px", padding: "8px" }}
         >
           <option value="">Assign To</option>
           {kids.map((kid, i) => (
-            <option key={i} value={kid}>
-              {kid}
-            </option>
+            <option key={i} value={kid}>{kid}</option>
           ))}
         </select>
 
         <button onClick={addChore}>Add</button>
+      </div>
+
+      {/* KIDS ROW */}
+      <div style={{
+        display: "flex",
+        gap: "10px",
+        marginBottom: "20px"
+      }}>
+        {kids.map((kid, i) => (
+          <div key={i} style={{
+            background: "#fff",
+            padding: "10px 20px",
+            borderRadius: "12px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+          }}>
+            {kid}
+          </div>
+        ))}
       </div>
 
       {/* CHORE LIST */}
@@ -98,14 +116,29 @@ export default function ChoresPage() {
           key={index}
           onClick={() => toggleChore(index)}
           style={{
-            padding: "12px",
+            background: "#fff",
+            padding: "15px",
             marginBottom: "10px",
-            background: chore.done ? "#d1fae5" : "#fff",
-            borderRadius: "10px",
+            borderRadius: "12px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             cursor: "pointer",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
           }}
         >
-          <strong>{chore.text}</strong> — {chore.assignedTo}
+          <div>
+            <strong>{chore.text}</strong>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              {chore.assignedTo}
+            </div>
+          </div>
+
+          <div style={{
+            fontSize: "20px"
+          }}>
+            {chore.done ? "✅" : "⬜"}
+          </div>
         </div>
       ))}
     </div>
