@@ -9,19 +9,30 @@ export default function ChoresPage() {
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  // 🔥 LOAD DATA FROM GOOGLE SHEET
+  // 🔥 LOAD + AUTO REFRESH
   useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        const formatted = data.slice(1).map(row => ({
-          text: row[1],
-          assignedTo: row[0],
-          done: row[2] === true || row[2] === "TRUE"
-        }));
-        setChores(formatted);
-      })
-      .catch(err => console.error("Load error:", err));
+    const loadData = () => {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          console.log("DATA FROM SHEET:", data);
+
+          const formatted = data.slice(1).map(row => ({
+            text: row[1],
+            assignedTo: row[0],
+            done: row[2] === true || row[2] === "TRUE"
+          }));
+
+          setChores(formatted);
+        })
+        .catch(err => console.error("Load error:", err));
+    };
+
+    loadData(); // initial load
+
+    const interval = setInterval(loadData, 5000); // 🔥 auto refresh
+
+    return () => clearInterval(interval);
   }, []);
 
   // 🔥 ADD CHORE (SAVES TO GOOGLE SHEET)
@@ -56,28 +67,32 @@ export default function ChoresPage() {
     <div style={{ padding: "20px" }}>
       <h2>Chore List</h2>
 
-      {/* Add Chore */}
+      {/* ADD CHORE */}
       <div style={{ marginBottom: "20px" }}>
         <input
           placeholder="New Chore"
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
+          style={{ marginRight: "10px" }}
         />
 
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
+          style={{ marginRight: "10px" }}
         >
           <option value="">Assign To</option>
           {kids.map((kid, i) => (
-            <option key={i} value={kid}>{kid}</option>
+            <option key={i} value={kid}>
+              {kid}
+            </option>
           ))}
         </select>
 
         <button onClick={addChore}>Add</button>
       </div>
 
-      {/* Chore List */}
+      {/* CHORE LIST */}
       {chores.map((chore, index) => (
         <div
           key={index}
