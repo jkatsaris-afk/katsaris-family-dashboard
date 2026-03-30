@@ -4,21 +4,21 @@ import {
   Home,
   Calendar,
   ClipboardList,
-  DollarSign,
-  Droplet,
+  ShoppingCart,
   Users,
-  ShoppingCart
+  Tv
 } from "lucide-react";
 
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
 import ShoppingPage from "./ShoppingPage";
+import MediaPage from "./MediaPage";
 
 export default function App() {
   const [page, setPage] = useState("home");
   const [now, setNow] = useState(new Date());
 
-  // 🔥 LIVE CLOCK
+  // 🕒 LIVE CLOCK
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
@@ -38,12 +38,13 @@ export default function App() {
     minute: "2-digit",
   });
 
+  // 📱 APP TILES
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
-    { name: "Water", icon: <Droplet />, color: "#06b6d4" },
+    { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
     { name: "Family", icon: <Users />, color: "#ec4899" },
   ];
 
@@ -68,7 +69,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* 🔥 TILE BAR */}
+      {/* 🔥 TILE GRID */}
       <div
         style={{
           display: "grid",
@@ -91,7 +92,7 @@ export default function App() {
                 padding: "22px",
                 borderRadius: "18px",
                 textAlign: "center",
-                cursor: "pointer",
+                cursor: app.page ? "pointer" : "default",
                 opacity: isActive ? 1 : 0.85,
                 transform: isActive ? "scale(1.05)" : "scale(1)",
                 boxShadow: isActive
@@ -117,7 +118,9 @@ export default function App() {
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "shopping" && <ShoppingPage />}
+        {page === "media" && <MediaPage />}
       </div>
+
     </div>
   );
 }
