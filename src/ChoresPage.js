@@ -6,9 +6,9 @@ export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
 
   const kidColors = {
-    Sam: "#dbeafe",   // blue
-    Kade: "#dcfce7",  // green
-    Ava: "#fce7f3"    // pink
+    Sam: "#bfdbfe",
+    Kade: "#bbf7d0",
+    Ava: "#fbcfe8"
   };
 
   const [chores, setChores] = useState([]);
@@ -61,11 +61,13 @@ export default function ChoresPage() {
     });
   };
 
-  // 🏆 LEADERBOARD
+  // 🏆 Leaderboard
   const leaderboard = kids.map(kid => {
     const score = chores.filter(c => c.assignedTo === kid && c.done).length;
     return { name: kid, score };
   }).sort((a, b) => b.score - a.score);
+
+  const maxScore = Math.max(...leaderboard.map(p => p.score), 1);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -76,22 +78,41 @@ export default function ChoresPage() {
         padding: "20px",
         borderRadius: "20px",
         marginBottom: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+        boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
       }}>
-        <div style={{ fontWeight: "600", marginBottom: "10px" }}>
-          Leaderboard
+        <div style={{ fontWeight: "700", marginBottom: "15px" }}>
+          🏆 Leaderboard
         </div>
 
         {leaderboard.map((p, i) => (
-          <div key={i} style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0"
-          }}>
-            <div>
-              {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {p.name}
+          <div key={i} style={{ marginBottom: "10px" }}>
+
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: "14px",
+              marginBottom: "4px"
+            }}>
+              <div>
+                {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {p.name}
+              </div>
+              <div>{p.score}</div>
             </div>
-            <div>{p.score}</div>
+
+            {/* progress bar */}
+            <div style={{
+              height: "6px",
+              background: "#e5e7eb",
+              borderRadius: "6px"
+            }}>
+              <div style={{
+                width: `${(p.score / maxScore) * 100}%`,
+                height: "100%",
+                background: "#3b82f6",
+                borderRadius: "6px"
+              }} />
+            </div>
+
           </div>
         ))}
       </div>
@@ -101,7 +122,8 @@ export default function ChoresPage() {
         background: "#fff",
         padding: "15px",
         borderRadius: "15px",
-        marginBottom: "20px"
+        marginBottom: "20px",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
       }}>
         <div style={{ display: "flex", gap: "10px" }}>
           <input
@@ -145,7 +167,7 @@ export default function ChoresPage() {
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: "15px"
+        gap: "18px"
       }}>
         {kids.map(kid => {
           const kidChores = chores.filter(c => c.assignedTo === kid);
@@ -153,29 +175,41 @@ export default function ChoresPage() {
           return (
             <div key={kid} style={{
               background: kidColors[kid],
-              padding: "15px",
-              borderRadius: "18px",
-              boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
+              padding: "18px",
+              borderRadius: "20px",
+              boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+              border: "1px solid rgba(0,0,0,0.05)"
             }}>
+              {/* NAME */}
               <div style={{
-                fontWeight: "600",
-                marginBottom: "10px"
+                fontWeight: "700",
+                marginBottom: "6px"
               }}>
                 {kid}
               </div>
 
+              {/* DIVIDER */}
+              <div style={{
+                height: "2px",
+                background: "rgba(0,0,0,0.1)",
+                marginBottom: "10px",
+                borderRadius: "2px"
+              }} />
+
+              {/* TASKS */}
               {kidChores.map(chore => (
                 <div
                   key={chore.id}
                   onClick={() => toggleChore(chore)}
                   style={{
-                    padding: "8px 10px",
+                    padding: "10px",
                     marginBottom: "6px",
                     borderRadius: "10px",
                     cursor: "pointer",
                     background: chore.done ? "#e5e7eb" : "#ffffff",
                     textDecoration: chore.done ? "line-through" : "none",
-                    color: chore.done ? "#6b7280" : "#111827"
+                    color: chore.done ? "#6b7280" : "#111827",
+                    fontWeight: "500"
                   }}
                 >
                   {chore.text}
