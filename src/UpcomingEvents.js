@@ -36,6 +36,7 @@ export default function UpcomingEvents() {
       });
   }, []);
 
+  // 🔥 NICE DATE FORMATTING
   const formatDate = (date) => {
     const now = new Date();
 
@@ -61,46 +62,66 @@ export default function UpcomingEvents() {
       background: "#fff",
       padding: "20px",
       borderRadius: "20px",
-      boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
-      marginBottom: "20px"
+      boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
     }}>
+      
       {/* HEADER */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
+        alignItems: "center",
         marginBottom: "15px"
       }}>
         <strong>Upcoming</strong>
 
+        {/* ➕ ADD EVENT */}
         <button
-          onClick={() => window.open("https://calendar.google.com", "_blank")}
+          onClick={() =>
+            window.open(
+              "https://calendar.google.com/calendar/u/0/r/eventedit",
+              "_blank"
+            )
+          }
           style={{
-            padding: "6px 10px",
-            borderRadius: "8px",
+            padding: "6px 12px",
+            borderRadius: "10px",
             border: "none",
             background: "#10b981",
             color: "#fff",
-            cursor: "pointer"
+            cursor: "pointer",
+            fontSize: "12px"
           }}
         >
-          Open
+          + Add
         </button>
       </div>
 
       {/* EVENTS */}
       {events.length === 0 && (
-        <div style={{ color: "#999" }}>No upcoming events</div>
+        <div style={{ color: "#999" }}>
+          No upcoming events
+        </div>
       )}
 
       {events.map((e, i) => (
-        <div key={i} style={{ marginBottom: "12px" }}>
-          <div style={{ fontWeight: "500" }}>
+        <div
+          key={i}
+          style={{
+            padding: "10px 0",
+            borderBottom: i !== events.length - 1 ? "1px solid #eee" : "none"
+          }}
+        >
+          <div style={{
+            fontWeight: "500",
+            fontSize: "14px"
+          }}>
             {e.title}
           </div>
 
           <div style={{
             fontSize: "12px",
-            color: "#666"
+            color: "#666",
+            marginTop: "2px"
           }}>
             {formatDate(e.date)}
           </div>
