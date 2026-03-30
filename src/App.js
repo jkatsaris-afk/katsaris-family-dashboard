@@ -5,7 +5,7 @@ import {
   Calendar,
   ClipboardList,
   ShoppingCart,
-  Users,
+  SlidersHorizontal,
   Tv
 } from "lucide-react";
 
@@ -45,7 +45,9 @@ export default function App() {
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
     { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
-    { name: "Family", icon: <Users />, color: "#ec4899" },
+
+    // 🔥 NEW HOME CONTROLS TILE
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#0ea5e9" },
   ];
 
   return (
@@ -119,6 +121,17 @@ export default function App() {
         {page === "chores" && <ChoresPage />}
         {page === "shopping" && <ShoppingPage />}
         {page === "media" && <MediaPage />}
+
+        {/* 🔥 PLACEHOLDER FOR FUTURE HOME CONTROLS */}
+        {page === "homeControls" && (
+          <div style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "20px"
+          }}>
+            Home Controls coming soon...
+          </div>
+        )}
       </div>
 
     </div>
