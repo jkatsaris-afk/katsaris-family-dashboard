@@ -17,7 +17,7 @@ export default function App() {
 
   // 🔥 App tiles
   const apps = [
-    { name: "House Build", icon: <Home />, color: "#3b82f6" },
+    { name: "Home Control", icon: <Home />, color: "#3b82f6" },
     { 
       name: "Calendar", 
       icon: <Calendar />, 
