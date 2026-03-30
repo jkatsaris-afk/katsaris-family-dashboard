@@ -2,6 +2,19 @@ import React, { useState, useEffect } from "react";
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyTHZiC1Tcghz0nyUvY8qRiUhcllQapC4OKIwzRS35gIq0eYVmBE7sXiNWhzctQJbVI/exec";
 
+// 🎨 Kid styling
+const kidColors = {
+  Sam: "#3b82f6",
+  Kade: "#10b981",
+  Ava: "#ec4899"
+};
+
+const kidIcons = {
+  Sam: "🟦",
+  Kade: "🟩",
+  Ava: "🟪"
+};
+
 export default function ChoresPage({ goHome }) {
   const [kids] = useState(["Sam", "Kade", "Ava"]);
   const [chores, setChores] = useState([]);
@@ -10,7 +23,7 @@ export default function ChoresPage({ goHome }) {
   const [assignedTo, setAssignedTo] = useState("");
   const [selectedKid, setSelectedKid] = useState("All");
 
-  // 🔄 LOAD + AUTO REFRESH
+  // 🔄 LOAD
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL)
@@ -33,7 +46,7 @@ export default function ChoresPage({ goHome }) {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD CHORE
+  // ➕ ADD
   const addChore = () => {
     if (!newChore || !assignedTo) return;
 
@@ -76,19 +89,49 @@ export default function ChoresPage({ goHome }) {
         ← Back
       </button>
 
-      <h1 style={{ marginBottom: "20px" }}>Chore Dashboard</h1>
+      <h1 style={{ marginBottom: "20px" }}>Chores</h1>
 
-      {/* 👦 KID FILTER */}
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => setSelectedKid("All")}>All</button>
-        {kids.map((kid, i) => (
-          <button key={i} onClick={() => setSelectedKid(kid)}>
-            {kid}
-          </button>
+      {/* 👦 KID TILES */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+        gap: "10px",
+        marginBottom: "20px"
+      }}>
+        <div
+          onClick={() => setSelectedKid("All")}
+          style={{
+            padding: "15px",
+            borderRadius: "12px",
+            background: selectedKid === "All" ? "#111" : "#fff",
+            color: selectedKid === "All" ? "#fff" : "#000",
+            textAlign: "center",
+            cursor: "pointer"
+          }}
+        >
+          All
+        </div>
+
+        {kids.map(kid => (
+          <div
+            key={kid}
+            onClick={() => setSelectedKid(kid)}
+            style={{
+              padding: "15px",
+              borderRadius: "12px",
+              background: kidColors[kid],
+              color: "#fff",
+              textAlign: "center",
+              cursor: "pointer",
+              opacity: selectedKid === kid ? 1 : 0.6
+            }}
+          >
+            {kidIcons[kid]} {kid}
+          </div>
         ))}
       </div>
 
-      {/* ➕ ADD CHORE */}
+      {/* ➕ ADD TILE */}
       <div style={{
         background: "#fff",
         padding: "20px",
@@ -96,75 +139,66 @@ export default function ChoresPage({ goHome }) {
         marginBottom: "20px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)"
       }}>
-        <h3>Add Chore</h3>
-
         <input
           placeholder="New Chore"
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          style={{ marginRight: "10px", padding: "8px" }}
+          style={{ marginRight: "10px", padding: "10px" }}
         />
 
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
-          style={{ marginRight: "10px", padding: "8px" }}
+          style={{ marginRight: "10px", padding: "10px" }}
         >
-          <option value="">Assign To</option>
-          {kids.map((kid, i) => (
-            <option key={i} value={kid}>{kid}</option>
+          <option value="">Assign</option>
+          {kids.map(kid => (
+            <option key={kid} value={kid}>{kid}</option>
           ))}
         </select>
 
         <button onClick={addChore}>Add</button>
       </div>
 
-      {/* 🏆 POINTS */}
-      <div style={{ marginBottom: "20px" }}>
-        <h3>Points</h3>
-        {kids.map(kid => {
-          const total = chores
-            .filter(c => c.assignedTo === kid)
-            .reduce((sum, c) => sum + (c.points || 0), 0);
+      {/* 🧹 CHORE TILE GRID */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+        gap: "15px"
+      }}>
+        {chores
+          .filter(c => selectedKid === "All" || c.assignedTo === selectedKid)
+          .map((chore, index) => (
+            <div
+              key={index}
+              onClick={() => toggleChore(index)}
+              style={{
+                padding: "20px",
+                borderRadius: "16px",
+                background: chore.done ? "#d1fae5" : "#fff",
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+                textAlign: "center"
+              }}
+            >
+              <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+                {chore.text}
+              </div>
 
-          return (
-            <div key={kid}>
-              {kid}: {total}
-            </div>
-          );
-        })}
-      </div>
+              <div style={{
+                marginTop: "8px",
+                fontSize: "14px",
+                color: kidColors[chore.assignedTo]
+              }}>
+                {kidIcons[chore.assignedTo]} {chore.assignedTo}
+              </div>
 
-      {/* 📋 CHORES */}
-      {chores
-        .filter(c => selectedKid === "All" || c.assignedTo === selectedKid)
-        .map((chore, index) => (
-          <div
-            key={index}
-            onClick={() => toggleChore(index)}
-            style={{
-              background: "#fff",
-              padding: "15px",
-              marginBottom: "10px",
-              borderRadius: "12px",
-              display: "flex",
-              justifyContent: "space-between",
-              cursor: "pointer",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div>
-              <strong>{chore.text}</strong>
-              <div style={{ fontSize: "12px", color: "#666" }}>
-                {chore.assignedTo}
+              <div style={{ marginTop: "10px", fontSize: "20px" }}>
+                {chore.done ? "✅" : "⬜"}
               </div>
             </div>
-
-            <div>
-              {chore.done ? "✅" : "⬜"}
-            </div>
-          </div>
-        ))}
+          ))}
+      </div>
     </div>
   );
 }
