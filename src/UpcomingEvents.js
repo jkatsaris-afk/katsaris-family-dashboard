@@ -4,7 +4,7 @@ export default function UpcomingEvents() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const API_KEY = "YOUR_API_KEY";
+    const API_KEY = "AIzaSyBlYymKmOE64L-nCNQqYmY7rOilcB1fauk";
     const CALENDAR_ID =
       "family17054290429573763975@group.calendar.google.com";
 
