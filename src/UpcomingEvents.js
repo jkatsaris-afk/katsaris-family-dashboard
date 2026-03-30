@@ -9,12 +9,11 @@ export default function UpcomingEvents() {
     const CALENDAR_ID =
       "family17054290429573763975@group.calendar.google.com";
 
-    // 🔥 ONLY FUTURE EVENTS
     const now = new Date().toISOString();
 
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
       CALENDAR_ID
-    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&timeMin=${now}&maxResults=5`;
+    )}/events?key=${API_KEY}&singleEvents=true&orderBy=startTime&timeMin=${now}&maxResults=6`;
 
     fetch(url)
       .then((res) => res.json())
@@ -37,103 +36,133 @@ export default function UpcomingEvents() {
         });
 
         setEvents(parsed);
-      })
-      .catch((err) => console.error("ERROR:", err));
+      });
   }, []);
 
-  const today = new Date().toDateString();
+  const todayStr = new Date().toDateString();
 
   const getIcon = (title) => {
     const t = title.toLowerCase();
     if (t.includes("church")) return "⛪";
-    if (t.includes("game")) return "🏈";
+    if (t.includes("football")) return "🏈";
+    if (t.includes("baseball")) return "⚾";
     if (t.includes("practice")) return "⚽";
     return "📅";
   };
 
+  const formatDay = (date) => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+
+    return date.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const todayEvents = events.filter(
+    (e) => e.date.toDateString() === todayStr
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-      {/* 🔥 TODAY CARD */}
-      {events
-        .filter(e => e.date.toDateString() === today)
-        .map((e, i) => (
-          <div
-            key={i}
-            style={{
-              background: "#ecfdf5",
-              borderRadius: "20px",
-              padding: "20px",
-              boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#16a34a" }}>
-              TODAY
-            </div>
-
-            <div style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              marginTop: "5px"
-            }}>
-              {getIcon(e.title)} {e.title}
-            </div>
-
-            <div style={{
-              fontSize: "14px",
-              color: "#555",
-              marginTop: "4px"
-            }}>
-              {e.time}
-            </div>
-          </div>
-        ))}
-
-      {/* 📅 UPCOMING LIST */}
-      <div
-        style={{
-          background: "#fff",
-          padding: "20px",
-          borderRadius: "20px",
-          boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
-        }}
-      >
-        <div style={{ marginBottom: "15px", fontWeight: "600" }}>
-          Upcoming
+      {/* 🔥 TODAY SECTION (always shows) */}
+      <div>
+        <div style={{ fontWeight: "600", marginBottom: "10px" }}>
+          Today
         </div>
 
-        {events
-          .filter(e => e.date.toDateString() !== today)
-          .map((e, i) => (
+        {todayEvents.length === 0 ? (
+          <div style={{
+            background: "#fff",
+            padding: "15px",
+            borderRadius: "15px",
+            color: "#888"
+          }}>
+            No events today
+          </div>
+        ) : (
+          todayEvents.map((e, i) => (
             <div
               key={i}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "10px 0",
-                borderBottom:
-                  i !== events.length - 1 ? "1px solid #eee" : "none",
+                background: "#ecfdf5",
+                borderRadius: "20px",
+                padding: "20px",
+                marginBottom: "10px",
+                boxShadow: "0 6px 14px rgba(0,0,0,0.05)",
               }}
             >
-              <div>
+              <div style={{ fontSize: "18px", fontWeight: "600" }}>
                 {getIcon(e.title)} {e.title}
+              </div>
+
+              <div style={{ fontSize: "14px", color: "#555" }}>
+                {e.time}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 📅 UPCOMING TILES */}
+      <div>
+        <div style={{ fontWeight: "600", marginBottom: "10px" }}>
+          Upcoming
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          gap: "12px"
+        }}>
+          {events.map((e, i) => (
+            <div
+              key={i}
+              style={{
+                background: "#fff",
+                padding: "15px",
+                borderRadius: "18px",
+                boxShadow: "0 6px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <div style={{
+                fontSize: "18px",
+                marginBottom: "5px"
+              }}>
+                {getIcon(e.title)}
+              </div>
+
+              <div style={{
+                fontWeight: "600",
+                fontSize: "14px"
+              }}>
+                {e.title}
               </div>
 
               <div style={{
                 fontSize: "12px",
                 color: "#666",
-                textAlign: "right"
+                marginTop: "5px"
               }}>
-                {e.date.toLocaleDateString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
-                <br />
+                {formatDay(e.date)}
+              </div>
+
+              <div style={{
+                fontSize: "12px",
+                color: "#999"
+              }}>
                 {e.time}
               </div>
             </div>
           ))}
+        </div>
       </div>
     </div>
   );
