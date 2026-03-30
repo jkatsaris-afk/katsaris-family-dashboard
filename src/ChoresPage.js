@@ -1,30 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+const API_URL = "https://script.google.com/macros/s/AKfycbzhcPTLS8wpLA-4OQEbqd-05p6cBRcL-RRbLDxf5qGSc3cC_Iz_Vfv0E0qwV3XkcXRx/exec";
 
 export default function ChoresPage() {
   const [kids, setKids] = useState(["Sam", "Kade", "Ava"]);
   const [chores, setChores] = useState([]);
 
-  const [newKid, setNewKid] = useState("");
   const [newChore, setNewChore] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
-  const addKid = () => {
-    if (newKid) {
-      setKids([...kids, newKid]);
-      setNewKid("");
-    }
-  };
+  // 🔥 LOAD DATA FROM GOOGLE SHEET
+  useEffect(() => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const formatted = data.slice(1).map(row => ({
+          text: row[1],
+          assignedTo: row[0],
+          done: row[2] === true || row[2] === "TRUE"
+        }));
+        setChores(formatted);
+      })
+      .catch(err => console.error("Load error:", err));
+  }, []);
 
+  // 🔥 ADD CHORE (SAVES TO GOOGLE SHEET)
   const addChore = () => {
-    if (newChore && assignedTo) {
-      setChores([
-        ...chores,
-        { text: newChore, assignedTo, done: false },
-      ]);
-      setNewChore("");
-    }
+    if (!newChore || !assignedTo) return;
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        name: assignedTo,
+        chore: newChore,
+        done: false
+      })
+    });
+
+    setChores([
+      ...chores,
+      { text: newChore, assignedTo, done: false }
+    ]);
+
+    setNewChore("");
   };
 
+  // 🔥 TOGGLE DONE (LOCAL ONLY FOR NOW)
   const toggleChore = (index) => {
     const updated = [...chores];
     updated[index].done = !updated[index].done;
@@ -34,16 +55,6 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Chore List</h2>
-
-      {/* Add Kid */}
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          placeholder="Add Kid"
-          value={newKid}
-          onChange={(e) => setNewKid(e.target.value)}
-        />
-        <button onClick={addKid}>Add Kid</button>
-      </div>
 
       {/* Add Chore */}
       <div style={{ marginBottom: "20px" }}>
@@ -59,25 +70,23 @@ export default function ChoresPage() {
         >
           <option value="">Assign To</option>
           {kids.map((kid, i) => (
-            <option key={i} value={kid}>
-              {kid}
-            </option>
+            <option key={i} value={kid}>{kid}</option>
           ))}
         </select>
 
-        <button onClick={addChore}>Add Chore</button>
+        <button onClick={addChore}>Add</button>
       </div>
 
-      {/* Chores */}
+      {/* Chore List */}
       {chores.map((chore, index) => (
         <div
           key={index}
           onClick={() => toggleChore(index)}
           style={{
-            padding: "10px",
+            padding: "12px",
             marginBottom: "10px",
             background: chore.done ? "#d1fae5" : "#fff",
-            borderRadius: "8px",
+            borderRadius: "10px",
             cursor: "pointer",
           }}
         >
