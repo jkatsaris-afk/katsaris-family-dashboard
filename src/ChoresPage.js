@@ -2,10 +2,7 @@ import React, { useState } from "react";
 
 export default function ChoresPage() {
   const [kids, setKids] = useState(["Sam", "Kade", "Ava"]);
-  const [chores, setChores] = useState([
-    { text: "Clean room", assignedTo: "Sam", done: false },
-    { text: "Take out trash", assignedTo: "Kade", done: false },
-  ]);
+  const [chores, setChores] = useState([]);
 
   const [newKid, setNewKid] = useState("");
   const [newChore, setNewChore] = useState("");
@@ -45,7 +42,7 @@ export default function ChoresPage() {
           value={newKid}
           onChange={(e) => setNewKid(e.target.value)}
         />
-        <button onClick={addKid}>Add</button>
+        <button onClick={addKid}>Add Kid</button>
       </div>
 
       {/* Add Chore */}
@@ -56,17 +53,22 @@ export default function ChoresPage() {
           onChange={(e) => setNewChore(e.target.value)}
         />
 
-        <select onChange={(e) => setAssignedTo(e.target.value)}>
+        <select
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
+        >
           <option value="">Assign To</option>
           {kids.map((kid, i) => (
-            <option key={i} value={kid}>{kid}</option>
+            <option key={i} value={kid}>
+              {kid}
+            </option>
           ))}
         </select>
 
         <button onClick={addChore}>Add Chore</button>
       </div>
 
-      {/* Chore List */}
+      {/* Chores */}
       {chores.map((chore, index) => (
         <div
           key={index}
@@ -79,7 +81,7 @@ export default function ChoresPage() {
             cursor: "pointer",
           }}
         >
-          <strong>{chore.text}</strong> - {chore.assignedTo}
+          <strong>{chore.text}</strong> — {chore.assignedTo}
         </div>
       ))}
     </div>
