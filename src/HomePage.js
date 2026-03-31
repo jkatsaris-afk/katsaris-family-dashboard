@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import logo from "./assets/logo.png"; // 👈 adjust path if needed
 
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
@@ -23,9 +24,7 @@ export default function HomePage() {
       )
         .then((res) => res.json())
         .then((data) => {
-          if (data.cod !== 200) {
-            throw new Error(data.message);
-          }
+          if (data.cod !== 200) throw new Error(data.message);
 
           setWeather({
             temp: Math.round(data.main.temp),
@@ -59,13 +58,31 @@ export default function HomePage() {
   return (
     <div
       style={{
+        position: "relative",
         minHeight: "70vh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
+
+      {/* 🔥 GHOSTED LOGO */}
+      <img
+        src={logo}
+        alt="Katsaris Brand"
+        style={{
+          position: "absolute",
+          width: "400px",
+          opacity: 0.05, // 👈 control fade here
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+        }}
+      />
+
       {/* 🕒 TIME */}
       <div
         style={{
@@ -73,6 +90,7 @@ export default function HomePage() {
           fontWeight: "700",
           color: "#111827",
           lineHeight: "1",
+          zIndex: 1,
         }}
       >
         {formattedTime}
@@ -84,6 +102,7 @@ export default function HomePage() {
           fontSize: "24px",
           color: "#6b7280",
           marginBottom: "30px",
+          zIndex: 1,
         }}
       >
         {formattedDate}
@@ -94,6 +113,7 @@ export default function HomePage() {
         style={{
           fontSize: "22px",
           color: "#374151",
+          zIndex: 1,
         }}
       >
         🌤 {weather.temp}° — {weather.condition}
