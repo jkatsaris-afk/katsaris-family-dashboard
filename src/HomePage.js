@@ -3,9 +3,16 @@ import logo from "./assets/logo.png";
 
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
+
   const [weather, setWeather] = useState({
     temp: "--",
+    feels: "--",
+    high: "--",
+    low: "--",
     condition: "Loading...",
+    tomorrowHigh: "--",
+    tomorrowLow: "--",
+    tomorrowCondition: "",
   });
 
   // 🕒 LIVE CLOCK
@@ -16,31 +23,65 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌤️ WEATHER
+  // 🌤️ WEATHER (Fallon, NV via lat/lon)
   useEffect(() => {
-    const fetchWeather = () => {
-      fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=Fallon,US&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.cod !== 200) throw new Error(data.message);
+    const fetchWeather = async () => {
+      try {
+        const apiKey = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
 
-          setWeather({
-            temp: Math.round(data.main.temp),
-            condition: data.weather[0].main,
-          });
-        })
-        .catch(() => {
-          setWeather({
-            temp: "--",
-            condition: "Unavailable",
-          });
+        // CURRENT
+        const currentRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
+        );
+        const current = await currentRes.json();
+
+        // FORECAST
+        const forecastRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
+        );
+        const forecast = await forecastRes.json();
+
+        // tomorrow around midday
+        const tomorrow = forecast.list.find(item =>
+          item.dt_txt.includes("12:00:00")
+        );
+
+        setWeather({
+          temp: Math.round(current.main.temp),
+          feels: Math.round(current.main.feels_like),
+          high: Math.round(current.main.temp_max),
+          low: Math.round(current.main.temp_min),
+          condition: current.weather[0].description,
+
+          tomorrowHigh: tomorrow
+            ? Math.round(tomorrow.main.temp_max)
+            : "--",
+
+          tomorrowLow: tomorrow
+            ? Math.round(tomorrow.main.temp_min)
+            : "--",
+
+          tomorrowCondition: tomorrow
+            ? tomorrow.weather[0].description
+            : "",
         });
+
+      } catch (err) {
+        setWeather({
+          temp: "--",
+          feels: "--",
+          high: "--",
+          low: "--",
+          condition: "Unavailable",
+          tomorrowHigh: "--",
+          tomorrowLow: "--",
+          tomorrowCondition: "",
+        });
+      }
     };
 
     fetchWeather();
-    const interval = setInterval(fetchWeather, 600000);
+    const interval = setInterval(fetchWeather, 600000); // every 10 min
     return () => clearInterval(interval);
   }, []);
 
@@ -76,7 +117,7 @@ export default function HomePage() {
         style={{
           position: "absolute",
           width: "450px",
-          opacity: 1.00,
+          opacity: 1,
           top: "60%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -112,13 +153,29 @@ export default function HomePage() {
       {/* 🌤️ WEATHER */}
       <div
         style={{
-          fontSize: "22px",
-          color: "#374151",
+          textAlign: "center",
           zIndex: 1,
+          color: "#374151",
         }}
       >
-        🌤 {weather.temp}° — {weather.condition}
+        <div style={{ fontSize: "28px", fontWeight: "600" }}>
+          {weather.temp}° • {weather.condition}
+        </div>
+
+        <div style={{ fontSize: "16px", color: "#6b7280" }}>
+          Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+        </div>
+
+        {/* 🔮 TOMORROW */}
+        <div style={{
+          marginTop: "12px",
+          fontSize: "15px",
+          color: "#6b7280"
+        }}>
+          Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+        </div>
       </div>
+
     </div>
   );
 }
