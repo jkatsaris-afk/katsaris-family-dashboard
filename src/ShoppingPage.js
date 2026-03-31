@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxAp4gOQy0SF9_XPMVcXhpqSnfhLingzwfGNfbThMhsux-1azand-Rk3xdNOGtMFJpc/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwu26ABWTuw9xG_u5DpT0-Ql-CZeiOw9qfB7ewDVN_zrsD3CiaX0_0XL__VyrASgdee/exec";
 
 export default function ShoppingPage() {
   const [items, setItems] = useState([]);
