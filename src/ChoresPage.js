@@ -169,9 +169,6 @@ export default function ChoresPage() {
               borderRadius: "10px",
               border: "1px solid #e5e7eb",
               background: "#f9fafb",
-              fontWeight: "500",
-              outline: "none",
-              cursor: "pointer"
             }}
           >
             {kids.map(k => <option key={k}>{k}</option>)}
@@ -185,9 +182,6 @@ export default function ChoresPage() {
               borderRadius: "10px",
               border: "1px solid #e5e7eb",
               background: "#f9fafb",
-              fontWeight: "500",
-              outline: "none",
-              cursor: "pointer"
             }}
           >
             <option value="one">One-Time</option>
@@ -206,8 +200,6 @@ export default function ChoresPage() {
             borderRadius: "10px",
             border: "1px solid #e5e7eb",
             background: "#f9fafb",
-            fontSize: "15px",
-            outline: "none",
             marginBottom: "10px"
           }}
         />
@@ -222,14 +214,13 @@ export default function ChoresPage() {
             borderRadius: "10px",
             cursor: "pointer",
             fontWeight: "600",
-            transition: "all 0.2s ease"
           }}
         >
           Add
         </div>
       </div>
 
-      {/* 🔥 BOARD */}
+      {/* 🔥 ORIGINAL TILE SYSTEM RESTORED */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -240,7 +231,6 @@ export default function ChoresPage() {
           const total = kidChores.length;
           const complete = kidChores.filter(c => c.done).length;
           const allDone = total > 0 && complete === total;
-
           const colors = kidColors[kid];
 
           return (
@@ -255,6 +245,8 @@ export default function ChoresPage() {
                 fontSize: "18px",
                 background: allDone ? colors.complete : "#ffffff",
                 color: allDone ? "#ffffff" : "#111827",
+                boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+                border: "1px solid rgba(0,0,0,0.08)"
               }}>
                 {kid} • {complete}/{total}
               </div>
@@ -283,21 +275,51 @@ export default function ChoresPage() {
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
+                    onMouseDown={(e) =>
+                      (e.currentTarget.style.transform = "scale(0.97)")
+                    }
+                    onMouseUp={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
-                      background: chore.done ? colors.complete : colors.base,
+                      cursor: "pointer",
+                      background: chore.done
+                        ? colors.complete
+                        : colors.base,
                       color: chore.done ? "#ffffff" : "#111827",
+                      border: chore.done
+                        ? "2px solid transparent"
+                        : "2px solid rgba(0,0,0,0.08)",
+                      boxShadow: chore.done
+                        ? "0 10px 20px rgba(0,0,0,0.15)"
+                        : "0 4px 10px rgba(0,0,0,0.06)",
+                      transition: "all 0.2s ease",
+                      minHeight: "90px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
                       textAlign: "center",
-                      cursor: "pointer"
                     }}
                   >
-                    <div style={{ fontWeight: "700" }}>
+                    <div style={{
+                      fontSize: "18px",
+                      fontWeight: "700",
+                    }}>
                       {chore.text}
                     </div>
 
                     {chore.done && (
-                      <div style={{ fontSize: "12px" }}>
+                      <div style={{
+                        fontSize: "12px",
+                        marginTop: "6px",
+                        opacity: 0.9,
+                      }}>
                         Complete • {formatTime(chore.timestamp)}
                       </div>
                     )}
