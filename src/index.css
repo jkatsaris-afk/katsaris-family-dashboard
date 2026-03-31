@@ -11,3 +11,39 @@
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+/* ☁️ CLOUDS */
+.clouds {
+  position: absolute;
+  inset: 0;
+  background: url("https://i.imgur.com/NM6KQ.gif");
+  opacity: 0.25;
+  animation: moveClouds 60s linear infinite;
+  z-index: 1;
+}
+
+/* 🌧 RAIN */
+.rain {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.3) 0px,
+    rgba(255,255,255,0.3) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+  animation: rainFall 0.4s linear infinite;
+  z-index: 1;
+}
+
+/* CLOUD MOVEMENT */
+@keyframes moveClouds {
+  0% { background-position: 0 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* RAIN FALL */
+@keyframes rainFall {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 20px; }
+}
