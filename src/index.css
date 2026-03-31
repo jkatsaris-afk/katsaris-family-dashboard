@@ -88,3 +88,113 @@
   0% { background-position: 0 0; }
   100% { background-position: 0 20px; }
 }
+/* =========================
+   PAGE LAYOUT
+========================= */
+
+.weather-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  color: white;
+}
+
+.weather-content {
+  position: relative;
+  z-index: 2;
+  padding: 40px;
+}
+
+
+/* =========================
+   BASE BACKGROUND
+========================= */
+
+.weather-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-size: 200% 200%;
+  animation: skyMove 20s linear infinite;
+}
+
+
+/* =========================
+   WEATHER TYPES
+========================= */
+
+/* ☀️ CLEAR */
+.weather-page.clear .weather-bg {
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+/* ☁️ CLOUDS */
+.weather-page.clouds .weather-bg {
+  background: linear-gradient(135deg, #64748b, #94a3b8);
+}
+
+/* 🌧 RAIN */
+.weather-page.rain .weather-bg {
+  background: linear-gradient(135deg, #1e293b, #334155);
+}
+
+
+/* =========================
+   CLOUD OVERLAY
+========================= */
+
+.weather-page.clouds::after,
+.weather-page.rain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 60%),
+    radial-gradient(circle at 70% 40%, rgba(255,255,255,0.25) 0%, transparent 60%);
+
+  animation: cloudMove 60s linear infinite;
+}
+
+
+/* =========================
+   RAIN OVERLAY
+========================= */
+
+.weather-page.rain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  background-image: repeating-linear-gradient(
+    120deg,
+    rgba(255,255,255,0.2) 0px,
+    rgba(255,255,255,0.2) 2px,
+    transparent 2px,
+    transparent 12px
+  );
+
+  animation: rainFall 0.35s linear infinite;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes skyMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes cloudMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes rainFall {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 20px; }
+}
