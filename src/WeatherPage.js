@@ -1,26 +1,36 @@
 import React, { useEffect, useState } from "react";
 
 export default function WeatherPage() {
-  const [data, setData] = useState(null);
+  const [current, setCurrent] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const res = await fetch(
-          "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=df51aa425988c81b25062b9c64532dbb"
+        // ✅ CURRENT WEATHER (always works)
+        const currentRes = await fetch(
+          "https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
         );
 
-        const json = await res.json();
+        const currentData = await currentRes.json();
 
-        // ✅ FIXED ERROR CHECK
-        if (!json || (json.cod !== 200 && json.cod !== "200")) {
+        // ✅ FORECAST (3-hour intervals)
+        const forecastRes = await fetch(
+          "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
+        );
+
+        const forecastData = await forecastRes.json();
+
+        if (!currentData || !forecastData.list) {
           throw new Error("Bad data");
         }
 
-        setData(json);
+        setCurrent(currentData);
+        setForecast(forecastData);
+
       } catch (e) {
-        console.error(e);
+        console.error("Weather error:", e);
         setError(true);
       }
     };
@@ -29,11 +39,9 @@ export default function WeatherPage() {
   }, []);
 
   if (error) return <div>Weather unavailable ⚠️</div>;
-  if (!data) return <div>Loading weather...</div>;
+  if (!current || !forecast) return <div>Loading weather...</div>;
 
-  const current = data.list[0];
-
-  // 🎨 Animated gradient background
+  // 🎨 Background logic
   const condition = current.weather[0].main.toLowerCase();
 
   let gradient = "linear-gradient(135deg, #3b82f6, #60a5fa)";
@@ -48,7 +56,6 @@ export default function WeatherPage() {
         color: "white",
         padding: "25px",
         borderRadius: "20px",
-        animation: "fadeIn 1s ease",
       }}
     >
       {/* 🌤 BIG TEMP */}
@@ -66,12 +73,12 @@ export default function WeatherPage() {
       <div style={{ display: "flex", gap: "20px", marginBottom: "25px" }}>
         <div>Feels: {Math.round(current.main.feels_like)}°</div>
         <div>Wind: {Math.round(current.wind.speed)} mph</div>
-        <div>Rain: {current.pop ? Math.round(current.pop * 100) : 0}%</div>
+        <div>Humidity: {current.main.humidity}%</div>
       </div>
 
-      {/* ⏰ HOURLY SCROLL */}
+      {/* ⏰ HOURLY */}
       <div style={{ display: "flex", overflowX: "auto", gap: "12px", marginBottom: "25px" }}>
-        {data.list.slice(0, 12).map((hour, i) => {
+        {forecast.list.slice(0, 12).map((hour, i) => {
           const time = new Date(hour.dt * 1000).getHours();
 
           return (
@@ -97,11 +104,11 @@ export default function WeatherPage() {
       </div>
 
       {/* 📅 DAILY */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", marginBottom: "25px" }}>
-        {[...new Set(data.list.map(i => i.dt_txt.split(" ")[0]))]
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px" }}>
+        {[...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
           .slice(0, 7)
           .map((date, i) => {
-            const dayData = data.list.filter(d => d.dt_txt.startsWith(date));
+            const dayData = forecast.list.filter(d => d.dt_txt.startsWith(date));
             const temps = dayData.map(d => d.main.temp);
 
             const dayName = new Date(date).toLocaleDateString("en-US", {
@@ -128,27 +135,18 @@ export default function WeatherPage() {
           })}
       </div>
 
-      {/* 🗺 LIVE RADAR */}
+      {/* 🗺 RADAR */}
       <iframe
-        title="weather radar"
-        src="https://embed.windy.com/embed2.html?lat=39.47&lon=-118.77&zoom=7&level=surface&overlay=radar"
+        title="radar"
+        src="https://embed.windy.com/embed2.html?lat=39.47&lon=-118.77&zoom=7&overlay=radar"
         style={{
           width: "100%",
           height: "300px",
           border: "none",
           borderRadius: "15px",
+          marginTop: "20px"
         }}
       />
-
-      {/* ✨ SIMPLE FADE ANIMATION */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-        `}
-      </style>
     </div>
   );
 }
