@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwqbYXB0Zjl16PNvVSWRYhDZ8UbKeoERT3Qyhyfcj50vtHz2IVutp-NIKIrzuR-PfE-/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyw-42HYnQkZOOpCBW-G0n_haRssxxaD3GhxU3De6ftlwRqBM65BhaGZfBsKe9ByCfq/exec";
 
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
@@ -18,7 +18,7 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔥 LIVE SYNC + LOAD
+  // 🔥 LOAD + LIVE SYNC
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -61,7 +61,6 @@ export default function ChoresPage() {
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
-        add: true,
         name: selectedKid,
         chore: newChore,
         recurring: isRecurring
@@ -82,10 +81,11 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE
-  const toggleChore = (chore) => {
+  // ✅ TOGGLE (🔥 FIXED SYNC)
+  const toggleChore = async (chore) => {
     const now = new Date();
 
+    // Instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -94,17 +94,39 @@ export default function ChoresPage() {
       )
     );
 
-    fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        update: true,
-        id: chore.id,
-        done: !chore.done
-      }),
-    });
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          update: true,
+          id: chore.id,
+          done: !chore.done
+        }),
+      });
+
+      // Refresh after update
+      setTimeout(() => {
+        fetch(API_URL + "?type=chores")
+          .then(res => res.json())
+          .then(data => {
+            const formatted = data.slice(1).map(row => ({
+              id: row[0],
+              assignedTo: row[1],
+              text: row[2],
+              done: row[3] === true || row[3] === "TRUE",
+              timestamp: row[4] ? new Date(row[4]) : null
+            }));
+
+            setChores(formatted);
+          });
+      }, 500);
+
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
   };
 
-  // 🔥 LOADING DOT STYLE
+  // 🔥 LOADING DOTS
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -246,7 +268,6 @@ export default function ChoresPage() {
           return (
             <div key={kid}>
 
-              {/* 🔥 HEADER WITH CELEBRATION */}
               <div
                 style={{
                   padding: "16px",
@@ -268,7 +289,6 @@ export default function ChoresPage() {
                 }
               </div>
 
-              {/* 🔥 TILES */}
               <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -278,15 +298,6 @@ export default function ChoresPage() {
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
-                    onMouseDown={(e) =>
-                      (e.currentTarget.style.transform = "scale(0.97)")
-                    }
-                    onMouseUp={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
