@@ -12,7 +12,6 @@ export default function SettingsPage() {
       padding: "30px"
     }}>
 
-      {/* MAIN TILE PAGE */}
       {page === "main" && (
         <div style={{
           display: "grid",
@@ -25,7 +24,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* CHORES EDITOR */}
       {page === "chores" && (
         <RecurringChores goBack={() => setPage("main")} />
       )}
@@ -51,6 +49,7 @@ export default function SettingsPage() {
 function RecurringChores({ goBack }) {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
     fetch(API + "?type=template")
@@ -62,15 +61,22 @@ function RecurringChores({ goBack }) {
         }));
 
         setChores(cleaned);
-        setLoading(false);
+
+        setTimeout(() => {
+          setLoading(false);
+          setFadeIn(true);
+        }, 400); // smooth delay
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 LOADING SCREEN
+  // 🔥 LOADING SCREEN (SPINNER + DOTS)
   if (loading) {
     return (
       <div className="loading-screen">
+
+        <div className="spinner"></div>
+
         <div className="loading-text">
           Checking on the Children’s Workload
           <span className="dots">
@@ -84,9 +90,20 @@ function RecurringChores({ goBack }) {
           .loading-screen {
             height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             background: #f5f5f5;
+          }
+
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #111;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
           }
 
           .loading-text {
@@ -96,24 +113,26 @@ function RecurringChores({ goBack }) {
           }
 
           .dots span {
-            animation: bounce 1.4s infinite;
             display: inline-block;
             margin-left: 3px;
+            animation: dotBounce 1.4s infinite ease-in-out both;
           }
 
-          .dots span:nth-child(2) {
-            animation-delay: 0.2s;
+          .dots span:nth-child(1) { animation-delay: 0s; }
+          .dots span:nth-child(2) { animation-delay: 0.2s; }
+          .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
 
-          .dots span:nth-child(3) {
-            animation-delay: 0.4s;
-          }
-
-          @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+          @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
           }
         `}</style>
+
       </div>
     );
   }
@@ -145,7 +164,7 @@ function RecurringChores({ goBack }) {
   };
 
   return (
-    <div>
+    <div className={fadeIn ? "fade-in" : ""}>
 
       <button onClick={goBack} style={{ marginBottom: "20px" }}>
         ← Back
@@ -155,27 +174,23 @@ function RecurringChores({ goBack }) {
 
       <div className="card">
 
-        {/* HEADER */}
         <div className="row header">
           <div>Name</div>
           <div>Chore</div>
           <div></div>
         </div>
 
-        {/* LIST */}
         {chores.map((c, i) => (
           <div key={i} className="row">
 
             <input
               value={c.name}
               onChange={(e) => update(i, "name", e.target.value)}
-              placeholder="Name"
             />
 
             <input
               value={c.chore}
               onChange={(e) => update(i, "chore", e.target.value)}
-              placeholder="Chore"
             />
 
             <button className="delete" onClick={() => removeRow(i)}>✕</button>
@@ -183,7 +198,6 @@ function RecurringChores({ goBack }) {
           </div>
         ))}
 
-        {/* ACTIONS */}
         <div className="actions">
           <button onClick={addRow}>+ Add</button>
           <button onClick={save}>Save</button>
@@ -192,6 +206,15 @@ function RecurringChores({ goBack }) {
       </div>
 
       <style>{`
+        .fade-in {
+          animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         .card {
           background: white;
           border-radius: 20px;
