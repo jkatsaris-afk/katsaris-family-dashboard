@@ -18,12 +18,13 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔥 LOAD + SYNC
+  // 🔥 LOAD + SYNC (FIXED)
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
         .then(res => res.json())
         .then(data => {
+
           const today = new Date().toISOString().split("T")[0];
 
           const formatted = data.slice(1)
@@ -38,14 +39,23 @@ export default function ChoresPage() {
 
           setChores(formatted);
           setLoading(false);
-        });
+        })
+        .catch(err => console.error("Chore load error:", err));
     };
 
     loadData();
     const interval = setInterval(loadData, 8000);
-
     return () => clearInterval(interval);
   }, []);
+
+  // 🕒 TIME FORMAT
+  const formatTime = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
   // ➕ ADD
   const addChore = () => {
@@ -65,10 +75,12 @@ export default function ChoresPage() {
 
   // ✅ TOGGLE
   const toggleChore = async (chore) => {
+    const now = new Date();
+
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
-          ? { ...c, done: !c.done }
+          ? { ...c, done: !c.done, timestamp: now }
           : c
       )
     );
@@ -83,66 +95,170 @@ export default function ChoresPage() {
     });
   };
 
+  // 🔥 YOUR LOADING SCREEN (RESTORED)
+  const dotStyle = (delay) => ({
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    background: "#9ca3af",
+    animation: "bounce 1s infinite",
+    animationDelay: `${delay}s`,
+  });
+
   if (loading) {
-    return <div style={{ padding: 40 }}>Loading...</div>;
+    return (
+      <div style={{
+        minHeight: "60vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        gap: "12px",
+        fontSize: "20px",
+        fontWeight: "600",
+        color: "#6b7280",
+      }}>
+        <div>Get ready to clean!</div>
+        <div style={{ display: "flex", gap: "6px" }}>
+          <div style={dotStyle(0)} />
+          <div style={dotStyle(0.2)} />
+          <div style={dotStyle(0.4)} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* ADD CHORE */}
+      {/* 🔥 ADD TILE (UNCHANGED CLEAN STYLE) */}
       <div style={{
-        background: "#fff",
-        padding: 16,
-        borderRadius: 16,
-        marginBottom: 20
+        background: "#ffffff",
+        borderRadius: "16px",
+        padding: "16px",
+        marginBottom: "20px",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+        border: "1px solid rgba(0,0,0,0.08)",
       }}>
+        <div style={{
+          fontWeight: "700",
+          marginBottom: "12px",
+          textAlign: "center"
+        }}>
+          Add Chore
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px",
+          marginBottom: "10px"
+        }}>
+          <select
+            value={selectedKid}
+            onChange={(e) => setSelectedKid(e.target.value)}
+          >
+            {kids.map(k => <option key={k}>{k}</option>)}
+          </select>
+
+          <select
+            value={isRecurring ? "recurring" : "one"}
+            onChange={(e) => setIsRecurring(e.target.value === "recurring")}
+          >
+            <option value="one">One-Time</option>
+            <option value="recurring">Recurring</option>
+          </select>
+        </div>
+
         <input
+          placeholder="Enter chore..."
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          placeholder="New chore"
-          style={{ width: "100%", marginBottom: 10 }}
+          style={{ width: "100%", marginBottom: "10px" }}
         />
 
-        <select
-          value={selectedKid}
-          onChange={(e) => setSelectedKid(e.target.value)}
+        <div
+          onClick={addChore}
+          style={{
+            background: "#3b82f6",
+            color: "#fff",
+            textAlign: "center",
+            padding: "10px",
+            borderRadius: "10px",
+            cursor: "pointer"
+          }}
         >
-          {kids.map(k => <option key={k}>{k}</option>)}
-        </select>
-
-        <button onClick={addChore}>Add</button>
+          Add
+        </div>
       </div>
 
-      {/* BOARD */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
+      {/* 🔥 YOUR TILE BOARD (UNCHANGED) */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "25px",
+      }}>
         {kids.map(kid => {
           const kidChores = chores.filter(c => c.assignedTo === kid);
-          const complete = kidChores.filter(c => c.done).length;
           const total = kidChores.length;
+          const complete = kidChores.filter(c => c.done).length;
+          const allDone = total > 0 && complete === total;
+
+          const colors = kidColors[kid];
 
           return (
             <div key={kid}>
-              <div>{kid} ({complete}/{total})</div>
 
-              {kidChores.map(chore => (
-                <div
-                  key={chore.id}
-                  onClick={() => toggleChore(chore)}
-                  style={{
-                    padding: 12,
-                    marginTop: 10,
-                    borderRadius: 10,
-                    background: chore.done
-                      ? kidColors[kid].complete
-                      : kidColors[kid].base,
-                    color: chore.done ? "#fff" : "#000",
-                    cursor: "pointer"
-                  }}
-                >
-                  {chore.text}
-                </div>
-              ))}
+              <div style={{
+                padding: "14px",
+                borderRadius: "14px",
+                marginBottom: "12px",
+                textAlign: "center",
+                fontWeight: "700",
+                fontSize: "18px",
+                background: allDone ? colors.complete : "#ffffff",
+                color: allDone ? "#ffffff" : "#111827",
+                boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+                border: "1px solid rgba(0,0,0,0.08)"
+              }}>
+                {allDone
+                  ? `🎉 ${kid} • ALL DONE! 🎉`
+                  : `${kid} • ${complete}/${total}`
+                }
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {kidChores.map(chore => (
+                  <div
+                    key={chore.id}
+                    onClick={() => toggleChore(chore)}
+                    style={{
+                      padding: "16px",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                      background: chore.done ? colors.complete : colors.base,
+                      color: chore.done ? "#ffffff" : "#111827",
+                      minHeight: "90px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "18px", fontWeight: "700" }}>
+                      {chore.text}
+                    </div>
+
+                    {chore.done && (
+                      <div style={{ fontSize: "12px", marginTop: "6px" }}>
+                        Complete • {formatTime(chore.timestamp)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
             </div>
           );
         })}
