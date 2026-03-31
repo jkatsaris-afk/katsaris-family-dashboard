@@ -18,7 +18,7 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔥 LOAD + LIVE SYNC
+  // 🔥 LOAD + SYNC (less aggressive)
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -34,12 +34,14 @@ export default function ChoresPage() {
 
           setChores(formatted);
           setLoading(false);
-        })
-        .catch(err => console.error("Chore load error:", err));
+        });
     };
 
     loadData();
-    const interval = setInterval(loadData, 5000);
+
+    // 🔥 slower sync prevents overwrite issues
+    const interval = setInterval(loadData, 8000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -52,7 +54,7 @@ export default function ChoresPage() {
     });
   };
 
-  // ➕ ADD CHORE
+  // ➕ ADD
   const addChore = () => {
     if (!newChore) return;
 
@@ -65,21 +67,10 @@ export default function ChoresPage() {
       }),
     });
 
-    setChores(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        assignedTo: selectedKid,
-        text: newChore,
-        done: false,
-        timestamp: null
-      }
-    ]);
-
     setNewChore("");
   };
 
-  // ✅ TOGGLE (STABLE VERSION)
+  // ✅ TOGGLE (stable)
   const toggleChore = async (chore) => {
     const now = new Date();
 
@@ -101,30 +92,12 @@ export default function ChoresPage() {
           done: !chore.done
         }),
       });
-
-      // 🔥 force sync AFTER write
-      setTimeout(() => {
-        fetch(API_URL + "?type=chores")
-          .then(res => res.json())
-          .then(data => {
-            const formatted = data.slice(1).map(row => ({
-              id: row[0],
-              assignedTo: row[1],
-              text: row[2],
-              done: row[3] === true || row[3] === "TRUE",
-              timestamp: row[4] ? new Date(row[4]) : null
-            }));
-
-            setChores(formatted);
-          });
-      }, 500);
-
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
 
-  // 🔥 LOADING DOTS
+  // 🔥 LOADING
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -160,9 +133,9 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* ADD TILE */}
+      {/* 🔥 CLEAN ADD TILE (RESTORED) */}
       <div style={{
-        background: "#fff",
+        background: "#ffffff",
         borderRadius: "16px",
         padding: "16px",
         marginBottom: "20px",
@@ -183,13 +156,28 @@ export default function ChoresPage() {
           gap: "10px",
           marginBottom: "10px"
         }}>
-          <select value={selectedKid} onChange={(e) => setSelectedKid(e.target.value)}>
+          <select
+            value={selectedKid}
+            onChange={(e) => setSelectedKid(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb"
+            }}
+          >
             {kids.map(k => <option key={k}>{k}</option>)}
           </select>
 
           <select
             value={isRecurring ? "recurring" : "one"}
             onChange={(e) => setIsRecurring(e.target.value === "recurring")}
+            style={{
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb"
+            }}
           >
             <option value="one">One-Time</option>
             <option value="recurring">Recurring</option>
@@ -200,22 +188,34 @@ export default function ChoresPage() {
           placeholder="Enter chore..."
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px" }}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #e5e7eb",
+            background: "#f9fafb",
+            marginBottom: "10px"
+          }}
         />
 
-        <div onClick={addChore} style={{
-          background: "#3b82f6",
-          color: "#fff",
-          textAlign: "center",
-          padding: "10px",
-          borderRadius: "10px",
-          cursor: "pointer"
-        }}>
+        <div
+          onClick={addChore}
+          style={{
+            background: "#3b82f6",
+            color: "#fff",
+            textAlign: "center",
+            padding: "12px",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
           Add
         </div>
       </div>
 
-      {/* BOARD */}
+      {/* 🔥 ORIGINAL TILE SYSTEM (RESTORED) */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -231,14 +231,18 @@ export default function ChoresPage() {
 
           return (
             <div key={kid}>
+
               <div style={{
-                padding: "16px",
+                padding: "14px",
                 borderRadius: "14px",
                 marginBottom: "12px",
                 textAlign: "center",
                 fontWeight: "700",
-                background: allDone ? colors.complete : "#fff",
-                color: allDone ? "#fff" : "#111",
+                fontSize: "18px",
+                background: allDone ? colors.complete : "#ffffff",
+                color: allDone ? "#ffffff" : "#111827",
+                boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+                border: "1px solid rgba(0,0,0,0.08)"
               }}>
                 {allDone
                   ? `🎉 ${kid} • ALL DONE! 🎉`
@@ -251,25 +255,43 @@ export default function ChoresPage() {
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
+                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.97)"}
+                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
+                      cursor: "pointer",
                       background: chore.done ? colors.complete : colors.base,
-                      color: chore.done ? "#fff" : "#111",
+                      color: chore.done ? "#ffffff" : "#111827",
+                      border: chore.done
+                        ? "2px solid transparent"
+                        : "2px solid rgba(0,0,0,0.08)",
+                      boxShadow: chore.done
+                        ? "0 10px 20px rgba(0,0,0,0.15)"
+                        : "0 4px 10px rgba(0,0,0,0.06)",
+                      transition: "all 0.2s ease",
+                      minHeight: "90px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
                       textAlign: "center",
-                      cursor: "pointer"
                     }}
                   >
-                    <div>{chore.text}</div>
+                    <div style={{ fontSize: "18px", fontWeight: "700" }}>
+                      {chore.text}
+                    </div>
 
                     {chore.done && (
-                      <div style={{ fontSize: "12px" }}>
+                      <div style={{ fontSize: "12px", marginTop: "6px" }}>
                         Complete • {formatTime(chore.timestamp)}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
+
             </div>
           );
         })}
