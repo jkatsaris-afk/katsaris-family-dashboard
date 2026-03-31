@@ -76,7 +76,7 @@ export default function HomePage() {
         style={{
           position: "absolute",
           width: "450px",
-          opacity: 0.10,
+          opacity: 0.25,
           top: "60%",
           left: "50%",
           transform: "translate(-50%, -50%)",
