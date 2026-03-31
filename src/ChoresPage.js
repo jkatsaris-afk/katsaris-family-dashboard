@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwDALm53uXOwohhTF57V2hYN-KNuprGWQTQA-sQCupqbhTJCSyX1g-YTobL9s96yv6D/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwqbYXB0Zjl16PNvVSWRYhDZ8UbKeoERT3Qyhyfcj50vtHz2IVutp-NIKIrzuR-PfE-/exec";
 
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
@@ -18,22 +18,31 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔄 LOAD
+  // 🔥 LIVE SYNC + LOAD
   useEffect(() => {
-    fetch(API_URL + "?type=chores")
-      .then(res => res.json())
-      .then(data => {
-        const formatted = data.slice(1).map(row => ({
-          id: row[0],
-          assignedTo: row[1],
-          text: row[2],
-          done: row[3] === true || row[3] === "TRUE",
-          timestamp: null
-        }));
+    const loadData = () => {
+      fetch(API_URL + "?type=chores")
+        .then(res => res.json())
+        .then(data => {
+          const formatted = data.slice(1).map(row => ({
+            id: row[0],
+            assignedTo: row[1],
+            text: row[2],
+            done: row[3] === true || row[3] === "TRUE",
+            timestamp: row[4] ? new Date(row[4]) : null
+          }));
 
-        setChores(formatted);
-        setLoading(false);
-      });
+          setChores(formatted);
+          setLoading(false);
+        })
+        .catch(err => console.error("Chore load error:", err));
+    };
+
+    loadData();
+
+    const interval = setInterval(loadData, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // 🕒 FORMAT TIME
@@ -237,7 +246,7 @@ export default function ChoresPage() {
           return (
             <div key={kid}>
 
-              {/* 🔥 UPDATED HEADER */}
+              {/* 🔥 HEADER WITH CELEBRATION */}
               <div
                 style={{
                   padding: "16px",
@@ -250,7 +259,6 @@ export default function ChoresPage() {
                   color: allDone ? "#ffffff" : "#111827",
                   boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
                   border: "1px solid rgba(0,0,0,0.08)",
-                  transition: "all 0.3s ease",
                   animation: allDone ? "celebratePulse 1s infinite" : "none",
                 }}
               >
@@ -260,7 +268,7 @@ export default function ChoresPage() {
                 }
               </div>
 
-              {/* 🔥 TILES (UNCHANGED) */}
+              {/* 🔥 TILES */}
               <div style={{
                 display: "flex",
                 flexDirection: "column",
