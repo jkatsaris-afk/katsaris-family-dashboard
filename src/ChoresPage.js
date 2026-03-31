@@ -18,29 +18,37 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔥 LOAD + SYNC (less aggressive)
+  // 🔥 LOAD + SYNC (WITH TODAY FILTER)
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
         .then(res => res.json())
         .then(data => {
-          const formatted = data.slice(1).map(row => ({
-            id: row[0],
-            assignedTo: row[1],
-            text: row[2],
-            done: row[3] === true || row[3] === "TRUE",
-            timestamp: row[4] ? new Date(row[4]) : null
-          }));
+
+          const today = new Date().toISOString().split("T")[0];
+
+          const formatted = data.slice(1)
+            .filter(row => {
+              if (!row[4]) return false;
+              return row[4] === today;
+            })
+            .map(row => ({
+              id: row[0],
+              assignedTo: row[1],
+              text: row[2],
+              done: row[3] === true || row[3] === "TRUE",
+              timestamp: row[4] ? new Date(row[4]) : null
+            }));
 
           setChores(formatted);
           setLoading(false);
-        });
+        })
+        .catch(err => console.error("Chore load error:", err));
     };
 
     loadData();
 
-    // 🔥 slower sync prevents overwrite issues
-    const interval = setInterval(loadData, 8000);
+    const interval = setInterval(loadData, 8000); // stable sync
 
     return () => clearInterval(interval);
   }, []);
@@ -54,7 +62,7 @@ export default function ChoresPage() {
     });
   };
 
-  // ➕ ADD
+  // ➕ ADD CHORE
   const addChore = () => {
     if (!newChore) return;
 
@@ -70,11 +78,10 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE (stable)
+  // ✅ TOGGLE
   const toggleChore = async (chore) => {
     const now = new Date();
 
-    // instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -97,7 +104,7 @@ export default function ChoresPage() {
     }
   };
 
-  // 🔥 LOADING
+  // 🔥 LOADING SCREEN
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -133,7 +140,7 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 CLEAN ADD TILE (RESTORED) */}
+      {/* 🔥 ADD CHORE TILE (CLEAN) */}
       <div style={{
         background: "#ffffff",
         borderRadius: "16px",
@@ -215,7 +222,7 @@ export default function ChoresPage() {
         </div>
       </div>
 
-      {/* 🔥 ORIGINAL TILE SYSTEM (RESTORED) */}
+      {/* 🔥 BOARD */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -232,6 +239,7 @@ export default function ChoresPage() {
           return (
             <div key={kid}>
 
+              {/* HEADER */}
               <div style={{
                 padding: "14px",
                 borderRadius: "14px",
@@ -250,14 +258,12 @@ export default function ChoresPage() {
                 }
               </div>
 
+              {/* TILES */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {kidChores.map(chore => (
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
-                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.97)"}
-                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
