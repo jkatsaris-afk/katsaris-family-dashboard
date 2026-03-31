@@ -47,7 +47,7 @@ export default function SettingsPage() {
 
     </div>
   );
-}
+} 
 
 
 // 🔥 FAMILY PAGE (placeholder)
