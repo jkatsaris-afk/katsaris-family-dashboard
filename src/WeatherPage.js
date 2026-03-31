@@ -25,106 +25,134 @@ export default function WeatherPage() {
 
   if (!current || !forecast) return <div>Loading...</div>;
 
-  const hourly = forecast.list.slice(0, 8);
+  const hourly = forecast.list.slice(0, 12);
+
+  const daily = [...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
+    .slice(0, 7)
+    .map(date => {
+      const dayData = forecast.list.filter(d =>
+        d.dt_txt.startsWith(date)
+      );
+
+      const temps = dayData.map(d => d.main.temp);
+
+      return {
+        date,
+        max: Math.max(...temps),
+        min: Math.min(...temps),
+        icon: dayData[0].weather[0].icon
+      };
+    });
 
   return (
-    <div style={{ padding: "20px" }}>
-      <div
-        style={{
-          background: "rgba(30,30,30,0.85)",
-          backdropFilter: "blur(12px)",
-          borderRadius: "20px",
-          padding: "25px",
-          color: "white",
-        }}
-      >
-        {/* HEADER */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "14px", opacity: 0.7 }}>
-            Fallon, NV
-          </div>
+    <div style={{ padding: "30px", color: "white" }}>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ fontSize: "64px", fontWeight: "600" }}>
-              {Math.round(current.main.temp)}°
-            </div>
-            <div style={{ fontSize: "14px", opacity: 0.7 }}>
-              F / C
-            </div>
-          </div>
-
-          <div style={{ opacity: 0.8 }}>
-            {current.weather[0].description}
-          </div>
+      {/* 🔥 CURRENT */}
+      <div style={{ marginBottom: "40px" }}>
+        <div style={{ fontSize: "18px", opacity: 0.7 }}>
+          Fallon, NV
         </div>
 
-        {/* DAILY ROW */}
+        <div style={{ fontSize: "80px", fontWeight: "700" }}>
+          {Math.round(current.main.temp)}°
+        </div>
+
+        <div style={{ fontSize: "22px", opacity: 0.8 }}>
+          {current.weather[0].description}
+        </div>
+      </div>
+
+      {/* 🔥 HOURLY (MAIN FEATURE) */}
+      <div style={{ marginBottom: "50px" }}>
+        <div style={{ marginBottom: "15px", opacity: 0.7 }}>
+          Today
+        </div>
+
         <div
           style={{
             display: "flex",
-            gap: "18px",
-            marginBottom: "25px",
+            justifyContent: "space-between",
+            gap: "10px",
           }}
         >
-          {[...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
-            .slice(0, 8)
-            .map((date, i) => {
-              const dayData = forecast.list.filter(d =>
-                d.dt_txt.startsWith(date)
-              );
+          {hourly.map((h, i) => {
+            const time = new Date(h.dt * 1000).getHours();
 
-              const temps = dayData.map(d => d.main.temp);
-
-              return (
-                <div key={i} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "12px" }}>
-                    {new Date(date).toLocaleDateString("en-US", {
-                      weekday: "short",
-                    })}
-                  </div>
-
-                  <img
-                    src={`https://openweathermap.org/img/wn/${dayData[0].weather[0].icon}.png`}
-                    alt=""
-                  />
-
-                  <div>{Math.max(...temps).toFixed(0)}°</div>
-                  <div style={{ opacity: 0.6, fontSize: "12px" }}>
-                    {Math.min(...temps).toFixed(0)}°
-                  </div>
+            return (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  background: "rgba(255,255,255,0.1)",
+                  padding: "15px 5px",
+                  borderRadius: "12px",
+                }}
+              >
+                <div style={{ fontSize: "14px", marginBottom: "5px" }}>
+                  {time}:00
                 </div>
-              );
-            })}
-        </div>
 
-        {/* SIMPLE TEMP GRAPH */}
-        <div style={{ marginTop: "10px" }}>
-          <div style={{ fontSize: "12px", opacity: 0.7, marginBottom: "10px" }}>
-            Temperature
-          </div>
+                <img
+                  src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
+                  alt=""
+                />
 
-          <div style={{ position: "relative", height: "80px" }}>
-            <svg width="100%" height="80">
-              <polyline
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                points={hourly
-                  .map((h, i) => `${i * 40},${80 - h.main.temp}`)
-                  .join(" ")}
-              />
-            </svg>
-          </div>
-
-          {/* TIME LABELS */}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", opacity: 0.6 }}>
-            {hourly.map((h, i) => {
-              const time = new Date(h.dt * 1000).getHours();
-              return <div key={i}>{time}:00</div>;
-            })}
-          </div>
+                <div style={{ fontSize: "18px", fontWeight: "600" }}>
+                  {Math.round(h.main.temp)}°
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* 🔥 7 DAY */}
+      <div>
+        <div style={{ marginBottom: "15px", opacity: 0.7 }}>
+          7-Day Forecast
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            gap: "15px",
+          }}
+        >
+          {daily.map((d, i) => (
+            <div
+              key={i}
+              style={{
+                textAlign: "center",
+                background: "rgba(255,255,255,0.1)",
+                padding: "15px",
+                borderRadius: "12px",
+              }}
+            >
+              <div style={{ marginBottom: "5px" }}>
+                {new Date(d.date).toLocaleDateString("en-US", {
+                  weekday: "short",
+                })}
+              </div>
+
+              <img
+                src={`https://openweathermap.org/img/wn/${d.icon}.png`}
+                alt=""
+              />
+
+              <div style={{ fontWeight: "600" }}>
+                {Math.round(d.max)}°
+              </div>
+
+              <div style={{ fontSize: "12px", opacity: 0.6 }}>
+                {Math.round(d.min)}°
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
