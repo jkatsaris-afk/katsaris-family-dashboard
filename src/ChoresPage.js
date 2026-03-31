@@ -22,6 +22,7 @@ export default function ChoresPage() {
 
   const [chores, setChores] = useState([]);
 
+  // 🔄 LOAD ONCE
   useEffect(() => {
     fetch(API_URL + "?type=chores")
       .then(res => res.json())
@@ -38,6 +39,7 @@ export default function ChoresPage() {
       });
   }, []);
 
+  // 🕒 FORMAT TIME
   const formatTime = (date) => {
     if (!date) return "";
 
@@ -47,6 +49,7 @@ export default function ChoresPage() {
     });
   };
 
+  // ✅ TOGGLE
   const toggleChore = (chore) => {
     const now = new Date();
 
@@ -71,6 +74,7 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
+      {/* 🔥 STATUS BOARD */}
       <div
         style={{
           display: "grid",
@@ -97,11 +101,13 @@ export default function ChoresPage() {
               </div>
 
               {/* 🧱 TILES */}
-              <div style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px"
+                }}
+              >
                 {kidChores.map(chore => {
                   const colors = kidColors[kid];
 
@@ -109,38 +115,69 @@ export default function ChoresPage() {
                     <div
                       key={chore.id}
                       onClick={() => toggleChore(chore)}
+
+                      // 🔥 CLICK ANIMATION
+                      onMouseDown={(e) =>
+                        (e.currentTarget.style.transform = "scale(0.97)")
+                      }
+                      onMouseUp={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+
                       style={{
-                        padding: "14px", // 👈 shorter
-                        borderRadius: "14px",
+                        padding: "16px",
+                        borderRadius: "16px",
                         cursor: "pointer",
-                        background: chore.done ? colors.complete : colors.base,
+                        background: chore.done
+                          ? colors.complete
+                          : colors.base,
                         color: chore.done ? "#ffffff" : "#111827",
-                        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+
+                        // 🔥 EDGE DEFINITION
+                        border: chore.done
+                          ? "2px solid transparent"
+                          : "2px solid rgba(0,0,0,0.08)",
+
+                        boxShadow: chore.done
+                          ? "0 10px 20px rgba(0,0,0,0.15)"
+                          : "0 4px 10px rgba(0,0,0,0.06)",
+
                         transition: "all 0.2s ease",
-                        minHeight: "80px", // 👈 shorter tile
+
+                        minHeight: "90px",
+
+                        // 🔥 PERFECT CENTERING
                         display: "flex",
                         flexDirection: "column",
-                        justifyContent: "space-between",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        textAlign: "center",
                       }}
                     >
 
-                      {/* TEXT */}
-                      <div style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        textAlign: "center"
-                      }}>
+                      {/* 🔥 CHORE TEXT */}
+                      <div
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "700",
+                          lineHeight: "1.2",
+                        }}
+                      >
                         {chore.text}
                       </div>
 
-                      {/* STATUS (only when complete) */}
+                      {/* 🔥 STATUS (ONLY WHEN COMPLETE) */}
                       {chore.done && (
-                        <div style={{
-                          fontSize: "12px",
-                          textAlign: "center",
-                          opacity: 0.9,
-                          marginTop: "8px"
-                        }}>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            marginTop: "6px",
+                            opacity: 0.9,
+                          }}
+                        >
                           Complete • {formatTime(chore.timestamp)}
                         </div>
                       )}
@@ -149,11 +186,14 @@ export default function ChoresPage() {
                   );
                 })}
 
+                {/* EMPTY STATE */}
                 {kidChores.length === 0 && (
-                  <div style={{
-                    textAlign: "center",
-                    color: "#9ca3af"
-                  }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      color: "#9ca3af"
+                    }}
+                  >
                     No chores
                   </div>
                 )}
