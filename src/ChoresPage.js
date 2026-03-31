@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzcLAcdqWRlh3YnumUHW_tKJ3TA88uI7lPXA6K43TnzTrmZg802I4boZyp-1VOu7CUd/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzevKeYvEzoBLT--KJzWgq3mty2nVjkklqIcHiJuNR3FM5bxBj0HOBnQsCN8J6n_MTu/exec";
 
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
