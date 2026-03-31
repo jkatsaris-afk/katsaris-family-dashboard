@@ -3,129 +3,71 @@ import React, { useEffect, useState } from "react";
 export default function WeatherPage() {
   const [current, setCurrent] = useState(null);
   const [forecast, setForecast] = useState(null);
-  const [condition, setCondition] = useState("clear");
 
   useEffect(() => {
     const fetchWeather = async () => {
-      try {
-        // 🌤 CURRENT WEATHER
-        const currentRes = await fetch(
-          "https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
-        );
-        const currentData = await currentRes.json();
+      const currentRes = await fetch(
+        "https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
+      );
+      const currentData = await currentRes.json();
 
-        // 📅 FORECAST
-        const forecastRes = await fetch(
-          "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
-        );
-        const forecastData = await forecastRes.json();
+      const forecastRes = await fetch(
+        "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
+      );
+      const forecastData = await forecastRes.json();
 
-        setCurrent(currentData);
-        setForecast(forecastData);
-
-        // 🌦 DETERMINE CONDITION
-        const cond = currentData.weather[0].main.toLowerCase();
-
-        if (cond.includes("rain")) setCondition("rain");
-        else if (cond.includes("cloud")) setCondition("clouds");
-        else setCondition("clear");
-
-      } catch (e) {
-        console.error("Weather error:", e);
-      }
+      setCurrent(currentData);
+      setForecast(forecastData);
     };
 
     fetchWeather();
   }, []);
 
-  if (!current || !forecast) {
-    return <div>Loading weather...</div>;
-  }
+  if (!current || !forecast) return <div>Loading...</div>;
+
+  const hourly = forecast.list.slice(0, 8);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: "20px",
-        padding: "25px",
-        color: "white",
-        background: "linear-gradient(135deg, #3b82f6, #60a5fa)", // base sky
-      }}
-    >
-      {/* 🌤 BACKGROUND ANIMATION */}
+    <div style={{ padding: "20px" }}>
+      <div
+        style={{
+          background: "rgba(30,30,30,0.85)",
+          backdropFilter: "blur(12px)",
+          borderRadius: "20px",
+          padding: "25px",
+          color: "white",
+        }}
+      >
+        {/* HEADER */}
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ fontSize: "14px", opacity: 0.7 }}>
+            Fallon, NV
+          </div>
 
-      {/* ☁️ CLOUDS */}
-      {(condition === "clouds" || condition === "rain") && (
-        <div className="clouds"></div>
-      )}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ fontSize: "64px", fontWeight: "600" }}>
+              {Math.round(current.main.temp)}°
+            </div>
+            <div style={{ fontSize: "14px", opacity: 0.7 }}>
+              F / C
+            </div>
+          </div>
 
-      {/* 🌧 RAIN */}
-      {condition === "rain" && <div className="rain"></div>}
-
-      {/* 🌫 CONTENT */}
-      <div style={{ position: "relative", zIndex: 3 }}>
-
-        {/* 🌤 BIG TEMP */}
-        <div style={{ fontSize: "64px", fontWeight: "700" }}>
-          {Math.round(current.main.temp)}°
+          <div style={{ opacity: 0.8 }}>
+            {current.weather[0].description}
+          </div>
         </div>
 
-        <div style={{ marginBottom: "20px", fontSize: "18px" }}>
-          {current.weather[0].description}
-        </div>
-
-        {/* 📊 DETAILS */}
-        <div style={{ display: "flex", gap: "20px", marginBottom: "25px" }}>
-          <div>Feels: {Math.round(current.main.feels_like)}°</div>
-          <div>Wind: {Math.round(current.wind.speed)} mph</div>
-          <div>Humidity: {current.main.humidity}%</div>
-        </div>
-
-        {/* ⏰ HOURLY FORECAST */}
+        {/* DAILY ROW */}
         <div
           style={{
             display: "flex",
-            overflowX: "auto",
-            gap: "10px",
+            gap: "18px",
             marginBottom: "25px",
           }}
         >
-          {forecast.list.slice(0, 10).map((h, i) => {
-            const hour = new Date(h.dt * 1000).getHours();
-
-            return (
-              <div
-                key={i}
-                style={{
-                  minWidth: "65px",
-                  textAlign: "center",
-                  background: "rgba(255,255,255,0.2)",
-                  padding: "8px",
-                  borderRadius: "10px",
-                }}
-              >
-                <div>{hour}:00</div>
-                <img
-                  src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
-                  alt=""
-                />
-                <div>{Math.round(h.main.temp)}°</div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 📅 7 DAY FORECAST */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "10px",
-          }}
-        >
           {[...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
-            .slice(0, 7)
+            .slice(0, 8)
             .map((date, i) => {
               const dayData = forecast.list.filter(d =>
                 d.dt_txt.startsWith(date)
@@ -134,24 +76,20 @@ export default function WeatherPage() {
               const temps = dayData.map(d => d.main.temp);
 
               return (
-                <div
-                  key={i}
-                  style={{
-                    background: "rgba(255,255,255,0.2)",
-                    padding: "8px",
-                    borderRadius: "10px",
-                    textAlign: "center",
-                  }}
-                >
+                <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "12px" }}>
                     {new Date(date).toLocaleDateString("en-US", {
                       weekday: "short",
                     })}
                   </div>
-                  <div style={{ fontWeight: "600" }}>
-                    {Math.max(...temps).toFixed(0)}°
-                  </div>
-                  <div style={{ fontSize: "11px" }}>
+
+                  <img
+                    src={`https://openweathermap.org/img/wn/${dayData[0].weather[0].icon}.png`}
+                    alt=""
+                  />
+
+                  <div>{Math.max(...temps).toFixed(0)}°</div>
+                  <div style={{ opacity: 0.6, fontSize: "12px" }}>
                     {Math.min(...temps).toFixed(0)}°
                   </div>
                 </div>
@@ -159,6 +97,33 @@ export default function WeatherPage() {
             })}
         </div>
 
+        {/* SIMPLE TEMP GRAPH */}
+        <div style={{ marginTop: "10px" }}>
+          <div style={{ fontSize: "12px", opacity: 0.7, marginBottom: "10px" }}>
+            Temperature
+          </div>
+
+          <div style={{ position: "relative", height: "80px" }}>
+            <svg width="100%" height="80">
+              <polyline
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                points={hourly
+                  .map((h, i) => `${i * 40},${80 - h.main.temp}`)
+                  .join(" ")}
+              />
+            </svg>
+          </div>
+
+          {/* TIME LABELS */}
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", opacity: 0.6 }}>
+            {hourly.map((h, i) => {
+              const time = new Date(h.dt * 1000).getHours();
+              return <div key={i}>{time}:00</div>;
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
