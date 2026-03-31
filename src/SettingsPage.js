@@ -10,17 +10,37 @@ export default function SettingsPage() {
 
       {/* LEFT MENU */}
       <div className="settings-menu">
+
         <div
           className={`settings-menu-item ${active === "chores" ? "active" : ""}`}
           onClick={() => setActive("chores")}
         >
           Recurring Chores
         </div>
+
+        <div
+          className={`settings-menu-item ${active === "family" ? "active" : ""}`}
+          onClick={() => setActive("family")}
+        >
+          Family Profiles
+        </div>
+
       </div>
 
       {/* RIGHT PANEL */}
       <div className="settings-content">
+
         {active === "chores" && <RecurringChores />}
+
+        {active === "family" && (
+          <div>
+            <h2>Family Profiles</h2>
+            <div className="settings-card">
+              Coming soon...
+            </div>
+          </div>
+        )}
+
       </div>
 
     </div>
@@ -28,7 +48,7 @@ export default function SettingsPage() {
 }
 
 
-// 🔥 RIGHT PANEL COMPONENT
+// 🔥 CHORES EDITOR
 function RecurringChores() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
