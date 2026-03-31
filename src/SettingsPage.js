@@ -1,69 +1,83 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+const API = "https://script.google.com/macros/s/AKfycbwu26ABWTuw9xG_u5DpT0-Ql-CZeiOw9qfB7ewDVN_zrsD3CiaX0_0XL__VyrASgdee/exec";
 
 export default function SettingsPage() {
   const [page, setPage] = useState("main");
 
   return (
-    <div style={{ padding: "30px", background: "#f5f5f5", minHeight: "100vh" }}>
+    <div style={{
+      background: "#f5f5f5",
+      minHeight: "100vh",
+      padding: "30px"
+    }}>
 
       {page === "main" && (
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
           gap: "20px"
         }}>
-
-          {/* RECURRING CHORES TILE */}
-          <div
-            className="card"
-            onClick={() => setPage("chores")}
-            style={{ cursor: "pointer", textAlign: "center" }}
-          >
-            <div style={{ fontSize: "18px" }}>Recurring Chores</div>
+          <div className="card" onClick={() => setPage("chores")}>
+            <h3>Recurring Chores</h3>
           </div>
-
         </div>
       )}
 
-      {page === "chores" && <RecurringChores />}
+      {page === "chores" && (
+        <RecurringChores goBack={() => setPage("main")} />
+      )}
 
       <style>{`
         .card {
-          background: #121212;
-          color: white;
-          padding: 30px;
+          background: white;
           border-radius: 20px;
+          padding: 25px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+          cursor: pointer;
         }
       `}</style>
 
     </div>
   );
 }
-function RecurringChores() {
-  const [chores, setChores] = useState([
-    "Take out trash",
-    "Do dishes",
-    "Clean room"
-  ]);
+function RecurringChores({ goBack }) {
+  const [chores, setChores] = useState([]);
 
-  const updateChore = (index, value) => {
+  // 🔥 LOAD FROM GOOGLE SHEET
+  useEffect(() => {
+    fetch(API + "?type=template")
+      .then(res => res.json())
+      .then(data => {
+        const cleaned = data.slice(1).map(row => ({
+          name: row[0] || "",
+          chore: row[1] || ""
+        }));
+        setChores(cleaned);
+      });
+  }, []);
+
+  const update = (i, field, value) => {
     const updated = [...chores];
-    updated[index] = value;
+    updated[i][field] = value;
     setChores(updated);
   };
 
-  const addChore = () => {
-    setChores([...chores, ""]);
+  const addRow = () => {
+    setChores([...chores, { name: "", chore: "" }]);
   };
 
-  const removeChore = (index) => {
-    setChores(chores.filter((_, i) => i !== index));
+  const removeRow = (i) => {
+    setChores(chores.filter((_, index) => index !== i));
   };
 
-  const saveChores = async () => {
-    await fetch("YOUR_SCRIPT_URL", {
+  const save = async () => {
+    await fetch(API, {
       method: "POST",
-      body: JSON.stringify({ chores }),
+      body: JSON.stringify({
+        saveTemplate: true,
+        chores: chores
+      })
     });
 
     alert("Saved!");
@@ -72,21 +86,70 @@ function RecurringChores() {
   return (
     <div>
 
+      <button onClick={goBack} style={{ marginBottom: "20px" }}>
+        ← Back
+      </button>
+
       <h2>Recurring Chores</h2>
 
-      {chores.map((chore, i) => (
-        <div key={i} style={{ display: "flex", marginBottom: "10px" }}>
-          <input
-            value={chore}
-            onChange={(e) => updateChore(i, e.target.value)}
-            style={{ flex: 1, padding: "10px" }}
-          />
-          <button onClick={() => removeChore(i)}>X</button>
-        </div>
-      ))}
+      {/* 🔥 LIST */}
+      <div className="card">
 
-      <button onClick={addChore}>+ Add</button>
-      <button onClick={saveChores}>Save</button>
+        {chores.map((c, i) => (
+          <div key={i} className="row">
+
+            <input
+              value={c.name}
+              onChange={(e) => update(i, "name", e.target.value)}
+              placeholder="Name"
+            />
+
+            <input
+              value={c.chore}
+              onChange={(e) => update(i, "chore", e.target.value)}
+              placeholder="Chore"
+            />
+
+            <button onClick={() => removeRow(i)}>✕</button>
+
+          </div>
+        ))}
+
+        <button onClick={addRow}>+ Add</button>
+        <button onClick={save}>Save</button>
+
+      </div>
+
+      <style>{`
+        .card {
+          background: white;
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .row {
+          display: grid;
+          grid-template-columns: 1fr 2fr auto;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        input {
+          padding: 10px;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+        }
+
+        button {
+          padding: 8px 12px;
+          border-radius: 10px;
+          border: none;
+          background: #111;
+          color: white;
+          cursor: pointer;
+        }
+      `}</style>
 
     </div>
   );
