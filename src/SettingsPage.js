@@ -10,25 +10,19 @@ export default function SettingsPage() {
 
       {/* LEFT MENU */}
       <div className="menu">
-
         <div
           className={`menu-item ${active === "chores" ? "active" : ""}`}
           onClick={() => setActive("chores")}
         >
           Recurring Chores
         </div>
-
-        <div className="menu-item">Shopping (soon)</div>
-        <div className="menu-item">Users (soon)</div>
-
       </div>
 
-      {/* RIGHT CONTENT */}
+      {/* RIGHT PANEL */}
       <div className="content">
         {active === "chores" && <RecurringChores />}
       </div>
 
-      {/* STYLES */}
       <style>{`
         .settings-shell {
           display: flex;
@@ -36,25 +30,18 @@ export default function SettingsPage() {
           background: #f5f5f5;
         }
 
-        /* LEFT SIDE */
         .menu {
-          width: 260px;
+          width: 240px;
           background: white;
           padding: 20px;
           border-right: 1px solid #eee;
         }
 
         .menu-item {
-          padding: 15px;
+          padding: 14px;
           border-radius: 12px;
-          margin-bottom: 10px;
-          cursor: pointer;
           background: #f3f3f3;
-          transition: all 0.2s;
-        }
-
-        .menu-item:hover {
-          background: #e5e5e5;
+          cursor: pointer;
         }
 
         .menu-item.active {
@@ -62,7 +49,6 @@ export default function SettingsPage() {
           color: white;
         }
 
-        /* RIGHT SIDE */
         .content {
           flex: 1;
           padding: 30px;
@@ -74,7 +60,7 @@ export default function SettingsPage() {
 }
 
 
-// 🔥 CHORES EDITOR (RIGHT SIDE)
+// 🔥 RIGHT SIDE EDITOR
 function RecurringChores() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,14 +80,16 @@ function RecurringChores() {
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 LOADING SCREEN
+  // 🔥 RIGHT PANEL LOADING ONLY
   if (loading) {
     return (
-      <div className="loading">
+      <div className="panel-loading">
 
         <div className="spinner"></div>
 
-        <div>Checking on the Children’s Workload</div>
+        <div className="loading-text">
+          Checking on the Children
+        </div>
 
         <div className="dots">
           <span></span>
@@ -110,22 +98,27 @@ function RecurringChores() {
         </div>
 
         <style>{`
-          .loading {
+          .panel-loading {
             height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
           }
 
           .spinner {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: 4px solid #ddd;
             border-top: 4px solid #111;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+          }
+
+          .loading-text {
+            font-size: 18px;
+            color: #333;
           }
 
           .dots {
@@ -210,7 +203,7 @@ function RecurringChores() {
               onChange={(e) => update(i, "chore", e.target.value)}
             />
 
-            <button onClick={() => removeRow(i)}>✕</button>
+            <button className="delete" onClick={() => removeRow(i)}>✕</button>
 
           </div>
         ))}
@@ -249,6 +242,10 @@ function RecurringChores() {
           border: none;
           background: #111;
           color: white;
+        }
+
+        .delete {
+          background: #e11d48;
         }
 
         .actions {
