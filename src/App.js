@@ -6,7 +6,9 @@ import {
   ClipboardList,
   ShoppingCart,
   SlidersHorizontal,
-  Tv
+  Tv,
+  CloudSun,        // ✅ NEW
+  Settings         // ✅ NEW
 } from "lucide-react";
 
 // ✅ IMPORT PAGES
@@ -16,6 +18,10 @@ import UpcomingEvents from "./UpcomingEvents";
 import ShoppingPage from "./ShoppingPage";
 import MediaPage from "./MediaPage";
 
+// ✅ NEW PAGES (create these next)
+import WeatherPage from "./WeatherPage";
+import SettingsPage from "./SettingsPage";
+
 export default function App() {
   const [page, setPage] = useState("home");
 
@@ -24,9 +30,16 @@ export default function App() {
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
+
+    // ✅ NEW WEATHER TILE (before shopping)
+    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
+
     { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
     { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#0ea5e9" },
+
+    // ✅ NEW SETTINGS TILE (at end)
+    { name: "Settings", icon: <Settings />, page: "settings", color: "#64748b" },
   ];
 
   return (
@@ -96,8 +109,10 @@ export default function App() {
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
+        {page === "weather" && <WeatherPage />}     {/* ✅ NEW */}
         {page === "shopping" && <ShoppingPage />}
         {page === "media" && <MediaPage />}
+        {page === "settings" && <SettingsPage />}   {/* ✅ NEW */}
 
         {page === "homeControls" && (
           <div style={{
