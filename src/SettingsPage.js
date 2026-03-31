@@ -3,42 +3,69 @@ import React, { useEffect, useState } from "react";
 const API = "https://script.google.com/macros/s/AKfycbwu26ABWTuw9xG_u5DpT0-Ql-CZeiOw9qfB7ewDVN_zrsD3CiaX0_0XL__VyrASgdee/exec";
 
 export default function SettingsPage() {
-  const [page, setPage] = useState("main");
+  const [active, setActive] = useState("chores");
 
   return (
-    <div style={{
-      background: "#f5f5f5",
-      minHeight: "100vh",
-      padding: "30px"
-    }}>
+    <div className="settings-shell">
 
-      {/* MAIN TILE PAGE */}
-      {page === "main" && (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "20px"
-        }}>
-          <div className="card" onClick={() => setPage("chores")}>
-            <h3>Recurring Chores</h3>
-          </div>
+      {/* LEFT MENU */}
+      <div className="menu">
+
+        <div
+          className={`menu-item ${active === "chores" ? "active" : ""}`}
+          onClick={() => setActive("chores")}
+        >
+          Recurring Chores
         </div>
-      )}
 
-      {/* CHORES EDITOR */}
-      {page === "chores" && (
-        <RecurringChores goBack={() => setPage("main")} />
-      )}
+        <div className="menu-item">Shopping (soon)</div>
+        <div className="menu-item">Users (soon)</div>
 
+      </div>
+
+      {/* RIGHT CONTENT */}
+      <div className="content">
+        {active === "chores" && <RecurringChores />}
+      </div>
+
+      {/* STYLES */}
       <style>{`
-        .card {
+        .settings-shell {
+          display: flex;
+          height: 100vh;
+          background: #f5f5f5;
+        }
+
+        /* LEFT SIDE */
+        .menu {
+          width: 260px;
           background: white;
-          border-radius: 20px;
-          padding: 25px;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+          padding: 20px;
+          border-right: 1px solid #eee;
+        }
+
+        .menu-item {
+          padding: 15px;
+          border-radius: 12px;
+          margin-bottom: 10px;
           cursor: pointer;
-          text-align: center;
-          font-weight: 600;
+          background: #f3f3f3;
+          transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+          background: #e5e5e5;
+        }
+
+        .menu-item.active {
+          background: #111;
+          color: white;
+        }
+
+        /* RIGHT SIDE */
+        .content {
+          flex: 1;
+          padding: 30px;
         }
       `}</style>
 
@@ -47,11 +74,10 @@ export default function SettingsPage() {
 }
 
 
-// 🔥 CHORE EDITOR
-function RecurringChores({ goBack }) {
+// 🔥 CHORES EDITOR (RIGHT SIDE)
+function RecurringChores() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
     fetch(API + "?type=template")
@@ -63,25 +89,19 @@ function RecurringChores({ goBack }) {
         }));
 
         setChores(cleaned);
-
-        setTimeout(() => {
-          setLoading(false);
-          setFadeIn(true);
-        }, 400);
+        setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 LOADING SCREEN (MATCHED STYLE)
+  // 🔥 LOADING SCREEN
   if (loading) {
     return (
-      <div className="loading-screen">
+      <div className="loading">
 
         <div className="spinner"></div>
 
-        <div className="loading-text">
-          Checking on the Children’s Workload
-        </div>
+        <div>Checking on the Children’s Workload</div>
 
         <div className="dots">
           <span></span>
@@ -90,17 +110,15 @@ function RecurringChores({ goBack }) {
         </div>
 
         <style>{`
-          .loading-screen {
-            height: 100vh;
+          .loading {
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #f5f5f5;
-            gap: 15px;
+            gap: 12px;
           }
 
-          /* SPINNER */
           .spinner {
             width: 40px;
             height: 40px;
@@ -110,14 +128,6 @@ function RecurringChores({ goBack }) {
             animation: spin 1s linear infinite;
           }
 
-          /* TEXT */
-          .loading-text {
-            font-size: 20px;
-            font-weight: 500;
-            color: #333;
-          }
-
-          /* DOTS BELOW TEXT */
           .dots {
             display: flex;
             gap: 6px;
@@ -128,27 +138,19 @@ function RecurringChores({ goBack }) {
             height: 8px;
             background: #333;
             border-radius: 50%;
-            animation: dotPulse 1.4s infinite ease-in-out;
+            animation: pulse 1.4s infinite;
           }
 
-          .dots span:nth-child(1) { animation-delay: 0s; }
           .dots span:nth-child(2) { animation-delay: 0.2s; }
           .dots span:nth-child(3) { animation-delay: 0.4s; }
 
           @keyframes spin {
-            0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
 
-          @keyframes dotPulse {
-            0%, 80%, 100% {
-              transform: scale(0.5);
-              opacity: 0.3;
-            }
-            40% {
-              transform: scale(1);
-              opacity: 1;
-            }
+          @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
           }
         `}</style>
 
@@ -183,11 +185,7 @@ function RecurringChores({ goBack }) {
   };
 
   return (
-    <div className={fadeIn ? "fade-in" : ""}>
-
-      <button onClick={goBack} style={{ marginBottom: "20px" }}>
-        ← Back
-      </button>
+    <div>
 
       <h2 style={{ marginBottom: "20px" }}>Recurring Chores</h2>
 
@@ -212,7 +210,7 @@ function RecurringChores({ goBack }) {
               onChange={(e) => update(i, "chore", e.target.value)}
             />
 
-            <button className="delete" onClick={() => removeRow(i)}>✕</button>
+            <button onClick={() => removeRow(i)}>✕</button>
 
           </div>
         ))}
@@ -225,19 +223,10 @@ function RecurringChores({ goBack }) {
       </div>
 
       <style>{`
-        .fade-in {
-          animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
         .card {
           background: white;
-          border-radius: 20px;
           padding: 20px;
+          border-radius: 20px;
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
@@ -246,13 +235,6 @@ function RecurringChores({ goBack }) {
           grid-template-columns: 1fr 2fr auto;
           gap: 10px;
           margin-bottom: 10px;
-          align-items: center;
-        }
-
-        .header {
-          font-weight: 600;
-          opacity: 0.6;
-          margin-bottom: 15px;
         }
 
         input {
@@ -267,11 +249,6 @@ function RecurringChores({ goBack }) {
           border: none;
           background: #111;
           color: white;
-          cursor: pointer;
-        }
-
-        .delete {
-          background: #e11d48;
         }
 
         .actions {
