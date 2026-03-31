@@ -12,6 +12,7 @@ export default function HomePage() {
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
@@ -19,16 +20,24 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWeather = () => {
       fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=Fallon,US&units=imperial&appid=YOUR_API_KEY`
+        `https://api.openweathermap.org/data/2.5/weather?q=Fallon,US&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb`
       )
         .then((res) => res.json())
         .then((data) => {
+          console.log("🌤 Weather response:", data);
+
+          if (data.cod !== 200) {
+            throw new Error(data.message);
+          }
+
           setWeather({
             temp: Math.round(data.main.temp),
             condition: data.weather[0].main,
           });
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("❌ Weather error:", err);
+
           setWeather({
             temp: "--",
             condition: "Unavailable",
@@ -37,7 +46,8 @@ export default function HomePage() {
     };
 
     fetchWeather();
-    const interval = setInterval(fetchWeather, 600000);
+    const interval = setInterval(fetchWeather, 600000); // every 10 min
+
     return () => clearInterval(interval);
   }, []);
 
