@@ -58,7 +58,6 @@ export default function ChoresPage() {
       }),
     });
 
-    // instant UI add
     setChores(prev => [
       ...prev,
       {
@@ -93,7 +92,7 @@ export default function ChoresPage() {
     });
   };
 
-  // 🔥 LOADING DOTS
+  // 🔥 LOADING DOT STYLE
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -175,6 +174,26 @@ export default function ChoresPage() {
                 {kid} • {complete}/{total}
               </div>
 
+              {/* 🎉 CELEBRATION */}
+              {allDone && (
+                <div
+                  style={{
+                    marginBottom: "12px",
+                    padding: "10px",
+                    borderRadius: "12px",
+                    textAlign: "center",
+                    fontWeight: "700",
+                    fontSize: "14px",
+                    background: colors.complete,
+                    color: "#ffffff",
+                    animation: "celebratePulse 1s infinite",
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  🎉 ALL DONE! 🎉
+                </div>
+              )}
+
               {/* 🔥 TILES */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {kidChores.map(chore => (
@@ -243,6 +262,7 @@ export default function ChoresPage() {
           );
         })}
       </div>
+
     </div>
   );
 }
