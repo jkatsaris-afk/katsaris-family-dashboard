@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Menu, LayoutGrid, Map, Calendar, Settings } from "lucide-react";
 
 export default function WeatherPage() {
   const [current, setCurrent] = useState(null);
@@ -47,6 +46,10 @@ export default function WeatherPage() {
 
   if (!current || !forecast) return <div>Loading...</div>;
 
+  const sunrise = new Date(current.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const sunset = new Date(current.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const visibility = (current.visibility / 1000).toFixed(1);
+
   const daily = [...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
     .slice(0, 7)
     .map(date => {
@@ -62,186 +65,149 @@ export default function WeatherPage() {
     });
 
   return (
-    <div className="weather-shell">
+    <div style={{
+      background: "#f5f5f5",
+      minHeight: "100vh",
+      padding: "30px"
+    }}>
 
-      {/* SIDEBAR */}
-      <div className="sidebar">
-        <Menu />
-        <LayoutGrid />
-        <Map />
-        <Calendar />
-        <Settings />
-      </div>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr",
+        gap: "20px",
+        marginBottom: "20px"
+      }}>
 
-      {/* MAIN */}
-      <div className="main">
+        {/* MAIN TILE */}
+        <div className="card">
+          <div style={{ opacity: 0.6 }}>Fallon, NV</div>
 
-        {/* HEADER */}
-        <div className="header">
-          <div>
-            <div className="greeting">Good Morning</div>
+          <div style={{ fontSize: "80px", fontWeight: "700" }}>
+            {Math.round(current.main.temp)}°
           </div>
 
-          <input className="search" placeholder="Search location..." />
+          <div style={{ opacity: 0.7 }}>
+            {current.weather[0].description}
+          </div>
+
+          <div style={{ marginTop: "10px", fontSize: "14px", opacity: 0.6 }}>
+            Feels like {Math.round(current.main.feels_like)}°
+          </div>
         </div>
 
-        {/* GRID */}
-        <div className="grid">
+        {/* HIGHLIGHTS */}
+        <div className="card grid-2">
 
-          {/* MAIN CARD */}
-          <div className="card main-card">
-            <div>Fallon, NV</div>
-            <div className="temp">{Math.round(current.main.temp)}°</div>
-            <div>{current.weather[0].description}</div>
+          <div className="highlight">
+            <span>Wind</span>
+            <strong>{current.wind.speed} mph</strong>
           </div>
 
-          {/* HIGHLIGHTS */}
-          <div className="card highlights">
-            <div className="highlight">
-              <span>Wind</span>
-              <strong>{current.wind.speed} mph</strong>
-            </div>
-
-            <div className="highlight">
-              <span>Humidity</span>
-              <strong>{current.main.humidity}%</strong>
-            </div>
-
-            <div className="highlight">
-              <span>Feels</span>
-              <strong>{Math.round(current.main.feels_like)}°</strong>
-            </div>
-
-            <div className="highlight">
-              <span>Pressure</span>
-              <strong>{current.main.pressure}</strong>
-            </div>
+          <div className="highlight">
+            <span>Humidity</span>
+            <strong>{current.main.humidity}%</strong>
           </div>
 
-          {/* EXTRA LOCATIONS */}
-          <div className="card">
-            <div className="card-title">Nearby</div>
+          <div className="highlight">
+            <span>Visibility</span>
+            <strong>{visibility} km</strong>
+          </div>
 
-            {extras.map((loc, i) => (
-              <div key={i} className="row">
-                <div>
-                  <div>{loc.name}</div>
-                  <small>{loc.desc}</small>
-                </div>
+          <div className="highlight">
+            <span>Sunrise</span>
+            <strong>{sunrise}</strong>
+          </div>
 
-                <div className="row-right">
-                  <img src={`https://openweathermap.org/img/wn/${loc.icon}.png`} />
-                  <span>{loc.temp}°</span>
-                </div>
+          <div className="highlight">
+            <span>Sunset</span>
+            <strong>{sunset}</strong>
+          </div>
+
+        </div>
+      </div>
+
+      {/* EXTRA LOCATIONS */}
+      <div className="card" style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "10px", opacity: 0.6 }}>
+          Nearby Locations
+        </div>
+
+        {extras.map((loc, i) => (
+          <div key={i} style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "10px 0",
+            borderBottom: i !== extras.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none"
+          }}>
+            <div>
+              <div>{loc.name}, NV</div>
+              <div style={{ fontSize: "12px", opacity: 0.5 }}>{loc.desc}</div>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <img src={`https://openweathermap.org/img/wn/${loc.icon}.png`} />
+              <div>{loc.temp}°</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FORECAST */}
+      <div className="card">
+        <div style={{ marginBottom: "10px", opacity: 0.6 }}>
+          7 Day Forecast
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {daily.map((d, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <div>
+                {new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })}
               </div>
-            ))}
-          </div>
 
-          {/* FORECAST */}
-          <div className="card forecast">
-            {daily.map((d, i) => (
-              <div key={i} className="day">
-                <div>{new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })}</div>
-                <img src={`https://openweathermap.org/img/wn/${d.icon}.png`} />
-                <div>{Math.round(d.max)}°</div>
-              </div>
-            ))}
-          </div>
+              <img src={`https://openweathermap.org/img/wn/${d.icon}.png`} />
 
+              <div>{Math.round(d.max)}°</div>
+              <div style={{ opacity: 0.5 }}>{Math.round(d.min)}°</div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* STYLES */}
       <style>{`
-        .weather-shell {
-          display: flex;
-          background: #0b0b0b;
-          border-radius: 30px;
-          overflow: hidden;
-          height: 100vh;
-          color: white;
-        }
-
-        .sidebar {
-          width: 70px;
-          background: #111;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 30px;
-          padding: 20px 0;
-        }
-
-        .main {
-          flex: 1;
-          padding: 30px;
-        }
-
-        .header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 20px;
-        }
-
-        .search {
-          background: #1c1c1c;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 20px;
-          color: white;
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 20px;
-        }
-
         .card {
-          background: #161616;
+          background: #121212;
+          color: white;
           border-radius: 20px;
           padding: 20px;
         }
 
-        .main-card .temp {
-          font-size: 70px;
-          font-weight: 700;
-        }
-
-        .highlights {
+        .grid-2 {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 15px;
+          gap: 12px;
         }
 
         .highlight {
-          background: #1f1f1f;
+          background: #1e1e1e;
           padding: 15px;
-          border-radius: 15px;
-        }
-
-        .row {
+          border-radius: 12px;
           display: flex;
-          justify-content: space-between;
-          margin: 10px 0;
+          flex-direction: column;
+          gap: 5px;
         }
 
-        .row-right {
-          display: flex;
-          align-items: center;
-          gap: 10px;
+        .highlight span {
+          font-size: 12px;
+          opacity: 0.6;
         }
 
-        .forecast {
-          grid-column: span 2;
-          display: flex;
-          justify-content: space-between;
-        }
-
-        .day {
-          text-align: center;
+        .highlight strong {
+          font-size: 16px;
         }
       `}</style>
+
     </div>
   );
 }
