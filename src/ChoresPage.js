@@ -21,8 +21,9 @@ export default function ChoresPage() {
   };
 
   const [chores, setChores] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🔄 LOAD ONCE
+  // 🔄 LOAD DATA
   useEffect(() => {
     fetch(API_URL + "?type=chores")
       .then(res => res.json())
@@ -36,6 +37,7 @@ export default function ChoresPage() {
         }));
 
         setChores(formatted);
+        setLoading(false);
       });
   }, []);
 
@@ -48,6 +50,43 @@ export default function ChoresPage() {
       minute: "2-digit",
     });
   };
+
+  // 🔥 LOADING DOT STYLE
+  const dotStyle = (delay) => ({
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    background: "#9ca3af",
+    animation: "bounce 1s infinite",
+    animationDelay: `${delay}s`,
+  });
+
+  // 🔥 LOADING SCREEN
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "60vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          gap: "12px",
+          color: "#6b7280",
+          fontSize: "20px",
+          fontWeight: "600",
+        }}
+      >
+        <div>Get ready to clean!</div>
+
+        <div style={{ display: "flex", gap: "6px" }}>
+          <div style={dotStyle(0)} />
+          <div style={dotStyle(0.2)} />
+          <div style={dotStyle(0.4)} />
+        </div>
+      </div>
+    );
+  }
 
   // ✅ TOGGLE
   const toggleChore = (chore) => {
@@ -136,7 +175,6 @@ export default function ChoresPage() {
                           : colors.base,
                         color: chore.done ? "#ffffff" : "#111827",
 
-                        // 🔥 EDGE DEFINITION
                         border: chore.done
                           ? "2px solid transparent"
                           : "2px solid rgba(0,0,0,0.08)",
@@ -149,7 +187,6 @@ export default function ChoresPage() {
 
                         minHeight: "90px",
 
-                        // 🔥 PERFECT CENTERING
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
@@ -186,7 +223,6 @@ export default function ChoresPage() {
                   );
                 })}
 
-                {/* EMPTY STATE */}
                 {kidChores.length === 0 && (
                   <div
                     style={{
