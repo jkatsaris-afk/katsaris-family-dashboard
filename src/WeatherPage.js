@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 export default function WeatherPage() {
-  const [forecast, setForecast] = useState(null);
+  const [data, setData] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -11,121 +11,138 @@ export default function WeatherPage() {
           "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=df51aa425988c81b25062b9c64532dbb"
         );
 
-        const data = await res.json();
+        const json = await res.json();
 
-        if (!data || data.cod !== "200") {
-          throw new Error("Bad forecast data");
-        }
+        if (!json || json.cod !== "200") throw new Error();
 
-        // 🔥 Convert 3-hour data into daily forecast
-        const dailyMap = {};
-
-        data.list.forEach((item) => {
-          const date = item.dt_txt.split(" ")[0];
-
-          if (!dailyMap[date]) {
-            dailyMap[date] = {
-              temps: [],
-              icon: item.weather[0].icon,
-            };
-          }
-
-          dailyMap[date].temps.push(item.main.temp);
-        });
-
-        const daily = Object.keys(dailyMap)
-          .slice(0, 7)
-          .map((date) => {
-            const temps = dailyMap[date].temps;
-            return {
-              date,
-              max: Math.max(...temps),
-              min: Math.min(...temps),
-              icon: dailyMap[date].icon,
-            };
-          });
-
-        setForecast(daily);
-      } catch (err) {
-        console.error(err);
+        setData(json);
+      } catch (e) {
         setError(true);
       }
     };
 
     fetchWeather();
-
-    const interval = setInterval(fetchWeather, 600000);
-    return () => clearInterval(interval);
   }, []);
 
-  if (error) {
-    return (
-      <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-        Weather unavailable ⚠️
-      </div>
-    );
-  }
+  if (error) return <div>Weather unavailable</div>;
+  if (!data) return <div>Loading...</div>;
 
-  if (!forecast) {
-    return (
-      <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-        Loading weather...
-      </div>
-    );
-  }
+  const current = data.list[0];
+
+  // 🎨 Background based on weather
+  const condition = current.weather[0].main.toLowerCase();
+
+  let bg = "#60a5fa";
+  if (condition.includes("cloud")) bg = "#94a3b8";
+  if (condition.includes("rain")) bg = "#475569";
+  if (condition.includes("clear")) bg = "#3b82f6";
 
   return (
     <div
       style={{
-        background: "#fff",
+        background: bg,
+        color: "white",
         padding: "25px",
         borderRadius: "20px",
       }}
     >
-      {/* 📅 7 DAY FORECAST */}
+      {/* 🌤 BIG TEMP */}
+      <div style={{ marginBottom: "25px" }}>
+        <div style={{ fontSize: "64px", fontWeight: "700" }}>
+          {Math.round(current.main.temp)}°
+        </div>
+
+        <div style={{ fontSize: "20px" }}>
+          {current.weather[0].description}
+        </div>
+      </div>
+
+      {/* 📊 DETAILS */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: "12px",
+          display: "flex",
+          gap: "20px",
+          marginBottom: "25px",
         }}
       >
-        {forecast.map((day, i) => {
-          const date = new Date(day.date);
-          const dayName = date.toLocaleDateString("en-US", {
-            weekday: "short",
-          });
+        <div>Feels: {Math.round(current.main.feels_like)}°</div>
+        <div>Wind: {Math.round(current.wind.speed)} mph</div>
+        <div>Rain: {current.pop ? Math.round(current.pop * 100) : 0}%</div>
+      </div>
+
+      {/* ⏰ HOURLY SCROLL */}
+      <div
+        style={{
+          display: "flex",
+          overflowX: "auto",
+          gap: "12px",
+          marginBottom: "25px",
+        }}
+      >
+        {data.list.slice(0, 12).map((hour, i) => {
+          const time = new Date(hour.dt * 1000).getHours();
 
           return (
             <div
               key={i}
               style={{
-                background: "#f3f4f6",
-                padding: "14px",
-                borderRadius: "16px",
+                minWidth: "70px",
                 textAlign: "center",
+                background: "rgba(255,255,255,0.2)",
+                padding: "10px",
+                borderRadius: "12px",
               }}
             >
-              <div style={{ fontSize: "14px", marginBottom: "6px" }}>
-                {dayName}
-              </div>
-
+              <div>{time}:00</div>
               <img
-                src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
+                src={`https://openweathermap.org/img/wn/${hour.weather[0].icon}.png`}
                 alt=""
-                style={{ width: "50px" }}
               />
-
-              <div style={{ fontWeight: "600", fontSize: "16px" }}>
-                {Math.round(day.max)}°
-              </div>
-
-              <div style={{ fontSize: "12px", color: "#666" }}>
-                {Math.round(day.min)}°
-              </div>
+              <div>{Math.round(hour.main.temp)}°</div>
             </div>
           );
         })}
+      </div>
+
+      {/* 📅 7 DAY (SIMULATED FROM DATA) */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: "10px",
+        }}
+      >
+        {[...new Set(data.list.map(i => i.dt_txt.split(" ")[0]))]
+          .slice(0, 7)
+          .map((date, i) => {
+            const dayData = data.list.filter(d =>
+              d.dt_txt.startsWith(date)
+            );
+
+            const temps = dayData.map(d => d.main.temp);
+
+            const dayName = new Date(date).toLocaleDateString("en-US", {
+              weekday: "short",
+            });
+
+            return (
+              <div
+                key={i}
+                style={{
+                  background: "rgba(255,255,255,0.2)",
+                  padding: "10px",
+                  borderRadius: "12px",
+                  textAlign: "center",
+                }}
+              >
+                <div>{dayName}</div>
+                <div>{Math.max(...temps).toFixed(0)}°</div>
+                <div style={{ fontSize: "12px" }}>
+                  {Math.min(...temps).toFixed(0)}°
+                </div>
+              </div>
+            );
+          })}
       </div>
     </div>
   );
