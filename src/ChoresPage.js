@@ -135,7 +135,7 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 CLEAN ADD CHORE TILE */}
+      {/* 🔥 ADD CHORE TILE */}
       <div
         style={{
           background: "#ffffff",
@@ -220,7 +220,7 @@ export default function ChoresPage() {
         </div>
       </div>
 
-      {/* 🔥 ORIGINAL TILE SYSTEM RESTORED */}
+      {/* 🔥 BOARD */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -231,41 +231,36 @@ export default function ChoresPage() {
           const total = kidChores.length;
           const complete = kidChores.filter(c => c.done).length;
           const allDone = total > 0 && complete === total;
+
           const colors = kidColors[kid];
 
           return (
             <div key={kid}>
 
-              <div style={{
-                padding: "14px",
-                borderRadius: "14px",
-                marginBottom: "12px",
-                textAlign: "center",
-                fontWeight: "700",
-                fontSize: "18px",
-                background: allDone ? colors.complete : "#ffffff",
-                color: allDone ? "#ffffff" : "#111827",
-                boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
-                border: "1px solid rgba(0,0,0,0.08)"
-              }}>
-                {kid} • {complete}/{total}
-              </div>
-
-              {allDone && (
-                <div style={{
+              {/* 🔥 UPDATED HEADER */}
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
                   marginBottom: "12px",
-                  padding: "10px",
-                  borderRadius: "12px",
                   textAlign: "center",
                   fontWeight: "700",
-                  fontSize: "14px",
-                  background: colors.complete,
-                  color: "#ffffff",
-                }}>
-                  🎉 ALL DONE! 🎉
-                </div>
-              )}
+                  fontSize: "18px",
+                  background: allDone ? colors.complete : "#ffffff",
+                  color: allDone ? "#ffffff" : "#111827",
+                  boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  transition: "all 0.3s ease",
+                  animation: allDone ? "celebratePulse 1s infinite" : "none",
+                }}
+              >
+                {allDone
+                  ? `🎉 ${kid} • ALL DONE! 🎉`
+                  : `${kid} • ${complete}/${total}`
+                }
+              </div>
 
+              {/* 🔥 TILES (UNCHANGED) */}
               <div style={{
                 display: "flex",
                 flexDirection: "column",
