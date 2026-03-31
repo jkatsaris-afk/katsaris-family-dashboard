@@ -1,81 +1,56 @@
 import React, { useEffect, useState } from "react";
+import { Menu, LayoutGrid, Map, Calendar, Settings } from "lucide-react";
 
 export default function WeatherPage() {
   const [current, setCurrent] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [extras, setExtras] = useState([]);
-  const [condition, setCondition] = useState("clear");
 
   useEffect(() => {
     const fetchWeather = async () => {
-      try {
-        const api = "https://api.openweathermap.org/data/2.5";
-        const key = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
+      const api = "https://api.openweathermap.org/data/2.5";
+      const key = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
 
-        // 🌤 MAIN (Fallon)
-        const c = await fetch(
-          `${api}/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`
-        );
-        const f = await fetch(
-          `${api}/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`
-        );
+      const c = await fetch(`${api}/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`);
+      const f = await fetch(`${api}/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`);
 
-        const currentData = await c.json();
-        const forecastData = await f.json();
+      const currentData = await c.json();
+      const forecastData = await f.json();
 
-        setCurrent(currentData);
-        setForecast(forecastData);
+      setCurrent(currentData);
+      setForecast(forecastData);
 
-        // 🌦 CONDITION (for background)
-        const cond = currentData.weather[0].main.toLowerCase();
-        if (cond.includes("rain")) setCondition("rain");
-        else if (cond.includes("cloud")) setCondition("clouds");
-        else setCondition("clear");
+      const locations = [
+        { name: "Reno", lat: 39.5296, lon: -119.8138 },
+        { name: "Lovelock", lat: 40.1793, lon: -118.4735 }
+      ];
 
-        // 📍 EXTRA LOCATIONS
-        const locations = [
-          { name: "Lovelock", lat: 40.1793, lon: -118.4735 },
-          { name: "Reno", lat: 39.5296, lon: -119.8138 }
-        ];
+      const extraData = await Promise.all(
+        locations.map(async (loc) => {
+          const res = await fetch(`${api}/weather?lat=${loc.lat}&lon=${loc.lon}&units=imperial&appid=${key}`);
+          const data = await res.json();
 
-        const extraData = await Promise.all(
-          locations.map(async (loc) => {
-            const res = await fetch(
-              `${api}/weather?lat=${loc.lat}&lon=${loc.lon}&units=imperial&appid=${key}`
-            );
-            const data = await res.json();
+          return {
+            name: loc.name,
+            temp: Math.round(data.main.temp),
+            icon: data.weather[0].icon,
+            desc: data.weather[0].main
+          };
+        })
+      );
 
-            return {
-              name: loc.name,
-              temp: Math.round(data.main.temp),
-              icon: data.weather[0].icon,
-              desc: data.weather[0].main
-            };
-          })
-        );
-
-        setExtras(extraData);
-
-      } catch (err) {
-        console.error("Weather error:", err);
-      }
+      setExtras(extraData);
     };
 
     fetchWeather();
   }, []);
 
-  if (!current || !forecast) {
-    return <div style={{ padding: 20 }}>Loading weather...</div>;
-  }
+  if (!current || !forecast) return <div>Loading...</div>;
 
-  // 📅 DAILY FORECAST
   const daily = [...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
     .slice(0, 7)
     .map(date => {
-      const dayData = forecast.list.filter(d =>
-        d.dt_txt.startsWith(date)
-      );
-
+      const dayData = forecast.list.filter(d => d.dt_txt.startsWith(date));
       const temps = dayData.map(d => d.main.temp);
 
       return {
@@ -87,126 +62,186 @@ export default function WeatherPage() {
     });
 
   return (
-    <div className={`weather-page ${condition}`}>
+    <div className="weather-shell">
 
-      {/* 🌤 BACKGROUND */}
-      <div className="weather-bg"></div>
+      {/* SIDEBAR */}
+      <div className="sidebar">
+        <Menu />
+        <LayoutGrid />
+        <Map />
+        <Calendar />
+        <Settings />
+      </div>
 
-      {/* CONTENT */}
-      <div className="weather-content">
+      {/* MAIN */}
+      <div className="main">
 
-        {/* 🔥 TOP GRID */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: "20px",
-          marginBottom: "20px"
-        }}>
+        {/* HEADER */}
+        <div className="header">
+          <div>
+            <div className="greeting">Good Morning</div>
+          </div>
 
-          {/* MAIN TILE */}
-          <div className="card">
-            <div style={{ opacity: 0.7 }}>Fallon, NV</div>
+          <input className="search" placeholder="Search location..." />
+        </div>
 
-            <div style={{ fontSize: "80px", fontWeight: "700" }}>
-              {Math.round(current.main.temp)}°
-            </div>
+        {/* GRID */}
+        <div className="grid">
 
-            <div style={{ opacity: 0.8 }}>
-              {current.weather[0].description}
-            </div>
+          {/* MAIN CARD */}
+          <div className="card main-card">
+            <div>Fallon, NV</div>
+            <div className="temp">{Math.round(current.main.temp)}°</div>
+            <div>{current.weather[0].description}</div>
           </div>
 
           {/* HIGHLIGHTS */}
-          <div className="card grid-2">
-            <div>
-              <div className="label">Wind</div>
-              <div className="value">{current.wind.speed} mph</div>
+          <div className="card highlights">
+            <div className="highlight">
+              <span>Wind</span>
+              <strong>{current.wind.speed} mph</strong>
             </div>
 
-            <div>
-              <div className="label">Humidity</div>
-              <div className="value">{current.main.humidity}%</div>
+            <div className="highlight">
+              <span>Humidity</span>
+              <strong>{current.main.humidity}%</strong>
             </div>
 
-            <div>
-              <div className="label">Feels Like</div>
-              <div className="value">{Math.round(current.main.feels_like)}°</div>
+            <div className="highlight">
+              <span>Feels</span>
+              <strong>{Math.round(current.main.feels_like)}°</strong>
             </div>
 
-            <div>
-              <div className="label">Pressure</div>
-              <div className="value">{current.main.pressure}</div>
+            <div className="highlight">
+              <span>Pressure</span>
+              <strong>{current.main.pressure}</strong>
             </div>
           </div>
-        </div>
 
-        {/* 📍 EXTRA LOCATIONS */}
-        <div className="card" style={{ marginBottom: "20px" }}>
-          <div style={{ marginBottom: "10px", opacity: 0.7 }}>
-            Nearby Locations
-          </div>
+          {/* EXTRA LOCATIONS */}
+          <div className="card">
+            <div className="card-title">Nearby</div>
 
-          {extras.map((loc, i) => (
-            <div key={i} style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "10px 0",
-              borderBottom: i !== extras.length - 1
-                ? "1px solid rgba(255,255,255,0.1)"
-                : "none"
-            }}>
-              <div>
-                <div>{loc.name}, NV</div>
-                <div style={{ fontSize: "12px", opacity: 0.6 }}>
-                  {loc.desc}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <img
-                  src={`https://openweathermap.org/img/wn/${loc.icon}.png`}
-                  alt=""
-                />
-                <div>{loc.temp}°</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 📅 FORECAST */}
-        <div className="card">
-          <div style={{ marginBottom: "10px", opacity: 0.7 }}>
-            7 Day Forecast
-          </div>
-
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between"
-          }}>
-            {daily.map((d, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
+            {extras.map((loc, i) => (
+              <div key={i} className="row">
                 <div>
-                  {new Date(d.date).toLocaleDateString("en-US", {
-                    weekday: "short"
-                  })}
+                  <div>{loc.name}</div>
+                  <small>{loc.desc}</small>
                 </div>
 
-                <img
-                  src={`https://openweathermap.org/img/wn/${d.icon}.png`}
-                  alt=""
-                />
-
-                <div>{Math.round(d.max)}°</div>
-                <div style={{ opacity: 0.5 }}>
-                  {Math.round(d.min)}°
+                <div className="row-right">
+                  <img src={`https://openweathermap.org/img/wn/${loc.icon}.png`} />
+                  <span>{loc.temp}°</span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
 
+          {/* FORECAST */}
+          <div className="card forecast">
+            {daily.map((d, i) => (
+              <div key={i} className="day">
+                <div>{new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })}</div>
+                <img src={`https://openweathermap.org/img/wn/${d.icon}.png`} />
+                <div>{Math.round(d.max)}°</div>
+              </div>
+            ))}
+          </div>
+
+        </div>
       </div>
+
+      {/* STYLES */}
+      <style>{`
+        .weather-shell {
+          display: flex;
+          background: #0b0b0b;
+          border-radius: 30px;
+          overflow: hidden;
+          height: 100vh;
+          color: white;
+        }
+
+        .sidebar {
+          width: 70px;
+          background: #111;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 30px;
+          padding: 20px 0;
+        }
+
+        .main {
+          flex: 1;
+          padding: 30px;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+
+        .search {
+          background: #1c1c1c;
+          border: none;
+          padding: 10px 15px;
+          border-radius: 20px;
+          color: white;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 20px;
+        }
+
+        .card {
+          background: #161616;
+          border-radius: 20px;
+          padding: 20px;
+        }
+
+        .main-card .temp {
+          font-size: 70px;
+          font-weight: 700;
+        }
+
+        .highlights {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+        }
+
+        .highlight {
+          background: #1f1f1f;
+          padding: 15px;
+          border-radius: 15px;
+        }
+
+        .row {
+          display: flex;
+          justify-content: space-between;
+          margin: 10px 0;
+        }
+
+        .row-right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .forecast {
+          grid-column: span 2;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .day {
+          text-align: center;
+        }
+      `}</style>
     </div>
   );
 }
