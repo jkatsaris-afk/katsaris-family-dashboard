@@ -1,5 +1,5 @@
 /* =========================
-   EXISTING ANIMATIONS
+   EXISTING ANIMATIONS (UNCHANGED)
    ========================= */
 
 @keyframes bounce {
@@ -22,36 +22,45 @@
    WEATHER ANIMATIONS
    ========================= */
 
-/* ☁️ CLOUDS */
+/* ☁️ CLOUD LAYER (PURE CSS — RELIABLE) */
 .clouds {
   position: absolute;
   inset: 0;
-
-  /* improved tiling + scaling */
-  background-image: url("https://i.imgur.com/NM6KQ.gif");
-  background-repeat: repeat-x;
-  background-size: cover;
-
-  opacity: 0.25;
-
-  /* smoother movement */
-  animation: moveClouds 90s linear infinite;
-
   z-index: 1;
-
-  /* IMPORTANT so UI still works */
   pointer-events: none;
-
-  /* subtle polish */
-  filter: blur(2px);
+  overflow: hidden;
 }
+
+/* CLOUD SHAPES */
+.clouds::before,
+.clouds::after {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 100%;
+
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.4) 0%, transparent 60%),
+    radial-gradient(circle at 60% 40%, rgba(255,255,255,0.3) 0%, transparent 60%),
+    radial-gradient(circle at 80% 60%, rgba(255,255,255,0.25) 0%, transparent 60%);
+
+  animation: cloudMove 60s linear infinite;
+}
+
+/* SECOND CLOUD LAYER (DEPTH EFFECT) */
+.clouds::after {
+  animation-duration: 90s;
+  opacity: 0.6;
+}
+
 
 /* 🌧 RAIN */
 .rain {
   position: absolute;
   inset: 0;
+  z-index: 2;
+  pointer-events: none;
 
-  /* angled rain = more realistic */
   background-image: repeating-linear-gradient(
     120deg,
     rgba(255,255,255,0.25) 0px,
@@ -60,21 +69,18 @@
     transparent 12px
   );
 
-  animation: rainFall 0.4s linear infinite;
-
-  z-index: 1;
-
-  pointer-events: none;
+  animation: rainFall 0.35s linear infinite;
 }
+
 
 /* =========================
    KEYFRAMES
    ========================= */
 
 /* CLOUD MOVEMENT */
-@keyframes moveClouds {
-  0% { background-position: 0 0; }
-  100% { background-position: 1000px 0; }
+@keyframes cloudMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* RAIN FALL */
