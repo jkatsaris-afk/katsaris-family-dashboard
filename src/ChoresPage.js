@@ -14,6 +14,10 @@ export default function ChoresPage() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [newChore, setNewChore] = useState("");
+  const [selectedKid, setSelectedKid] = useState("Sam");
+  const [isRecurring, setIsRecurring] = useState(false);
+
   // 🔄 LOAD
   useEffect(() => {
     fetch(API_URL + "?type=chores")
@@ -32,7 +36,6 @@ export default function ChoresPage() {
       });
   }, []);
 
-  // 🕒 FORMAT TIME
   const formatTime = (date) => {
     if (!date) return "";
     return new Date(date).toLocaleTimeString([], {
@@ -41,36 +44,6 @@ export default function ChoresPage() {
     });
   };
 
-  // ➕ ADD CHORE
-  const addChore = (recurring) => {
-    const chore = prompt("Enter chore:");
-    const kid = prompt("Assign to (Sam, Kade, Ava):");
-
-    if (!chore || !kid) return;
-
-    fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        add: true,
-        name: kid,
-        chore,
-        recurring
-      }),
-    });
-
-    setChores(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        assignedTo: kid,
-        text: chore,
-        done: false,
-        timestamp: null
-      }
-    ]);
-  };
-
-  // ✅ TOGGLE
   const toggleChore = (chore) => {
     const now = new Date();
 
@@ -92,38 +65,11 @@ export default function ChoresPage() {
     });
   };
 
-  // 🔥 LOADING DOT STYLE
-  const dotStyle = (delay) => ({
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    background: "#9ca3af",
-    animation: "bounce 1s infinite",
-    animationDelay: `${delay}s`,
-  });
-
-  // 🔥 LOADING SCREEN
+  // 🔥 LOADING
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: "60vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-          gap: "12px",
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "#6b7280",
-        }}
-      >
-        <div>Get ready to clean!</div>
-        <div style={{ display: "flex", gap: "6px" }}>
-          <div style={dotStyle(0)} />
-          <div style={dotStyle(0.2)} />
-          <div style={dotStyle(0.4)} />
-        </div>
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        Get ready to clean!
       </div>
     );
   }
@@ -131,13 +77,7 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 ADD BUTTONS */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button onClick={() => addChore(false)}>+ One-Time</button>
-        <button onClick={() => addChore(true)}>+ Recurring</button>
-      </div>
-
-      {/* 🔥 BOARD */}
+      {/* 🔥 GRID WRAPPER */}
       <div
         style={{
           display: "grid",
@@ -145,124 +85,168 @@ export default function ChoresPage() {
           gap: "25px",
         }}
       >
+
+        {/* 🔥 FULL WIDTH ADD TILE */}
+        <div
+          style={{
+            gridColumn: "span 3",
+            background: "#ffffff",
+            borderRadius: "16px",
+            padding: "16px",
+            boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+            border: "1px solid rgba(0,0,0,0.08)",
+          }}
+        >
+
+          <div style={{
+            fontWeight: "700",
+            marginBottom: "10px",
+            textAlign: "center"
+          }}>
+            Add Chore
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "10px",
+            marginBottom: "10px"
+          }}>
+
+            <select
+              value={selectedKid}
+              onChange={(e) => setSelectedKid(e.target.value)}
+              style={{
+                padding: "10px",
+                borderRadius: "10px",
+                border: "1px solid #ddd"
+              }}
+            >
+              {kids.map(k => <option key={k}>{k}</option>)}
+            </select>
+
+            <select
+              value={isRecurring ? "recurring" : "one"}
+              onChange={(e) =>
+                setIsRecurring(e.target.value === "recurring")
+              }
+              style={{
+                padding: "10px",
+                borderRadius: "10px",
+                border: "1px solid #ddd"
+              }}
+            >
+              <option value="one">One-Time</option>
+              <option value="recurring">Recurring</option>
+            </select>
+
+          </div>
+
+          <input
+            placeholder="Enter chore..."
+            value={newChore}
+            onChange={(e) => setNewChore(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #ddd",
+              marginBottom: "10px"
+            }}
+          />
+
+          <div
+            onClick={() => {
+              if (!newChore) return;
+
+              fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                  add: true,
+                  name: selectedKid,
+                  chore: newChore,
+                  recurring: isRecurring
+                }),
+              });
+
+              setChores(prev => [
+                ...prev,
+                {
+                  id: Date.now(),
+                  assignedTo: selectedKid,
+                  text: newChore,
+                  done: false,
+                  timestamp: null
+                }
+              ]);
+
+              setNewChore("");
+            }}
+            style={{
+              background: "#3b82f6",
+              color: "#fff",
+              textAlign: "center",
+              padding: "10px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "600"
+            }}
+          >
+            Add
+          </div>
+
+        </div>
+
+        {/* 🔥 KID COLUMNS */}
         {kids.map(kid => {
           const kidChores = chores.filter(c => c.assignedTo === kid);
           const total = kidChores.length;
           const complete = kidChores.filter(c => c.done).length;
           const allDone = total > 0 && complete === total;
-
           const colors = kidColors[kid];
 
           return (
             <div key={kid}>
 
-              {/* 🔥 HEADER TILE */}
-              <div
-                style={{
-                  padding: "14px",
-                  borderRadius: "14px",
-                  marginBottom: "12px",
-                  textAlign: "center",
-                  fontWeight: "700",
-                  fontSize: "18px",
-                  background: allDone ? colors.complete : "#ffffff",
-                  color: allDone ? "#ffffff" : "#111827",
-                  boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
-                  border: "1px solid rgba(0,0,0,0.08)"
-                }}
-              >
+              {/* HEADER */}
+              <div style={{
+                padding: "14px",
+                borderRadius: "14px",
+                marginBottom: "12px",
+                textAlign: "center",
+                fontWeight: "700",
+                fontSize: "18px",
+                background: allDone ? colors.complete : "#ffffff",
+                color: allDone ? "#ffffff" : "#111827",
+              }}>
                 {kid} • {complete}/{total}
               </div>
 
-              {/* 🎉 CELEBRATION */}
-              {allDone && (
-                <div
-                  style={{
-                    marginBottom: "12px",
-                    padding: "10px",
-                    borderRadius: "12px",
-                    textAlign: "center",
-                    fontWeight: "700",
-                    fontSize: "14px",
-                    background: colors.complete,
-                    color: "#ffffff",
-                    animation: "celebratePulse 1s infinite",
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  🎉 ALL DONE! 🎉
-                </div>
-              )}
-
-              {/* 🔥 TILES */}
+              {/* TILES */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {kidChores.map(chore => (
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
-                    onMouseDown={(e) =>
-                      (e.currentTarget.style.transform = "scale(0.97)")
-                    }
-                    onMouseUp={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
-                      cursor: "pointer",
-                      background: chore.done
-                        ? colors.complete
-                        : colors.base,
-                      color: chore.done ? "#ffffff" : "#111827",
-                      border: chore.done
-                        ? "2px solid transparent"
-                        : "2px solid rgba(0,0,0,0.08)",
-                      boxShadow: chore.done
-                        ? "0 10px 20px rgba(0,0,0,0.15)"
-                        : "0 4px 10px rgba(0,0,0,0.06)",
-                      transition: "all 0.2s ease",
-                      minHeight: "90px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      background: chore.done ? colors.complete : colors.base,
+                      color: chore.done ? "#fff" : "#111",
                       textAlign: "center",
+                      cursor: "pointer"
                     }}
                   >
-                    <div style={{
-                      fontSize: "18px",
-                      fontWeight: "700",
-                    }}>
-                      {chore.text}
-                    </div>
-
-                    {chore.done && (
-                      <div style={{
-                        fontSize: "12px",
-                        marginTop: "6px",
-                        opacity: 0.9,
-                      }}>
-                        Complete • {formatTime(chore.timestamp)}
-                      </div>
-                    )}
+                    {chore.text}
                   </div>
                 ))}
-
-                {kidChores.length === 0 && (
-                  <div style={{ textAlign: "center", color: "#9ca3af" }}>
-                    No chores
-                  </div>
-                )}
               </div>
 
             </div>
           );
         })}
-      </div>
 
+      </div>
     </div>
   );
 }
