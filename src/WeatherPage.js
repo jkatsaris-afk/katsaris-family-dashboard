@@ -3,41 +3,49 @@ import React, { useEffect, useState } from "react";
 export default function WeatherPage() {
   const [current, setCurrent] = useState(null);
   const [forecast, setForecast] = useState(null);
-  const [condition, setCondition] = useState("clear");
+  const [extras, setExtras] = useState([]);
 
   useEffect(() => {
     const fetchWeather = async () => {
-      try {
-        const currentRes = await fetch(
-          "https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
-        );
-        const currentData = await currentRes.json();
+      const api = "https://api.openweathermap.org/data/2.5";
+      const key = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
 
-        const forecastRes = await fetch(
-          "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
-        );
-        const forecastData = await forecastRes.json();
+      // MAIN LOCATION
+      const c = await fetch(`${api}/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`);
+      const f = await fetch(`${api}/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${key}`);
 
-        setCurrent(currentData);
-        setForecast(forecastData);
+      setCurrent(await c.json());
+      setForecast(await f.json());
 
-        // 🌦 determine condition
-        const cond = currentData.weather[0].main.toLowerCase();
-        if (cond.includes("rain")) setCondition("rain");
-        else if (cond.includes("cloud")) setCondition("clouds");
-        else setCondition("clear");
+      // EXTRA LOCATIONS
+      const locations = [
+        { name: "Lovelock", lat: 40.1793, lon: -118.4735 },
+        { name: "Reno", lat: 39.5296, lon: -119.8138 }
+      ];
 
-      } catch (err) {
-        console.error("Weather error:", err);
-      }
+      const extraData = await Promise.all(
+        locations.map(async loc => {
+          const res = await fetch(
+            `${api}/weather?lat=${loc.lat}&lon=${loc.lon}&units=imperial&appid=${key}`
+          );
+          const data = await res.json();
+
+          return {
+            name: loc.name,
+            temp: Math.round(data.main.temp),
+            icon: data.weather[0].icon,
+            desc: data.weather[0].main
+          };
+        })
+      );
+
+      setExtras(extraData);
     };
 
     fetchWeather();
   }, []);
 
-  if (!current || !forecast) return <div style={{ padding: 20 }}>Loading weather...</div>;
-
-  const hourly = forecast.list.slice(0, 12);
+  if (!current || !forecast) return <div>Loading...</div>;
 
   const daily = [...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
     .slice(0, 7)
@@ -54,196 +62,100 @@ export default function WeatherPage() {
     });
 
   return (
-    <div className={`weather-page ${condition}`}>
+    <div style={{ padding: "30px", color: "white" }}>
 
-      {/* 🌤 BACKGROUND */}
-      <div className="weather-bg"></div>
+      {/* 🔥 GRID */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr",
+        gap: "20px",
+        marginBottom: "20px"
+      }}>
 
-      {/* 🌫 CONTENT */}
-      <div className="weather-content">
-
-        {/* CURRENT */}
-        <div style={{ marginBottom: "40px" }}>
-          <div style={{ fontSize: "18px", opacity: 0.7 }}>
-            Fallon, NV
-          </div>
-
-          <div style={{ fontSize: "90px", fontWeight: "700" }}>
+        {/* MAIN */}
+        <div className="card">
+          <div style={{ opacity: 0.7 }}>Fallon, NV</div>
+          <div style={{ fontSize: "70px", fontWeight: "700" }}>
             {Math.round(current.main.temp)}°
           </div>
-
-          <div style={{ fontSize: "24px", opacity: 0.85 }}>
-            {current.weather[0].description}
-          </div>
+          <div>{current.weather[0].description}</div>
         </div>
 
-        {/* HOURLY */}
-        <div style={{ marginBottom: "50px" }}>
-          <div style={{ marginBottom: "15px", opacity: 0.7 }}>
-            Today
-          </div>
-
-          <div style={{
-            display: "flex",
-            gap: "12px",
-            justifyContent: "space-between"
-          }}>
-            {hourly.map((h, i) => {
-              const time = new Date(h.dt * 1000).getHours();
-
-              return (
-                <div key={i} style={{
-                  flex: 1,
-                  textAlign: "center",
-                  background: "rgba(255,255,255,0.15)",
-                  padding: "15px 5px",
-                  borderRadius: "12px"
-                }}>
-                  <div style={{ fontSize: "14px" }}>{time}:00</div>
-
-                  <img
-                    src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
-                    alt=""
-                  />
-
-                  <div style={{ fontSize: "18px", fontWeight: "600" }}>
-                    {Math.round(h.main.temp)}°
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        {/* HIGHLIGHTS */}
+        <div className="card grid-2">
+          <div><div className="label">Wind</div><div>{current.wind.speed} mph</div></div>
+          <div><div className="label">Humidity</div><div>{current.main.humidity}%</div></div>
+          <div><div className="label">Feels</div><div>{Math.round(current.main.feels_like)}°</div></div>
+          <div><div className="label">Pressure</div><div>{current.main.pressure}</div></div>
         </div>
-
-        {/* 7 DAY */}
-        <div>
-          <div style={{ marginBottom: "15px", opacity: 0.7 }}>
-            7-Day Forecast
-          </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "15px"
-          }}>
-            {daily.map((d, i) => (
-              <div key={i} style={{
-                textAlign: "center",
-                background: "rgba(255,255,255,0.15)",
-                padding: "15px",
-                borderRadius: "12px"
-              }}>
-                <div>
-                  {new Date(d.date).toLocaleDateString("en-US", {
-                    weekday: "short"
-                  })}
-                </div>
-
-                <img
-                  src={`https://openweathermap.org/img/wn/${d.icon}.png`}
-                  alt=""
-                />
-
-                <div style={{ fontWeight: "600" }}>
-                  {Math.round(d.max)}°
-                </div>
-
-                <div style={{ fontSize: "12px", opacity: 0.6 }}>
-                  {Math.round(d.min)}°
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
 
-      {/* 🔥 STYLES */}
+      {/* 🔥 EXTRA LOCATIONS */}
+      <div className="card" style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "10px", opacity: 0.7 }}>
+          Nearby Locations
+        </div>
+
+        {extras.map((loc, i) => (
+          <div key={i} style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "10px 0",
+            borderBottom: i !== extras.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none"
+          }}>
+            <div>
+              <div>{loc.name}, NV</div>
+              <div style={{ fontSize: "12px", opacity: 0.6 }}>{loc.desc}</div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <img src={`https://openweathermap.org/img/wn/${loc.icon}.png`} />
+              <div>{loc.temp}°</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 🔥 FORECAST */}
+      <div className="card">
+        <div style={{ marginBottom: "10px", opacity: 0.7 }}>
+          7 Day Forecast
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {daily.map((d, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <div>
+                {new Date(d.date).toLocaleDateString("en-US", { weekday: "short" })}
+              </div>
+              <img src={`https://openweathermap.org/img/wn/${d.icon}.png`} />
+              <div>{Math.round(d.max)}°</div>
+              <div style={{ opacity: 0.5 }}>{Math.round(d.min)}°</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* STYLES */}
       <style>{`
-
-        .weather-page {
-          position: relative;
-          min-height: 100vh;
-          overflow: hidden;
-          color: white;
+        .card {
+          background: rgba(255,255,255,0.08);
+          backdrop-filter: blur(10px);
+          padding: 20px;
+          border-radius: 18px;
         }
 
-        .weather-content {
-          position: relative;
-          z-index: 2;
-          padding: 40px;
+        .grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
         }
 
-        .weather-bg {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-          background-size: 200% 200%;
-          animation: skyMove 20s linear infinite;
+        .label {
+          font-size: 12px;
+          opacity: 0.6;
         }
-
-        /* THEMES */
-        .weather-page.clear .weather-bg {
-          background: linear-gradient(135deg, #2563eb, #60a5fa);
-        }
-
-        .weather-page.clouds .weather-bg {
-          background: linear-gradient(135deg, #64748b, #94a3b8);
-        }
-
-        .weather-page.rain .weather-bg {
-          background: linear-gradient(135deg, #1e293b, #334155);
-        }
-
-        /* CLOUDS */
-        .weather-page.clouds::after,
-        .weather-page.rain::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-
-          background:
-            radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 60%),
-            radial-gradient(circle at 70% 40%, rgba(255,255,255,0.25) 0%, transparent 60%);
-
-          animation: cloudMove 60s linear infinite;
-        }
-
-        /* RAIN */
-        .weather-page.rain::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-
-          background-image: repeating-linear-gradient(
-            120deg,
-            rgba(255,255,255,0.2) 0px,
-            rgba(255,255,255,0.2) 2px,
-            transparent 2px,
-            transparent 12px
-          );
-
-          animation: rainFall 0.35s linear infinite;
-        }
-
-        /* ANIMATIONS */
-        @keyframes skyMove {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 100% 50%; }
-        }
-
-        @keyframes cloudMove {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-
-        @keyframes rainFall {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 20px; }
-        }
-
       `}</style>
 
     </div>
