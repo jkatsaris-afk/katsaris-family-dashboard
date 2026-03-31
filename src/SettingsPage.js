@@ -9,9 +9,9 @@ export default function SettingsPage() {
     <div className="settings-shell">
 
       {/* LEFT MENU */}
-      <div className="menu">
+      <div className="settings-menu">
         <div
-          className={`menu-item ${active === "chores" ? "active" : ""}`}
+          className={`settings-menu-item ${active === "chores" ? "active" : ""}`}
           onClick={() => setActive("chores")}
         >
           Recurring Chores
@@ -19,48 +19,16 @@ export default function SettingsPage() {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="content">
+      <div className="settings-content">
         {active === "chores" && <RecurringChores />}
       </div>
-
-      <style>{`
-        .settings-shell {
-          display: flex;
-          height: 100vh;
-          background: #f5f5f5;
-        }
-
-        .menu {
-          width: 240px;
-          background: white;
-          padding: 20px;
-          border-right: 1px solid #eee;
-        }
-
-        .menu-item {
-          padding: 14px;
-          border-radius: 12px;
-          background: #f3f3f3;
-          cursor: pointer;
-        }
-
-        .menu-item.active {
-          background: #111;
-          color: white;
-        }
-
-        .content {
-          flex: 1;
-          padding: 30px;
-        }
-      `}</style>
 
     </div>
   );
 }
 
 
-// 🔥 RIGHT SIDE EDITOR
+// 🔥 RIGHT PANEL COMPONENT
 function RecurringChores() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,72 +48,22 @@ function RecurringChores() {
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 RIGHT PANEL LOADING ONLY
+  // 🔥 LOADING PANEL
   if (loading) {
     return (
-      <div className="panel-loading">
+      <div className="settings-loading">
 
-        <div className="spinner"></div>
+        <div className="settings-spinner"></div>
 
-        <div className="loading-text">
+        <div className="settings-loading-text">
           Checking on the Children
         </div>
 
-        <div className="dots">
+        <div className="settings-dots">
           <span></span>
           <span></span>
           <span></span>
         </div>
-
-        <style>{`
-          .panel-loading {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-          }
-
-          .spinner {
-            width: 36px;
-            height: 36px;
-            border: 4px solid #ddd;
-            border-top: 4px solid #111;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          }
-
-          .loading-text {
-            font-size: 18px;
-            color: #333;
-          }
-
-          .dots {
-            display: flex;
-            gap: 6px;
-          }
-
-          .dots span {
-            width: 8px;
-            height: 8px;
-            background: #333;
-            border-radius: 50%;
-            animation: pulse 1.4s infinite;
-          }
-
-          .dots span:nth-child(2) { animation-delay: 0.2s; }
-          .dots span:nth-child(3) { animation-delay: 0.4s; }
-
-          @keyframes spin {
-            100% { transform: rotate(360deg); }
-          }
-
-          @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
-          }
-        `}</style>
 
       </div>
     );
@@ -182,78 +100,48 @@ function RecurringChores() {
 
       <h2 style={{ marginBottom: "20px" }}>Recurring Chores</h2>
 
-      <div className="card">
+      <div className="settings-card">
 
-        <div className="row header">
+        {/* HEADER */}
+        <div className="settings-row settings-header">
           <div>Name</div>
           <div>Chore</div>
           <div></div>
         </div>
 
+        {/* LIST */}
         {chores.map((c, i) => (
-          <div key={i} className="row">
+          <div key={i} className="settings-row">
 
             <input
               value={c.name}
               onChange={(e) => update(i, "name", e.target.value)}
+              placeholder="Name"
             />
 
             <input
               value={c.chore}
               onChange={(e) => update(i, "chore", e.target.value)}
+              placeholder="Chore"
             />
 
-            <button className="delete" onClick={() => removeRow(i)}>✕</button>
+            <button
+              className="settings-delete"
+              onClick={() => removeRow(i)}
+            >
+              ✕
+            </button>
 
           </div>
         ))}
 
-        <div className="actions">
+        {/* ACTIONS */}
+        <div className="settings-actions">
           <button onClick={addRow}>+ Add</button>
           <button onClick={save}>Save</button>
         </div>
 
       </div>
-
-      <style>{`
-        .card {
-          background: white;
-          padding: 20px;
-          border-radius: 20px;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-
-        .row {
-          display: grid;
-          grid-template-columns: 1fr 2fr auto;
-          gap: 10px;
-          margin-bottom: 10px;
-        }
-
-        input {
-          padding: 10px;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-        }
-
-        button {
-          padding: 8px 12px;
-          border-radius: 10px;
-          border: none;
-          background: #111;
-          color: white;
-        }
-
-        .delete {
-          background: #e11d48;
-        }
-
-        .actions {
-          margin-top: 15px;
-          display: flex;
-          gap: 10px;
-        }
-      `}</style>
 
     </div>
   );
