@@ -13,10 +13,14 @@ export default function WeatherPage() {
 
         const json = await res.json();
 
-        if (!json || json.cod !== "200") throw new Error();
+        // ✅ FIXED ERROR CHECK
+        if (!json || (json.cod !== 200 && json.cod !== "200")) {
+          throw new Error("Bad data");
+        }
 
         setData(json);
       } catch (e) {
+        console.error(e);
         setError(true);
       }
     };
@@ -24,26 +28,27 @@ export default function WeatherPage() {
     fetchWeather();
   }, []);
 
-  if (error) return <div>Weather unavailable</div>;
-  if (!data) return <div>Loading...</div>;
+  if (error) return <div>Weather unavailable ⚠️</div>;
+  if (!data) return <div>Loading weather...</div>;
 
   const current = data.list[0];
 
-  // 🎨 Background based on weather
+  // 🎨 Animated gradient background
   const condition = current.weather[0].main.toLowerCase();
 
-  let bg = "#60a5fa";
-  if (condition.includes("cloud")) bg = "#94a3b8";
-  if (condition.includes("rain")) bg = "#475569";
-  if (condition.includes("clear")) bg = "#3b82f6";
+  let gradient = "linear-gradient(135deg, #3b82f6, #60a5fa)";
+  if (condition.includes("cloud")) gradient = "linear-gradient(135deg, #64748b, #94a3b8)";
+  if (condition.includes("rain")) gradient = "linear-gradient(135deg, #334155, #475569)";
+  if (condition.includes("clear")) gradient = "linear-gradient(135deg, #2563eb, #60a5fa)";
 
   return (
     <div
       style={{
-        background: bg,
+        background: gradient,
         color: "white",
         padding: "25px",
         borderRadius: "20px",
+        animation: "fadeIn 1s ease",
       }}
     >
       {/* 🌤 BIG TEMP */}
@@ -58,27 +63,14 @@ export default function WeatherPage() {
       </div>
 
       {/* 📊 DETAILS */}
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          marginBottom: "25px",
-        }}
-      >
+      <div style={{ display: "flex", gap: "20px", marginBottom: "25px" }}>
         <div>Feels: {Math.round(current.main.feels_like)}°</div>
         <div>Wind: {Math.round(current.wind.speed)} mph</div>
         <div>Rain: {current.pop ? Math.round(current.pop * 100) : 0}%</div>
       </div>
 
       {/* ⏰ HOURLY SCROLL */}
-      <div
-        style={{
-          display: "flex",
-          overflowX: "auto",
-          gap: "12px",
-          marginBottom: "25px",
-        }}
-      >
+      <div style={{ display: "flex", overflowX: "auto", gap: "12px", marginBottom: "25px" }}>
         {data.list.slice(0, 12).map((hour, i) => {
           const time = new Date(hour.dt * 1000).getHours();
 
@@ -104,21 +96,12 @@ export default function WeatherPage() {
         })}
       </div>
 
-      {/* 📅 7 DAY (SIMULATED FROM DATA) */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: "10px",
-        }}
-      >
+      {/* 📅 DAILY */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", marginBottom: "25px" }}>
         {[...new Set(data.list.map(i => i.dt_txt.split(" ")[0]))]
           .slice(0, 7)
           .map((date, i) => {
-            const dayData = data.list.filter(d =>
-              d.dt_txt.startsWith(date)
-            );
-
+            const dayData = data.list.filter(d => d.dt_txt.startsWith(date));
             const temps = dayData.map(d => d.main.temp);
 
             const dayName = new Date(date).toLocaleDateString("en-US", {
@@ -144,6 +127,28 @@ export default function WeatherPage() {
             );
           })}
       </div>
+
+      {/* 🗺 LIVE RADAR */}
+      <iframe
+        title="weather radar"
+        src="https://embed.windy.com/embed2.html?lat=39.47&lon=-118.77&zoom=7&level=surface&overlay=radar"
+        style={{
+          width: "100%",
+          height: "300px",
+          border: "none",
+          borderRadius: "15px",
+        }}
+      />
+
+      {/* ✨ SIMPLE FADE ANIMATION */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}
+      </style>
     </div>
   );
 }
