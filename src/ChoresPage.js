@@ -5,18 +5,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwDALm53uXOwohhTF57V2hY
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
 
-  const kidColors = {
-    Sam: "#bfdbfe",
-    Kade: "#bbf7d0",
-    Ava: "#fbcfe8"
-  };
-
   const [chores, setChores] = useState([]);
-  const [allChores, setAllChores] = useState([]);
-  const [newChore, setNewChore] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
 
-  // 🔄 LOAD DATA
+  // 🔄 LOAD
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -30,9 +21,6 @@ export default function ChoresPage() {
             date: row[4]
           }));
 
-          setAllChores(formatted);
-
-          // 🔥 ONLY SHOW TODAY'S CHORES
           const today = new Date().toDateString();
 
           const todays = formatted.filter(c => {
@@ -41,8 +29,7 @@ export default function ChoresPage() {
           });
 
           setChores(todays);
-        })
-        .catch(err => console.error("Load error:", err));
+        });
     };
 
     loadData();
@@ -50,24 +37,15 @@ export default function ChoresPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // ➕ ADD CHORE
-  const addChore = () => {
-    if (!newChore || !assignedTo) return;
-
-    fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        name: assignedTo,
-        chore: newChore,
-        done: false
-      }),
-    });
-
-    setNewChore("");
-  };
-
   // ✅ TOGGLE
   const toggleChore = (chore) => {
+    // instant UI update
+    setChores(prev =>
+      prev.map(c =>
+        c.id === chore.id ? { ...c, done: !c.done } : c
+      )
+    );
+
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -78,164 +56,74 @@ export default function ChoresPage() {
     });
   };
 
-  // 🏆 LEADERBOARD (ALL TIME)
-  const leaderboard = kids.map(kid => {
-    const score = allChores.filter(
-      c => c.assignedTo === kid && c.done
-    ).length;
-
-    return { name: kid, score };
-  }).sort((a, b) => b.score - a.score);
-
-  const maxScore = Math.max(...leaderboard.map(p => p.score), 1);
-
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🏆 LEADERBOARD */}
-      <div style={{
-        background: "#fff",
-        padding: "20px",
-        borderRadius: "20px",
-        marginBottom: "20px",
-        boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
-      }}>
-        <div style={{ fontWeight: "700", marginBottom: "15px" }}>
-          🏆 Leaderboard
-        </div>
-
-        {leaderboard.map((p, i) => (
-          <div key={i} style={{ marginBottom: "12px" }}>
-
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "14px",
-              marginBottom: "4px"
-            }}>
-              <div>
-                {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"} {p.name}
-              </div>
-              <div>{p.score}</div>
-            </div>
-
-            <div style={{
-              height: "6px",
-              background: "#e5e7eb",
-              borderRadius: "6px"
-            }}>
-              <div style={{
-                width: `${(p.score / maxScore) * 100}%`,
-                height: "100%",
-                background: "#3b82f6",
-                borderRadius: "6px"
-              }} />
-            </div>
-
-          </div>
-        ))}
-      </div>
-
-      {/* ➕ ADD CHORE */}
-      <div style={{
-        background: "#fff",
-        padding: "15px",
-        borderRadius: "15px",
-        marginBottom: "20px",
-        boxShadow: "0 6px 14px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <input
-            placeholder="Chore..."
-            value={newChore}
-            onChange={(e) => setNewChore(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
-          />
-
-          <select
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #ddd"
-            }}
-          >
-            <option value="">Kid</option>
-            {kids.map(k => <option key={k}>{k}</option>)}
-          </select>
-
-          <button onClick={addChore} style={{
-            padding: "10px 14px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#3b82f6",
-            color: "#fff"
-          }}>
-            Add
-          </button>
-        </div>
-      </div>
-
-      {/* 👦 KID TILES */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: "18px"
-      }}>
+      {/* 🔥 BOARD */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "20px",
+        }}
+      >
         {kids.map(kid => {
           const kidChores = chores.filter(c => c.assignedTo === kid);
 
           return (
-            <div key={kid} style={{
-              background: kidColors[kid],
-              padding: "18px",
-              borderRadius: "20px",
-              boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-              border: "1px solid rgba(0,0,0,0.05)"
-            }}>
-              <div style={{
-                fontWeight: "700",
-                marginBottom: "6px"
-              }}>
+            <div key={kid}>
+
+              {/* 👦 NAME HEADER */}
+              <div
+                style={{
+                  fontWeight: "700",
+                  fontSize: "20px",
+                  marginBottom: "10px",
+                  textAlign: "center"
+                }}
+              >
                 {kid}
               </div>
 
-              {/* divider */}
-              <div style={{
-                height: "2px",
-                background: "rgba(0,0,0,0.1)",
-                marginBottom: "10px",
-                borderRadius: "2px"
-              }} />
+              {/* 🧱 CHORE TILES */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {kidChores.map(chore => (
+                  <div
+                    key={chore.id}
+                    onClick={() => toggleChore(chore)}
+                    style={{
+                      padding: "18px",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                      textAlign: "center",
+                      fontWeight: "600",
+                      fontSize: "16px",
+                      background: chore.done ? "#22c55e" : "#ffffff",
+                      color: chore.done ? "#ffffff" : "#111827",
+                      boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {chore.text}
+                  </div>
+                ))}
 
-              {kidChores.map(chore => (
-                <div
-                  key={chore.id}
-                  onClick={() => toggleChore(chore)}
-                  style={{
-                    padding: "10px",
-                    marginBottom: "6px",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    background: chore.done ? "#e5e7eb" : "#ffffff",
-                    textDecoration: chore.done ? "line-through" : "none",
-                    color: chore.done ? "#6b7280" : "#111827",
-                    fontWeight: "500"
-                  }}
-                >
-                  {chore.text}
-                </div>
-              ))}
+                {kidChores.length === 0 && (
+                  <div style={{
+                    color: "#9ca3af",
+                    textAlign: "center",
+                    fontSize: "14px"
+                  }}>
+                    No chores
+                  </div>
+                )}
+              </div>
+
             </div>
           );
         })}
       </div>
+
     </div>
   );
 }
