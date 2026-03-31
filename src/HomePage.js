@@ -12,7 +12,6 @@ export default function HomePage() {
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -24,8 +23,6 @@ export default function HomePage() {
       )
         .then((res) => res.json())
         .then((data) => {
-          console.log("🌤 Weather response:", data);
-
           if (data.cod !== 200) {
             throw new Error(data.message);
           }
@@ -35,9 +32,7 @@ export default function HomePage() {
             condition: data.weather[0].main,
           });
         })
-        .catch((err) => {
-          console.error("❌ Weather error:", err);
-
+        .catch(() => {
           setWeather({
             temp: "--",
             condition: "Unavailable",
@@ -46,12 +41,10 @@ export default function HomePage() {
     };
 
     fetchWeather();
-    const interval = setInterval(fetchWeather, 600000); // every 10 min
-
+    const interval = setInterval(fetchWeather, 600000);
     return () => clearInterval(interval);
   }, []);
 
-  // 📅 FORMAT
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -66,17 +59,17 @@ export default function HomePage() {
   return (
     <div
       style={{
-        background: "#ffffff",
-        borderRadius: "24px",
-        padding: "60px 20px",
-        textAlign: "center",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+        minHeight: "70vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       {/* 🕒 TIME */}
       <div
         style={{
-          fontSize: "100px",
+          fontSize: "110px",
           fontWeight: "700",
           color: "#111827",
           lineHeight: "1",
@@ -88,9 +81,9 @@ export default function HomePage() {
       {/* 📅 DATE */}
       <div
         style={{
-          fontSize: "22px",
+          fontSize: "24px",
           color: "#6b7280",
-          marginBottom: "25px",
+          marginBottom: "30px",
         }}
       >
         {formattedDate}
@@ -99,12 +92,8 @@ export default function HomePage() {
       {/* 🌤️ WEATHER */}
       <div
         style={{
-          fontSize: "20px",
+          fontSize: "22px",
           color: "#374151",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "8px",
         }}
       >
         🌤 {weather.temp}° — {weather.condition}
