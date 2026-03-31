@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyw-42HYnQkZOOpCBW-G0n_haRssxxaD3GhxU3De6ftlwRqBM65BhaGZfBsKe9ByCfq/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzcLAcdqWRlh3YnumUHW_tKJ3TA88uI7lPXA6K43TnzTrmZg802I4boZyp-1VOu7CUd/exec";
 
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
@@ -39,9 +39,7 @@ export default function ChoresPage() {
     };
 
     loadData();
-
     const interval = setInterval(loadData, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -81,11 +79,11 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE (🔥 FIXED SYNC)
+  // ✅ TOGGLE (STABLE VERSION)
   const toggleChore = async (chore) => {
     const now = new Date();
 
-    // Instant UI update
+    // instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -104,7 +102,7 @@ export default function ChoresPage() {
         }),
       });
 
-      // Refresh after update
+      // 🔥 force sync AFTER write
       setTimeout(() => {
         fetch(API_URL + "?type=chores")
           .then(res => res.json())
@@ -136,24 +134,20 @@ export default function ChoresPage() {
     animationDelay: `${delay}s`,
   });
 
-  // 🔥 LOADING SCREEN
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: "60vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-          gap: "12px",
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "#6b7280",
-        }}
-      >
+      <div style={{
+        minHeight: "60vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        gap: "12px",
+        fontSize: "20px",
+        fontWeight: "600",
+        color: "#6b7280",
+      }}>
         <div>Get ready to clean!</div>
-
         <div style={{ display: "flex", gap: "6px" }}>
           <div style={dotStyle(0)} />
           <div style={dotStyle(0.2)} />
@@ -166,22 +160,19 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 ADD CHORE TILE */}
-      <div
-        style={{
-          background: "#ffffff",
-          borderRadius: "16px",
-          padding: "16px",
-          marginBottom: "20px",
-          boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
-          border: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
+      {/* ADD TILE */}
+      <div style={{
+        background: "#fff",
+        borderRadius: "16px",
+        padding: "16px",
+        marginBottom: "20px",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+        border: "1px solid rgba(0,0,0,0.08)",
+      }}>
         <div style={{
           fontWeight: "700",
           marginBottom: "12px",
-          textAlign: "center",
-          fontSize: "16px"
+          textAlign: "center"
         }}>
           Add Chore
         </div>
@@ -192,28 +183,13 @@ export default function ChoresPage() {
           gap: "10px",
           marginBottom: "10px"
         }}>
-          <select
-            value={selectedKid}
-            onChange={(e) => setSelectedKid(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #e5e7eb",
-              background: "#f9fafb",
-            }}
-          >
+          <select value={selectedKid} onChange={(e) => setSelectedKid(e.target.value)}>
             {kids.map(k => <option key={k}>{k}</option>)}
           </select>
 
           <select
             value={isRecurring ? "recurring" : "one"}
             onChange={(e) => setIsRecurring(e.target.value === "recurring")}
-            style={{
-              padding: "10px",
-              borderRadius: "10px",
-              border: "1px solid #e5e7eb",
-              background: "#f9fafb",
-            }}
           >
             <option value="one">One-Time</option>
             <option value="recurring">Recurring</option>
@@ -224,34 +200,22 @@ export default function ChoresPage() {
           placeholder="Enter chore..."
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid #e5e7eb",
-            background: "#f9fafb",
-            marginBottom: "10px"
-          }}
+          style={{ width: "100%", marginBottom: "10px" }}
         />
 
-        <div
-          onClick={addChore}
-          style={{
-            background: "#3b82f6",
-            color: "#fff",
-            textAlign: "center",
-            padding: "12px",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+        <div onClick={addChore} style={{
+          background: "#3b82f6",
+          color: "#fff",
+          textAlign: "center",
+          padding: "10px",
+          borderRadius: "10px",
+          cursor: "pointer"
+        }}>
           Add
         </div>
       </div>
 
-      {/* 🔥 BOARD */}
+      {/* BOARD */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -267,33 +231,22 @@ export default function ChoresPage() {
 
           return (
             <div key={kid}>
-
-              <div
-                style={{
-                  padding: "16px",
-                  borderRadius: "14px",
-                  marginBottom: "12px",
-                  textAlign: "center",
-                  fontWeight: "700",
-                  fontSize: "18px",
-                  background: allDone ? colors.complete : "#ffffff",
-                  color: allDone ? "#ffffff" : "#111827",
-                  boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  animation: allDone ? "celebratePulse 1s infinite" : "none",
-                }}
-              >
+              <div style={{
+                padding: "16px",
+                borderRadius: "14px",
+                marginBottom: "12px",
+                textAlign: "center",
+                fontWeight: "700",
+                background: allDone ? colors.complete : "#fff",
+                color: allDone ? "#fff" : "#111",
+              }}>
                 {allDone
                   ? `🎉 ${kid} • ALL DONE! 🎉`
                   : `${kid} • ${complete}/${total}`
                 }
               </div>
 
-              <div style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px"
-              }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {kidChores.map(chore => (
                   <div
                     key={chore.id}
@@ -301,46 +254,22 @@ export default function ChoresPage() {
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
-                      cursor: "pointer",
-                      background: chore.done
-                        ? colors.complete
-                        : colors.base,
-                      color: chore.done ? "#ffffff" : "#111827",
-                      border: chore.done
-                        ? "2px solid transparent"
-                        : "2px solid rgba(0,0,0,0.08)",
-                      boxShadow: chore.done
-                        ? "0 10px 20px rgba(0,0,0,0.15)"
-                        : "0 4px 10px rgba(0,0,0,0.06)",
-                      transition: "all 0.2s ease",
-                      minHeight: "90px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      background: chore.done ? colors.complete : colors.base,
+                      color: chore.done ? "#fff" : "#111",
                       textAlign: "center",
+                      cursor: "pointer"
                     }}
                   >
-                    <div style={{
-                      fontSize: "18px",
-                      fontWeight: "700",
-                    }}>
-                      {chore.text}
-                    </div>
+                    <div>{chore.text}</div>
 
                     {chore.done && (
-                      <div style={{
-                        fontSize: "12px",
-                        marginTop: "6px",
-                        opacity: 0.9,
-                      }}>
+                      <div style={{ fontSize: "12px" }}>
                         Complete • {formatTime(chore.timestamp)}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-
             </div>
           );
         })}
