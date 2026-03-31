@@ -8,21 +8,22 @@ export default function WeatherPage() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
+        // 🌤 CURRENT WEATHER
         const currentRes = await fetch(
           "https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
         );
-
         const currentData = await currentRes.json();
 
+        // 📅 FORECAST
         const forecastRes = await fetch(
           "https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=f6de6fbfb3a1f3c55abe8b3f60d4a0eb"
         );
-
         const forecastData = await forecastRes.json();
 
         setCurrent(currentData);
         setForecast(forecastData);
 
+        // 🌦 DETERMINE CONDITION
         const cond = currentData.weather[0].main.toLowerCase();
 
         if (cond.includes("rain")) setCondition("rain");
@@ -37,7 +38,9 @@ export default function WeatherPage() {
     fetchWeather();
   }, []);
 
-  if (!current || !forecast) return <div>Loading weather...</div>;
+  if (!current || !forecast) {
+    return <div>Loading weather...</div>;
+  }
 
   return (
     <div
@@ -45,13 +48,12 @@ export default function WeatherPage() {
         position: "relative",
         overflow: "hidden",
         borderRadius: "20px",
-        background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
-        color: "white",
         padding: "25px",
+        color: "white",
+        background: "linear-gradient(135deg, #3b82f6, #60a5fa)", // base sky
       }}
     >
-
-      {/* 🌤 ANIMATED BACKGROUND */}
+      {/* 🌤 BACKGROUND ANIMATION */}
 
       {/* ☁️ CLOUDS */}
       {(condition === "clouds" || condition === "rain") && (
@@ -62,14 +64,14 @@ export default function WeatherPage() {
       {condition === "rain" && <div className="rain"></div>}
 
       {/* 🌫 CONTENT */}
-      <div style={{ position: "relative", zIndex: 2 }}>
+      <div style={{ position: "relative", zIndex: 3 }}>
 
-        {/* 🌤 TEMP */}
+        {/* 🌤 BIG TEMP */}
         <div style={{ fontSize: "64px", fontWeight: "700" }}>
           {Math.round(current.main.temp)}°
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "20px", fontSize: "18px" }}>
           {current.weather[0].description}
         </div>
 
@@ -80,13 +82,13 @@ export default function WeatherPage() {
           <div>Humidity: {current.main.humidity}%</div>
         </div>
 
-        {/* ⏰ HOURLY */}
+        {/* ⏰ HOURLY FORECAST */}
         <div
           style={{
             display: "flex",
             overflowX: "auto",
             gap: "10px",
-            marginBottom: "20px",
+            marginBottom: "25px",
           }}
         >
           {forecast.list.slice(0, 10).map((h, i) => {
@@ -96,7 +98,7 @@ export default function WeatherPage() {
               <div
                 key={i}
                 style={{
-                  minWidth: "60px",
+                  minWidth: "65px",
                   textAlign: "center",
                   background: "rgba(255,255,255,0.2)",
                   padding: "8px",
@@ -114,12 +116,12 @@ export default function WeatherPage() {
           })}
         </div>
 
-        {/* 📅 DAILY */}
+        {/* 📅 7 DAY FORECAST */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(7, 1fr)",
-            gap: "8px",
+            gap: "10px",
           }}
         >
           {[...new Set(forecast.list.map(i => i.dt_txt.split(" ")[0]))]
@@ -141,13 +143,15 @@ export default function WeatherPage() {
                     textAlign: "center",
                   }}
                 >
-                  <div>
+                  <div style={{ fontSize: "12px" }}>
                     {new Date(date).toLocaleDateString("en-US", {
                       weekday: "short",
                     })}
                   </div>
-                  <div>{Math.max(...temps).toFixed(0)}°</div>
-                  <div style={{ fontSize: "12px" }}>
+                  <div style={{ fontWeight: "600" }}>
+                    {Math.max(...temps).toFixed(0)}°
+                  </div>
+                  <div style={{ fontSize: "11px" }}>
                     {Math.min(...temps).toFixed(0)}°
                   </div>
                 </div>
@@ -156,44 +160,6 @@ export default function WeatherPage() {
         </div>
 
       </div>
-
-      {/* 🎨 ANIMATION CSS */}
-      <style>
-        {`
-        .clouds {
-          position: absolute;
-          inset: 0;
-          background: url("https://i.imgur.com/NM6KQ.gif");
-          opacity: 0.25;
-          animation: moveClouds 60s linear infinite;
-          z-index: 1;
-        }
-
-        .rain {
-          position: absolute;
-          inset: 0;
-          background-image: repeating-linear-gradient(
-            to bottom,
-            rgba(255,255,255,0.3) 0px,
-            rgba(255,255,255,0.3) 2px,
-            transparent 2px,
-            transparent 10px
-          );
-          animation: rainFall 0.4s linear infinite;
-          z-index: 1;
-        }
-
-        @keyframes moveClouds {
-          0% { background-position: 0 0; }
-          100% { background-position: 1000px 0; }
-        }
-
-        @keyframes rainFall {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 20px; }
-        }
-        `}
-      </style>
     </div>
   );
 }
