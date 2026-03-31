@@ -18,7 +18,7 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
-  // 🔥 LOAD + SYNC (less aggressive)
+  // 🔥 LOAD + SYNC
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -38,20 +38,27 @@ export default function ChoresPage() {
     };
 
     loadData();
-
-    // 🔥 slower sync prevents overwrite issues
     const interval = setInterval(loadData, 8000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // 🕒 FORMAT TIME
+  // 🔥 FORMAT TIME
   const formatTime = (date) => {
     if (!date) return "";
     return new Date(date).toLocaleTimeString([], {
       hour: "numeric",
       minute: "2-digit",
     });
+  };
+
+  // 🔥 SIMPLE STREAK
+  const calculateStreak = (kid) => {
+    const days = new Set(
+      chores
+        .filter(c => c.assignedTo === kid && c.done)
+        .map(c => new Date(c.timestamp).toDateString())
+    );
+    return days.size;
   };
 
   // ➕ ADD
@@ -70,11 +77,10 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
-  // ✅ TOGGLE (stable)
+  // ✅ TOGGLE
   const toggleChore = async (chore) => {
     const now = new Date();
 
-    // instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -97,7 +103,7 @@ export default function ChoresPage() {
     }
   };
 
-  // 🔥 LOADING
+  // 🔥 LOADING UI
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -133,7 +139,68 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 CLEAN ADD TILE (RESTORED) */}
+      {/* 🔥 NEW STATS TILE */}
+      <div style={{
+        background: "#ffffff",
+        borderRadius: "16px",
+        padding: "18px",
+        marginBottom: "20px",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+        border: "1px solid rgba(0,0,0,0.08)",
+      }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "20px",
+          textAlign: "center"
+        }}>
+          {kids.map(kid => {
+            const kidChores = chores.filter(c => c.assignedTo === kid);
+            const total = kidChores.length;
+            const complete = kidChores.filter(c => c.done).length;
+            const percent = total ? Math.round((complete / total) * 100) : 0;
+
+            const colors = kidColors[kid];
+            const streak = calculateStreak(kid);
+
+            return (
+              <div key={kid}>
+                <div style={{ fontWeight: "700", marginBottom: "10px" }}>
+                  {kid}
+                </div>
+
+                {/* Circle */}
+                <div style={{
+                  width: "90px",
+                  height: "90px",
+                  margin: "0 auto",
+                  borderRadius: "50%",
+                  background: `conic-gradient(${colors.complete} ${percent}%, #e5e7eb ${percent}%)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "inset 0 0 0 6px #ffffff, 0 4px 10px rgba(0,0,0,0.08)"
+                }}>
+                  <div style={{ fontWeight: "700" }}>
+                    {percent}%
+                  </div>
+                </div>
+
+                <div style={{
+                  marginTop: "10px",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#6b7280"
+                }}>
+                  🔥 {streak} day streak
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 🔥 ADD TILE (UNCHANGED) */}
       <div style={{
         background: "#ffffff",
         borderRadius: "16px",
@@ -215,7 +282,7 @@ export default function ChoresPage() {
         </div>
       </div>
 
-      {/* 🔥 ORIGINAL TILE SYSTEM (RESTORED) */}
+      {/* 🔥 ORIGINAL BOARD (UNCHANGED) */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -231,7 +298,6 @@ export default function ChoresPage() {
 
           return (
             <div key={kid}>
-
               <div style={{
                 padding: "14px",
                 borderRadius: "14px",
@@ -255,21 +321,12 @@ export default function ChoresPage() {
                   <div
                     key={chore.id}
                     onClick={() => toggleChore(chore)}
-                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.97)"}
-                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                     style={{
                       padding: "16px",
                       borderRadius: "16px",
                       cursor: "pointer",
                       background: chore.done ? colors.complete : colors.base,
                       color: chore.done ? "#ffffff" : "#111827",
-                      border: chore.done
-                        ? "2px solid transparent"
-                        : "2px solid rgba(0,0,0,0.08)",
-                      boxShadow: chore.done
-                        ? "0 10px 20px rgba(0,0,0,0.15)"
-                        : "0 4px 10px rgba(0,0,0,0.06)",
                       transition: "all 0.2s ease",
                       minHeight: "90px",
                       display: "flex",
@@ -291,7 +348,6 @@ export default function ChoresPage() {
                   </div>
                 ))}
               </div>
-
             </div>
           );
         })}
