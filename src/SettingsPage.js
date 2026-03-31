@@ -12,6 +12,7 @@ export default function SettingsPage() {
       padding: "30px"
     }}>
 
+      {/* MAIN TILE PAGE */}
       {page === "main" && (
         <div style={{
           display: "grid",
@@ -24,6 +25,7 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* CHORES EDITOR */}
       {page === "chores" && (
         <RecurringChores goBack={() => setPage("main")} />
       )}
@@ -35,16 +37,21 @@ export default function SettingsPage() {
           padding: 25px;
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           cursor: pointer;
+          text-align: center;
+          font-weight: 600;
         }
       `}</style>
 
     </div>
   );
 }
+
+
+// 🔥 CHORE EDITOR
 function RecurringChores({ goBack }) {
   const [chores, setChores] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🔥 LOAD FROM GOOGLE SHEET
   useEffect(() => {
     fetch(API + "?type=template")
       .then(res => res.json())
@@ -53,9 +60,63 @@ function RecurringChores({ goBack }) {
           name: row[0] || "",
           chore: row[1] || ""
         }));
+
         setChores(cleaned);
-      });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
+
+  // 🔥 LOADING SCREEN
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-text">
+          Checking on the Children’s Workload
+          <span className="dots">
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+          </span>
+        </div>
+
+        <style>{`
+          .loading-screen {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+          }
+
+          .loading-text {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+          }
+
+          .dots span {
+            animation: bounce 1.4s infinite;
+            display: inline-block;
+            margin-left: 3px;
+          }
+
+          .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+          }
+
+          .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+          }
+
+          @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   const update = (i, field, value) => {
     const updated = [...chores];
@@ -90,11 +151,18 @@ function RecurringChores({ goBack }) {
         ← Back
       </button>
 
-      <h2>Recurring Chores</h2>
+      <h2 style={{ marginBottom: "20px" }}>Recurring Chores</h2>
 
-      {/* 🔥 LIST */}
       <div className="card">
 
+        {/* HEADER */}
+        <div className="row header">
+          <div>Name</div>
+          <div>Chore</div>
+          <div></div>
+        </div>
+
+        {/* LIST */}
         {chores.map((c, i) => (
           <div key={i} className="row">
 
@@ -110,13 +178,16 @@ function RecurringChores({ goBack }) {
               placeholder="Chore"
             />
 
-            <button onClick={() => removeRow(i)}>✕</button>
+            <button className="delete" onClick={() => removeRow(i)}>✕</button>
 
           </div>
         ))}
 
-        <button onClick={addRow}>+ Add</button>
-        <button onClick={save}>Save</button>
+        {/* ACTIONS */}
+        <div className="actions">
+          <button onClick={addRow}>+ Add</button>
+          <button onClick={save}>Save</button>
+        </div>
 
       </div>
 
@@ -133,6 +204,13 @@ function RecurringChores({ goBack }) {
           grid-template-columns: 1fr 2fr auto;
           gap: 10px;
           margin-bottom: 10px;
+          align-items: center;
+        }
+
+        .header {
+          font-weight: 600;
+          opacity: 0.6;
+          margin-bottom: 15px;
         }
 
         input {
@@ -148,6 +226,16 @@ function RecurringChores({ goBack }) {
           background: #111;
           color: white;
           cursor: pointer;
+        }
+
+        .delete {
+          background: #e11d48;
+        }
+
+        .actions {
+          margin-top: 15px;
+          display: flex;
+          gap: 10px;
         }
       `}</style>
 
