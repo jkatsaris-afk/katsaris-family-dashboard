@@ -6,9 +6,18 @@ export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
 
   const kidColors = {
-    Sam: "#dbeafe",
-    Kade: "#dcfce7",
-    Ava: "#fce7f3"
+    Sam: {
+      base: "#dbeafe",
+      complete: "#3b82f6",
+    },
+    Kade: {
+      base: "#dcfce7",
+      complete: "#22c55e",
+    },
+    Ava: {
+      base: "#fce7f3",
+      complete: "#ec4899",
+    },
   };
 
   const [chores, setChores] = useState([]);
@@ -30,7 +39,7 @@ export default function ChoresPage() {
   }, []);
 
   const formatTime = (date) => {
-    if (!date) return "--";
+    if (!date) return "";
 
     return new Date(date).toLocaleTimeString([], {
       hour: "numeric",
@@ -91,24 +100,24 @@ export default function ChoresPage() {
               <div style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "12px"
+                gap: "10px"
               }}>
                 {kidChores.map(chore => {
-                  const baseColor = kidColors[kid];
+                  const colors = kidColors[kid];
 
                   return (
                     <div
                       key={chore.id}
                       onClick={() => toggleChore(chore)}
                       style={{
-                        padding: "18px",
-                        borderRadius: "16px",
+                        padding: "14px", // 👈 shorter
+                        borderRadius: "14px",
                         cursor: "pointer",
-                        background: chore.done ? "#22c55e" : baseColor,
+                        background: chore.done ? colors.complete : colors.base,
                         color: chore.done ? "#ffffff" : "#111827",
-                        boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
+                        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
                         transition: "all 0.2s ease",
-                        minHeight: "100px", // 👈 slightly smaller
+                        minHeight: "80px", // 👈 shorter tile
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
@@ -117,21 +126,24 @@ export default function ChoresPage() {
 
                       {/* TEXT */}
                       <div style={{
-                        fontSize: "17px",
+                        fontSize: "16px",
                         fontWeight: "600",
                         textAlign: "center"
                       }}>
                         {chore.text}
                       </div>
 
-                      {/* STATUS */}
-                      <div style={{
-                        fontSize: "13px",
-                        textAlign: "center",
-                        opacity: 0.85
-                      }}>
-                        {chore.done ? "Complete" : "Not Complete"} • {formatTime(chore.timestamp)}
-                      </div>
+                      {/* STATUS (only when complete) */}
+                      {chore.done && (
+                        <div style={{
+                          fontSize: "12px",
+                          textAlign: "center",
+                          opacity: 0.9,
+                          marginTop: "8px"
+                        }}>
+                          Complete • {formatTime(chore.timestamp)}
+                        </div>
+                      )}
 
                     </div>
                   );
