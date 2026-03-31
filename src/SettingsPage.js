@@ -12,6 +12,7 @@ export default function SettingsPage() {
       padding: "30px"
     }}>
 
+      {/* MAIN TILE PAGE */}
       {page === "main" && (
         <div style={{
           display: "grid",
@@ -24,6 +25,7 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* CHORES EDITOR */}
       {page === "chores" && (
         <RecurringChores goBack={() => setPage("main")} />
       )}
@@ -65,12 +67,12 @@ function RecurringChores({ goBack }) {
         setTimeout(() => {
           setLoading(false);
           setFadeIn(true);
-        }, 400); // smooth delay
+        }, 400);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 LOADING SCREEN (SPINNER + DOTS)
+  // 🔥 LOADING SCREEN (MATCHED STYLE)
   if (loading) {
     return (
       <div className="loading-screen">
@@ -79,11 +81,12 @@ function RecurringChores({ goBack }) {
 
         <div className="loading-text">
           Checking on the Children’s Workload
-          <span className="dots">
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </span>
+        </div>
+
+        <div className="dots">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
 
         <style>{`
@@ -94,8 +97,10 @@ function RecurringChores({ goBack }) {
             align-items: center;
             justify-content: center;
             background: #f5f5f5;
+            gap: 15px;
           }
 
+          /* SPINNER */
           .spinner {
             width: 40px;
             height: 40px;
@@ -103,19 +108,27 @@ function RecurringChores({ goBack }) {
             border-top: 4px solid #111;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
           }
 
+          /* TEXT */
           .loading-text {
             font-size: 20px;
             font-weight: 500;
             color: #333;
           }
 
+          /* DOTS BELOW TEXT */
+          .dots {
+            display: flex;
+            gap: 6px;
+          }
+
           .dots span {
-            display: inline-block;
-            margin-left: 3px;
-            animation: dotBounce 1.4s infinite ease-in-out both;
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite ease-in-out;
           }
 
           .dots span:nth-child(1) { animation-delay: 0s; }
@@ -127,9 +140,15 @@ function RecurringChores({ goBack }) {
             100% { transform: rotate(360deg); }
           }
 
-          @keyframes dotBounce {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
+          @keyframes dotPulse {
+            0%, 80%, 100% {
+              transform: scale(0.5);
+              opacity: 0.3;
+            }
+            40% {
+              transform: scale(1);
+              opacity: 1;
+            }
           }
         `}</style>
 
