@@ -5,9 +5,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwDALm53uXOwohhTF57V2hY
 export default function ChoresPage() {
   const kids = ["Sam", "Kade", "Ava"];
 
+  const kidColors = {
+    Sam: "#dbeafe",
+    Kade: "#dcfce7",
+    Ava: "#fce7f3"
+  };
+
   const [chores, setChores] = useState([]);
 
-  // 🔄 LOAD ONCE
   useEffect(() => {
     fetch(API_URL + "?type=chores")
       .then(res => res.json())
@@ -17,14 +22,13 @@ export default function ChoresPage() {
           assignedTo: row[1],
           text: row[2],
           done: row[3] === true || row[3] === "TRUE",
-          timestamp: null // 👈 we’ll track locally
+          timestamp: null
         }));
 
         setChores(formatted);
       });
   }, []);
 
-  // 🕒 FORMAT TIME
   const formatTime = (date) => {
     if (!date) return "--";
 
@@ -34,11 +38,9 @@ export default function ChoresPage() {
     });
   };
 
-  // ✅ TOGGLE
   const toggleChore = (chore) => {
     const now = new Date();
 
-    // 🔥 instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -47,7 +49,6 @@ export default function ChoresPage() {
       )
     );
 
-    // 🔥 send to backend
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
@@ -61,7 +62,6 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 STATUS BOARD */}
       <div
         style={{
           display: "grid",
@@ -75,7 +75,7 @@ export default function ChoresPage() {
           return (
             <div key={kid}>
 
-              {/* 👦 HEADER */}
+              {/* 👦 NAME */}
               <div
                 style={{
                   fontWeight: "700",
@@ -91,50 +91,51 @@ export default function ChoresPage() {
               <div style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "14px"
+                gap: "12px"
               }}>
-                {kidChores.map(chore => (
-                  <div
-                    key={chore.id}
-                    onClick={() => toggleChore(chore)}
-                    style={{
-                      padding: "22px",
-                      borderRadius: "18px",
-                      cursor: "pointer",
-                      background: chore.done ? "#22c55e" : "#ffffff",
-                      color: chore.done ? "#ffffff" : "#111827",
-                      boxShadow: "0 10px 20px rgba(0,0,0,0.12)",
-                      transition: "all 0.2s ease",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      minHeight: "120px", // 🔥 bigger tiles
-                    }}
-                  >
+                {kidChores.map(chore => {
+                  const baseColor = kidColors[kid];
 
-                    {/* CHORE TEXT */}
-                    <div style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      textAlign: "center"
-                    }}>
-                      {chore.text}
+                  return (
+                    <div
+                      key={chore.id}
+                      onClick={() => toggleChore(chore)}
+                      style={{
+                        padding: "18px",
+                        borderRadius: "16px",
+                        cursor: "pointer",
+                        background: chore.done ? "#22c55e" : baseColor,
+                        color: chore.done ? "#ffffff" : "#111827",
+                        boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
+                        transition: "all 0.2s ease",
+                        minHeight: "100px", // 👈 slightly smaller
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+
+                      {/* TEXT */}
+                      <div style={{
+                        fontSize: "17px",
+                        fontWeight: "600",
+                        textAlign: "center"
+                      }}>
+                        {chore.text}
+                      </div>
+
+                      {/* STATUS */}
+                      <div style={{
+                        fontSize: "13px",
+                        textAlign: "center",
+                        opacity: 0.85
+                      }}>
+                        {chore.done ? "Complete" : "Not Complete"} • {formatTime(chore.timestamp)}
+                      </div>
+
                     </div>
-
-                    {/* STATUS BAR */}
-                    <div style={{
-                      marginTop: "15px",
-                      fontSize: "13px",
-                      opacity: 0.9,
-                      textAlign: "center"
-                    }}>
-                      {chore.done ? "✅ Complete" : "⬜ Not Complete"}  
-                      {" • "}
-                      {formatTime(chore.timestamp)}
-                    </div>
-
-                  </div>
-                ))}
+                  );
+                })}
 
                 {kidChores.length === 0 && (
                   <div style={{
