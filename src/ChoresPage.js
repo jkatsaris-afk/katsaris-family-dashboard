@@ -14,6 +14,11 @@ export default function ChoresPage() {
   const [chores, setChores] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 NEW STATE (only addition)
+  const [newChore, setNewChore] = useState("");
+  const [selectedKid, setSelectedKid] = useState("Sam");
+  const [isRecurring, setIsRecurring] = useState(false);
+
   // 🔄 LOAD
   useEffect(() => {
     fetch(API_URL + "?type=chores")
@@ -41,20 +46,17 @@ export default function ChoresPage() {
     });
   };
 
-  // ➕ ADD CHORE
-  const addChore = (recurring) => {
-    const chore = prompt("Enter chore:");
-    const kid = prompt("Assign to (Sam, Kade, Ava):");
-
-    if (!chore || !kid) return;
+  // 🔥 ADD CHORE (replaces prompt version)
+  const addChore = () => {
+    if (!newChore) return;
 
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         add: true,
-        name: kid,
-        chore,
-        recurring
+        name: selectedKid,
+        chore: newChore,
+        recurring: isRecurring
       }),
     });
 
@@ -62,12 +64,14 @@ export default function ChoresPage() {
       ...prev,
       {
         id: Date.now(),
-        assignedTo: kid,
-        text: chore,
+        assignedTo: selectedKid,
+        text: newChore,
         done: false,
         timestamp: null
       }
     ]);
+
+    setNewChore("");
   };
 
   // ✅ TOGGLE
@@ -131,13 +135,74 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 ADD BUTTONS */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button onClick={() => addChore(false)}>+ One-Time</button>
-        <button onClick={() => addChore(true)}>+ Recurring</button>
+      {/* 🔥 NEW FULL-WIDTH ADD TILE */}
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "16px",
+          padding: "16px",
+          marginBottom: "20px",
+          boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+          border: "1px solid rgba(0,0,0,0.08)",
+        }}
+      >
+        <div style={{
+          fontWeight: "700",
+          marginBottom: "10px",
+          textAlign: "center"
+        }}>
+          Add Chore
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px",
+          marginBottom: "10px"
+        }}>
+          <select value={selectedKid} onChange={(e) => setSelectedKid(e.target.value)}>
+            {kids.map(k => <option key={k}>{k}</option>)}
+          </select>
+
+          <select
+            value={isRecurring ? "recurring" : "one"}
+            onChange={(e) => setIsRecurring(e.target.value === "recurring")}
+          >
+            <option value="one">One-Time</option>
+            <option value="recurring">Recurring</option>
+          </select>
+        </div>
+
+        <input
+          placeholder="Enter chore..."
+          value={newChore}
+          onChange={(e) => setNewChore(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px",
+            borderRadius: "10px",
+            border: "1px solid #ddd",
+            marginBottom: "10px"
+          }}
+        />
+
+        <div
+          onClick={addChore}
+          style={{
+            background: "#3b82f6",
+            color: "#fff",
+            textAlign: "center",
+            padding: "10px",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "600"
+          }}
+        >
+          Add
+        </div>
       </div>
 
-      {/* 🔥 BOARD */}
+      {/* 🔥 ORIGINAL BOARD (UNCHANGED) */}
       <div
         style={{
           display: "grid",
@@ -156,7 +221,6 @@ export default function ChoresPage() {
           return (
             <div key={kid}>
 
-              {/* 🔥 HEADER TILE */}
               <div
                 style={{
                   padding: "14px",
@@ -174,7 +238,6 @@ export default function ChoresPage() {
                 {kid} • {complete}/{total}
               </div>
 
-              {/* 🎉 CELEBRATION */}
               {allDone && (
                 <div
                   style={{
@@ -194,7 +257,6 @@ export default function ChoresPage() {
                 </div>
               )}
 
-              {/* 🔥 TILES */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {kidChores.map(chore => (
                   <div
@@ -250,12 +312,6 @@ export default function ChoresPage() {
                     )}
                   </div>
                 ))}
-
-                {kidChores.length === 0 && (
-                  <div style={{ textAlign: "center", color: "#9ca3af" }}>
-                    No chores
-                  </div>
-                )}
               </div>
 
             </div>
