@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -9,6 +9,8 @@ import {
   Tv
 } from "lucide-react";
 
+// ✅ IMPORT PAGES
+import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
 import ShoppingPage from "./ShoppingPage";
@@ -16,27 +18,6 @@ import MediaPage from "./MediaPage";
 
 export default function App() {
   const [page, setPage] = useState("home");
-  const [now, setNow] = useState(new Date());
-
-  // 🕒 LIVE CLOCK
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDate = now.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-
-  const formattedTime = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
 
   // 📱 APP TILES
   const apps = [
@@ -45,8 +26,6 @@ export default function App() {
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
     { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
-
-    // 🔥 NEW HOME CONTROLS TILE
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#0ea5e9" },
   ];
 
@@ -56,7 +35,7 @@ export default function App() {
       {/* 🔥 HEADER */}
       <div
         style={{
-          padding: "20px",
+          padding: "15px 20px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -65,17 +44,13 @@ export default function App() {
         <div style={{ fontWeight: "600", fontSize: "20px" }}>
           Katsaris Home
         </div>
-
-        <div style={{ fontSize: "14px", color: "#9ca3af" }}>
-          {formattedDate} | {formattedTime}
-        </div>
       </div>
 
       {/* 🔥 TILE GRID */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
           gap: "18px",
           padding: "0 20px 20px",
         }}
@@ -87,27 +62,27 @@ export default function App() {
             <motion.div
               key={i}
               whileTap={{ scale: 0.95 }}
-              onClick={() => app.page && setPage(app.page)}
+              onClick={() => setPage(app.page)}
               style={{
                 background: app.color,
                 color: "white",
-                padding: "22px",
-                borderRadius: "18px",
+                padding: "24px",
+                borderRadius: "20px",
                 textAlign: "center",
-                cursor: app.page ? "pointer" : "default",
+                cursor: "pointer",
                 opacity: isActive ? 1 : 0.85,
                 transform: isActive ? "scale(1.05)" : "scale(1)",
                 boxShadow: isActive
-                  ? "0 10px 20px rgba(0,0,0,0.2)"
-                  : "0 6px 12px rgba(0,0,0,0.1)",
+                  ? "0 12px 24px rgba(0,0,0,0.25)"
+                  : "0 6px 14px rgba(0,0,0,0.1)",
                 transition: "all 0.2s ease",
               }}
             >
-              <div style={{ fontSize: "26px", marginBottom: "10px" }}>
+              <div style={{ fontSize: "32px", marginBottom: "10px" }}>
                 {app.icon}
               </div>
 
-              <div style={{ fontWeight: "600", fontSize: "13px" }}>
+              <div style={{ fontWeight: "600", fontSize: "14px" }}>
                 {app.name}
               </div>
             </motion.div>
@@ -116,13 +91,14 @@ export default function App() {
       </div>
 
       {/* 🔥 PAGE CONTENT */}
-      <div style={{ padding: "20px" }}>
+      <div style={{ padding: "10px 20px 20px" }}>
+
+        {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "shopping" && <ShoppingPage />}
         {page === "media" && <MediaPage />}
 
-        {/* 🔥 PLACEHOLDER FOR FUTURE HOME CONTROLS */}
         {page === "homeControls" && (
           <div style={{
             background: "#fff",
@@ -132,6 +108,7 @@ export default function App() {
             Home Controls coming soon...
           </div>
         )}
+
       </div>
 
     </div>
