@@ -18,6 +18,7 @@ export default function ChoresPage() {
   const [selectedKid, setSelectedKid] = useState("Sam");
   const [isRecurring, setIsRecurring] = useState(false);
 
+  // 🔥 LOAD + SYNC (less aggressive)
   useEffect(() => {
     const loadData = () => {
       fetch(API_URL + "?type=chores")
@@ -37,10 +38,14 @@ export default function ChoresPage() {
     };
 
     loadData();
+
+    // 🔥 slower sync prevents overwrite issues
     const interval = setInterval(loadData, 8000);
+
     return () => clearInterval(interval);
   }, []);
 
+  // 🕒 FORMAT TIME
   const formatTime = (date) => {
     if (!date) return "";
     return new Date(date).toLocaleTimeString([], {
@@ -49,15 +54,7 @@ export default function ChoresPage() {
     });
   };
 
-  const calculateStreak = (kid) => {
-    const days = new Set(
-      chores
-        .filter(c => c.assignedTo === kid && c.done)
-        .map(c => new Date(c.timestamp).toDateString())
-    );
-    return days.size;
-  };
-
+  // ➕ ADD
   const addChore = () => {
     if (!newChore) return;
 
@@ -73,9 +70,11 @@ export default function ChoresPage() {
     setNewChore("");
   };
 
+  // ✅ TOGGLE (stable)
   const toggleChore = async (chore) => {
     const now = new Date();
 
+    // instant UI update
     setChores(prev =>
       prev.map(c =>
         c.id === chore.id
@@ -98,6 +97,7 @@ export default function ChoresPage() {
     }
   };
 
+  // 🔥 LOADING
   const dotStyle = (delay) => ({
     width: "10px",
     height: "10px",
@@ -133,92 +133,170 @@ export default function ChoresPage() {
   return (
     <div style={{ padding: "20px" }}>
 
-      {/* 🔥 HALF GAUGE STATS TILE */}
+      {/* 🔥 CLEAN ADD TILE (RESTORED) */}
       <div style={{
         background: "#ffffff",
-        borderRadius: "18px",
-        padding: "20px",
+        borderRadius: "16px",
+        padding: "16px",
         marginBottom: "20px",
-        boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
         border: "1px solid rgba(0,0,0,0.08)",
       }}>
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "20px",
+          fontWeight: "700",
+          marginBottom: "12px",
           textAlign: "center"
         }}>
+          Add Chore
+        </div>
 
-          {kids.map(kid => {
-            const kidChores = chores.filter(c => c.assignedTo === kid);
-            const total = kidChores.length;
-            const complete = kidChores.filter(c => c.done).length;
-            const percent = total ? Math.round((complete / total) * 100) : 0;
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px",
+          marginBottom: "10px"
+        }}>
+          <select
+            value={selectedKid}
+            onChange={(e) => setSelectedKid(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb"
+            }}
+          >
+            {kids.map(k => <option key={k}>{k}</option>)}
+          </select>
 
-            const colors = kidColors[kid];
-            const streak = calculateStreak(kid);
+          <select
+            value={isRecurring ? "recurring" : "one"}
+            onChange={(e) => setIsRecurring(e.target.value === "recurring")}
+            style={{
+              padding: "10px",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb"
+            }}
+          >
+            <option value="one">One-Time</option>
+            <option value="recurring">Recurring</option>
+          </select>
+        </div>
 
-            return (
-              <div key={kid}>
+        <input
+          placeholder="Enter chore..."
+          value={newChore}
+          onChange={(e) => setNewChore(e.target.value)}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #e5e7eb",
+            background: "#f9fafb",
+            marginBottom: "10px"
+          }}
+        />
 
-                <div style={{ fontWeight: "700", marginBottom: "12px" }}>
-                  {kid}
-                </div>
-
-                <div style={{
-                  width: "140px",
-                  height: "70px",
-                  margin: "0 auto",
-                  position: "relative",
-                  overflow: "hidden"
-                }}>
-                  <div style={{
-                    width: "140px",
-                    height: "140px",
-                    borderRadius: "50%",
-                    background: `conic-gradient(${colors.complete} ${percent * 1.8}deg, #e5e7eb 0deg)`
-                  }} />
-
-                  <div style={{
-                    width: "110px",
-                    height: "110px",
-                    borderRadius: "50%",
-                    background: "#ffffff",
-                    position: "absolute",
-                    top: "15px",
-                    left: "15px"
-                  }} />
-
-                  <div style={{
-                    position: "absolute",
-                    bottom: "8px",
-                    width: "100%",
-                    textAlign: "center",
-                    fontSize: "18px",
-                    fontWeight: "700"
-                  }}>
-                    {percent}%
-                  </div>
-                </div>
-
-                <div style={{
-                  marginTop: "10px",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: "#6b7280"
-                }}>
-                  🔥 {streak} day streak
-                </div>
-
-              </div>
-            );
-          })}
+        <div
+          onClick={addChore}
+          style={{
+            background: "#3b82f6",
+            color: "#fff",
+            textAlign: "center",
+            padding: "12px",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Add
         </div>
       </div>
 
-      {/* 🔥 KEEP EVERYTHING BELOW EXACTLY THE SAME */}
+      {/* 🔥 ORIGINAL TILE SYSTEM (RESTORED) */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "25px",
+      }}>
+        {kids.map(kid => {
+          const kidChores = chores.filter(c => c.assignedTo === kid);
+          const total = kidChores.length;
+          const complete = kidChores.filter(c => c.done).length;
+          const allDone = total > 0 && complete === total;
 
-      {/* Add Tile + Board unchanged (your original code continues...) */}
+          const colors = kidColors[kid];
+
+          return (
+            <div key={kid}>
+
+              <div style={{
+                padding: "14px",
+                borderRadius: "14px",
+                marginBottom: "12px",
+                textAlign: "center",
+                fontWeight: "700",
+                fontSize: "18px",
+                background: allDone ? colors.complete : "#ffffff",
+                color: allDone ? "#ffffff" : "#111827",
+                boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
+                border: "1px solid rgba(0,0,0,0.08)"
+              }}>
+                {allDone
+                  ? `🎉 ${kid} • ALL DONE! 🎉`
+                  : `${kid} • ${complete}/${total}`
+                }
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {kidChores.map(chore => (
+                  <div
+                    key={chore.id}
+                    onClick={() => toggleChore(chore)}
+                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.97)"}
+                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    style={{
+                      padding: "16px",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                      background: chore.done ? colors.complete : colors.base,
+                      color: chore.done ? "#ffffff" : "#111827",
+                      border: chore.done
+                        ? "2px solid transparent"
+                        : "2px solid rgba(0,0,0,0.08)",
+                      boxShadow: chore.done
+                        ? "0 10px 20px rgba(0,0,0,0.15)"
+                        : "0 4px 10px rgba(0,0,0,0.06)",
+                      transition: "all 0.2s ease",
+                      minHeight: "90px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "18px", fontWeight: "700" }}>
+                      {chore.text}
+                    </div>
+
+                    {chore.done && (
+                      <div style={{ fontSize: "12px", marginTop: "6px" }}>
+                        Complete • {formatTime(chore.timestamp)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          );
+        })}
+      </div>
+
     </div>
   );
 }
