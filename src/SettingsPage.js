@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 const API = "https://script.google.com/macros/s/AKfycbwu26ABWTuw9xG_u5DpT0-Ql-CZeiOw9qfB7ewDVN_zrsD3CiaX0_0XL__VyrASgdee/exec";
 
 export default function SettingsPage() {
-  const [active, setActive] = useState("chores");
+  const [active, setActive] = useState("family");
 
   return (
     <div className="settings-shell">
@@ -12,17 +12,24 @@ export default function SettingsPage() {
       <div className="settings-menu">
 
         <div
-          className={`settings-menu-item ${active === "chores" ? "active" : ""}`}
-          onClick={() => setActive("chores")}
-        >
-          Recurring Chores
-        </div>
-
-        <div
           className={`settings-menu-item ${active === "family" ? "active" : ""}`}
           onClick={() => setActive("family")}
         >
           Family Profiles
+        </div>
+
+        <div
+          className={`settings-menu-item ${active === "network" ? "active" : ""}`}
+          onClick={() => setActive("network")}
+        >
+          Network
+        </div>
+
+        <div
+          className={`settings-menu-item ${active === "chores" ? "active" : ""}`}
+          onClick={() => setActive("chores")}
+        >
+          Recurring Chores
         </div>
 
       </div>
@@ -30,19 +37,97 @@ export default function SettingsPage() {
       {/* RIGHT PANEL */}
       <div className="settings-content">
 
-        {active === "chores" && <RecurringChores />}
+        {active === "family" && <FamilyPage />}
 
-        {active === "family" && (
-          <div>
-            <h2>Family Profiles</h2>
-            <div className="settings-card">
-              Coming soon...
-            </div>
-          </div>
-        )}
+        {active === "network" && <NetworkPage />}
+
+        {active === "chores" && <RecurringChores />}
 
       </div>
 
+    </div>
+  );
+}
+
+
+// 🔥 FAMILY PAGE (placeholder)
+function FamilyPage() {
+  return (
+    <div>
+      <h2>Family Profiles</h2>
+      <div className="settings-card">
+        Coming soon...
+      </div>
+    </div>
+  );
+}
+
+
+// 🔥 NETWORK PAGE
+function NetworkPage() {
+  const [info, setInfo] = useState({
+    ip: "Loading...",
+    online: navigator.onLine,
+    type: "Unknown",
+    speed: "Unknown",
+    device: navigator.userAgent
+  });
+
+  useEffect(() => {
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => {
+        setInfo(prev => ({ ...prev, ip: data.ip }));
+      });
+
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+
+    if (connection) {
+      setInfo(prev => ({
+        ...prev,
+        type: connection.effectiveType,
+        speed: connection.downlink + " Mbps"
+      }));
+    }
+  }, []);
+
+  return (
+    <div>
+      <h2 style={{ marginBottom: "20px" }}>Network Info</h2>
+
+      <div className="settings-card">
+
+        <div className="settings-row">
+          <div>Public IP</div>
+          <div>{info.ip}</div>
+        </div>
+
+        <div className="settings-row">
+          <div>Status</div>
+          <div>{info.online ? "Online" : "Offline"}</div>
+        </div>
+
+        <div className="settings-row">
+          <div>Connection</div>
+          <div>{info.type}</div>
+        </div>
+
+        <div className="settings-row">
+          <div>Speed</div>
+          <div>{info.speed}</div>
+        </div>
+
+        <div className="settings-row">
+          <div>Device</div>
+          <div style={{ fontSize: "12px" }}>
+            {info.device}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -68,7 +153,6 @@ function RecurringChores() {
       .catch(() => setLoading(false));
   }, []);
 
-  // 🔥 LOADING PANEL
   if (loading) {
     return (
       <div className="settings-loading">
@@ -122,27 +206,23 @@ function RecurringChores() {
 
       <div className="settings-card">
 
-        {/* HEADER */}
         <div className="settings-row settings-header">
           <div>Name</div>
           <div>Chore</div>
           <div></div>
         </div>
 
-        {/* LIST */}
         {chores.map((c, i) => (
           <div key={i} className="settings-row">
 
             <input
               value={c.name}
               onChange={(e) => update(i, "name", e.target.value)}
-              placeholder="Name"
             />
 
             <input
               value={c.chore}
               onChange={(e) => update(i, "chore", e.target.value)}
-              placeholder="Chore"
             />
 
             <button
@@ -155,7 +235,6 @@ function RecurringChores() {
           </div>
         ))}
 
-        {/* ACTIONS */}
         <div className="settings-actions">
           <button onClick={addRow}>+ Add</button>
           <button onClick={save}>Save</button>
