@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import logo from "./assets/logo.png";
+import defaultLogo from "./assets/oikos-brand.png"; // ✅ DEFAULT
+import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
+  const [logo, setLogo] = useState(defaultLogo); // ✅ dynamic logo
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -23,25 +25,53 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌤️ WEATHER (Fallon, NV via lat/lon)
+  // 🔥 LOAD HOUSEHOLD LOGO
+  useEffect(() => {
+    const loadLogo = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!member) return;
+
+      const { data } = await supabase
+        .from("settings")
+        .select("logo_url")
+        .eq("household_id", member.household_id)
+        .maybeSingle();
+
+      if (data?.logo_url) {
+        setLogo(data.logo_url);
+      }
+    };
+
+    loadLogo();
+  }, []);
+
+  // 🌤️ WEATHER
   useEffect(() => {
     const fetchWeather = async () => {
       try {
         const apiKey = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
 
-        // CURRENT
         const currentRes = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
         );
         const current = await currentRes.json();
 
-        // FORECAST
         const forecastRes = await fetch(
           `https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
         );
         const forecast = await forecastRes.json();
 
-        // tomorrow around midday
         const tomorrow = forecast.list.find(item =>
           item.dt_txt.includes("12:00:00")
         );
@@ -52,18 +82,9 @@ export default function HomePage() {
           high: Math.round(current.main.temp_max),
           low: Math.round(current.main.temp_min),
           condition: current.weather[0].description,
-
-          tomorrowHigh: tomorrow
-            ? Math.round(tomorrow.main.temp_max)
-            : "--",
-
-          tomorrowLow: tomorrow
-            ? Math.round(tomorrow.main.temp_min)
-            : "--",
-
-          tomorrowCondition: tomorrow
-            ? tomorrow.weather[0].description
-            : "",
+          tomorrowHigh: tomorrow ? Math.round(tomorrow.main.temp_max) : "--",
+          tomorrowLow: tomorrow ? Math.round(tomorrow.main.temp_min) : "--",
+          tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
         });
 
       } catch (err) {
@@ -81,7 +102,7 @@ export default function HomePage() {
     };
 
     fetchWeather();
-    const interval = setInterval(fetchWeather, 600000); // every 10 min
+    const interval = setInterval(fetchWeather, 600000);
     return () => clearInterval(interval);
   }, []);
 
@@ -110,10 +131,10 @@ export default function HomePage() {
       }}
     >
 
-      {/* 🔥 GHOSTED LOGO */}
+      {/* 🔥 GHOSTED LOGO (DYNAMIC) */}
       <img
         src={logo}
-        alt="Katsaris Brand"
+        alt="Oikos Brand"
         style={{
           position: "absolute",
           width: "450px",
@@ -166,12 +187,13 @@ export default function HomePage() {
           Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
         </div>
 
-        {/* 🔮 TOMORROW */}
-        <div style={{
-          marginTop: "12px",
-          fontSize: "15px",
-          color: "#6b7280"
-        }}>
+        <div
+          style={{
+            marginTop: "12px",
+            fontSize: "15px",
+            color: "#6b7280"
+          }}
+        >
           Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
         </div>
       </div>
