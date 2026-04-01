@@ -28,7 +28,7 @@ export default function App() {
   const [nightMode, setNightMode] = useState(false);
   const [now, setNow] = useState(new Date());
 
-  // 🕒 CLOCK FOR NIGHT MODE
+  // 🕒 CLOCK
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
@@ -58,14 +58,16 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
-      {/* 🌙 NIGHT MODE OVERLAY */}
+      {/* 🌙 NIGHT MODE OVERLAY (DIM VERSION) */}
       {nightMode && (
         <div
-          onClick={() => setNightMode(false)} // tap to exit
+          onClick={() => setNightMode(false)}
           style={{
             position: "fixed",
             inset: 0,
-            background: "#111",
+            background: "rgba(20, 20, 20, 0.75)", // 👈 dim overlay
+            backdropFilter: "blur(4px)", // 👈 subtle blur
+            WebkitBackdropFilter: "blur(4px)",
             color: "#fff",
             display: "flex",
             flexDirection: "column",
@@ -74,8 +76,13 @@ export default function App() {
             zIndex: 9999,
           }}
         >
-          <div style={{ fontSize: "120px", fontWeight: "700" }}>{time}</div>
-          <div style={{ fontSize: "28px", opacity: 0.8 }}>{date}</div>
+          <div style={{ fontSize: "120px", fontWeight: "700" }}>
+            {time}
+          </div>
+
+          <div style={{ fontSize: "28px", opacity: 0.85 }}>
+            {date}
+          </div>
         </div>
       )}
 
@@ -89,12 +96,19 @@ export default function App() {
         }}
       >
         {/* 🏷️ BRAND */}
-        <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
+        <img
+          src={brand}
+          alt="Oikos Display"
+          style={{
+            height: "38px",
+            objectFit: "contain",
+          }}
+        />
 
-        {/* RIGHT SIDE CONTROLS */}
+        {/* RIGHT CONTROLS */}
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
-          {/* 🌙 NIGHT MODE TOGGLE */}
+          {/* 🌙 NIGHT MODE BUTTON */}
           <div
             onClick={() => setNightMode(!nightMode)}
             style={{
@@ -197,12 +211,24 @@ export default function App() {
                     boxShadow: isActive
                       ? "0 8px 16px rgba(0,0,0,0.25)"
                       : "0 4px 10px rgba(0,0,0,0.1)",
+                    transition: "all 0.2s ease",
                   }}
                 >
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                  <div
+                    style={{
+                      fontSize: "clamp(18px, 2vw, 26px)",
+                      marginBottom: "6px",
+                    }}
+                  >
                     {app.icon}
                   </div>
-                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
+
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      fontSize: "clamp(9px, 1vw, 12px)",
+                    }}
+                  >
                     {app.name}
                   </div>
                 </motion.div>
