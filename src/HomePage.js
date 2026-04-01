@@ -130,42 +130,49 @@ export default function HomePage() {
       }}
     >
 
-      {/* ✅ CLEAN LOGO (NOT GHOSTED) */}
+      {/* 🕒 TIME */}
+      <div
+        style={{
+          fontSize: "110px",
+          fontWeight: "700",
+          color: "#111827",
+          lineHeight: "1",
+        }}
+      >
+        {formattedTime}
+      </div>
+
+      {/* ✅ LOGO UNDER CLOCK */}
       <img
         src={logo}
         alt="Oikos Brand"
         style={{
-          width: "220px",
+          width: "200px",
+          marginTop: "15px",
           marginBottom: "20px",
           zIndex: 1,
           filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
         }}
       />
 
-      {/* 🕒 TIME */}
-      <div style={{
-        fontSize: "110px",
-        fontWeight: "700",
-        color: "#111827",
-        lineHeight: "1",
-      }}>
-        {formattedTime}
-      </div>
-
       {/* 📅 DATE */}
-      <div style={{
-        fontSize: "24px",
-        color: "#6b7280",
-        marginBottom: "25px",
-      }}>
+      <div
+        style={{
+          fontSize: "24px",
+          color: "#6b7280",
+          marginBottom: "25px",
+        }}
+      >
         {formattedDate}
       </div>
 
       {/* 🌤️ WEATHER */}
-      <div style={{
-        textAlign: "center",
-        color: "#374151",
-      }}>
+      <div
+        style={{
+          textAlign: "center",
+          color: "#374151",
+        }}
+      >
         <div style={{ fontSize: "28px", fontWeight: "600" }}>
           {weather.temp}° • {weather.condition}
         </div>
@@ -174,11 +181,13 @@ export default function HomePage() {
           Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
         </div>
 
-        <div style={{
-          marginTop: "12px",
-          fontSize: "15px",
-          color: "#6b7280"
-        }}>
+        <div
+          style={{
+            marginTop: "12px",
+            fontSize: "15px",
+            color: "#6b7280",
+          }}
+        >
           Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
         </div>
       </div>
