@@ -13,7 +13,8 @@ import {
   Award,
   Info,
   Plug,
-  Home as HomeIcon
+  Home as HomeIcon,
+  Calendar
 } from "lucide-react";
 
 import brand from "./assets/oikos-brand.png";
@@ -35,7 +36,6 @@ export default function SettingsPage() {
     connection: navigator.connection?.effectiveType || "Unknown",
   });
 
-  // 🌐 GET LOCAL IP
   const getLocalIP = async () => {
     return new Promise((resolve) => {
       try {
@@ -69,20 +69,20 @@ export default function SettingsPage() {
     });
   }, []);
 
-  // 🔥 UPDATED MENU
+  // 🔥 UPDATED MENU ORDER
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
     { name: "Display", icon: <Moon />, key: "display" },
     { name: "Notifications", icon: <Bell />, key: "notifications" },
     { name: "Security", icon: <Shield />, key: "security" },
-    { name: "About", icon: <Info />, key: "about" },
 
-    // 🆕 NEW SECTION
     { name: "Integrations", icon: <Plug />, key: "integrations" },
     { name: "Smart Home", icon: <HomeIcon />, key: "smartHome" },
 
     { name: "Chores", icon: <ClipboardList />, key: "chores" },
+
+    { name: "About", icon: <Info />, key: "about" }, // 👈 moved to bottom
   ];
 
   const choreMenu = [
@@ -92,7 +92,6 @@ export default function SettingsPage() {
     { name: "Awards", icon: <Award />, key: "awards" },
   ];
 
-  // 🔁 CONTENT
   const renderContent = () => {
 
     if (section === "chores") {
@@ -111,36 +110,30 @@ export default function SettingsPage() {
       );
     }
 
-    if (section === "about") {
-      return (
-        <div>
-          <h2>About This Device</h2>
-          <div style={styles.cardBlock}>
-            <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
-            <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
-            <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
-            <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
-            <div style={styles.infoRow}><strong>Platform:</strong> {info.platform}</div>
-            <div style={styles.infoRow}><strong>Language:</strong> {info.language}</div>
-            <div style={styles.infoRow}><strong>Screen:</strong> {info.screen}</div>
-            <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
-            <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
-          </div>
-        </div>
-      );
-    }
-
-    // 🔌 INTEGRATIONS
+    // 🔌 INTEGRATIONS (UPDATED)
     if (section === "integrations") {
       return (
         <div>
           <h2>Integrations</h2>
 
           <div style={styles.subGrid}>
-            <div style={styles.subCard}>Apple HomeKit (Coming)</div>
-            <div style={styles.subCard}>Google Home (Coming)</div>
-            <div style={styles.subCard}>Alexa (Coming)</div>
-            <div style={styles.subCard}>UniFi (Future)</div>
+            <div style={styles.subCard}>
+              <Calendar size={28} style={{ marginBottom: "10px" }} />
+              <div>Google Calendar</div>
+              <div style={styles.subText}>Connect your family calendar</div>
+            </div>
+
+            <div style={styles.subCard}>
+              Apple HomeKit (Coming)
+            </div>
+
+            <div style={styles.subCard}>
+              Google Home (Coming)
+            </div>
+
+            <div style={styles.subCard}>
+              Alexa (Coming)
+            </div>
           </div>
         </div>
       );
@@ -155,6 +148,27 @@ export default function SettingsPage() {
           <div style={styles.cardBlock}>
             <p>This will become your main home control panel.</p>
             <p>Lights, switches, scenes, and more coming soon.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // 📄 ABOUT
+    if (section === "about") {
+      return (
+        <div>
+          <h2>About This Device</h2>
+
+          <div style={styles.cardBlock}>
+            <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
+            <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
+            <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
+            <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
+            <div style={styles.infoRow}><strong>Platform:</strong> {info.platform}</div>
+            <div style={styles.infoRow}><strong>Language:</strong> {info.language}</div>
+            <div style={styles.infoRow}><strong>Screen:</strong> {info.screen}</div>
+            <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
+            <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
           </div>
         </div>
       );
@@ -273,6 +287,12 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     textAlign: "center",
+  },
+
+  subText: {
+    fontSize: "12px",
+    color: "#6b7280",
+    marginTop: "5px",
   },
 
   cardBlock: {
