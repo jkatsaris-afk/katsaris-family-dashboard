@@ -66,19 +66,15 @@ export default function DisplaySettings() {
     load();
   }, []);
 
-  // 🔥 FIXED UPDATE FUNCTION
+  // 🔥 UPDATE
   const updateSettings = async (updates) => {
     if (!settings) return;
-
-    console.log("UPDATING:", updates, "ID:", settings.id);
 
     const { data, error } = await supabase
       .from("settings")
       .update(updates)
       .eq("id", settings.id)
-      .select(); // 🔥 FIX
-
-    console.log("RESULT:", data, error);
+      .select();
 
     if (!error && data) {
       setSettings({
@@ -88,12 +84,10 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 FILE UPLOAD
+  // 🔥 UPLOAD
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file || !settings) return;
-
-    console.log("Uploading:", file);
 
     const filePath = `${settings.household_id}/${type}-${Date.now()}`;
 
@@ -112,12 +106,40 @@ export default function DisplaySettings() {
 
     const url = data.publicUrl;
 
-    console.log("PUBLIC URL:", url);
-
     if (type === "background") {
       updateSettings({ background_url: url });
     } else {
       updateSettings({ logo_url: url });
+    }
+  };
+
+  // 🔥 REMOVE IMAGE
+  const handleRemove = async (type) => {
+    if (!settings) return;
+
+    const url =
+      type === "background"
+        ? settings.background_url
+        : settings.logo_url;
+
+    if (!url) return;
+
+    try {
+      const path = url.split("/oikos-assets/")[1];
+
+      if (path) {
+        await supabase.storage
+          .from("oikos-assets")
+          .remove([path]);
+      }
+
+      if (type === "background") {
+        updateSettings({ background_url: null });
+      } else {
+        updateSettings({ logo_url: null });
+      }
+    } catch (err) {
+      console.error("REMOVE ERROR:", err);
     }
   };
 
@@ -162,7 +184,15 @@ export default function DisplaySettings() {
         </div>
 
         {settings.background_url && (
-          <img src={settings.background_url} style={styles.previewLarge} />
+          <>
+            <img src={settings.background_url} style={styles.previewLarge} />
+            <button
+              onClick={() => handleRemove("background")}
+              style={styles.removeBtn}
+            >
+              Remove Background
+            </button>
+          </>
         )}
 
         {/* LOGO */}
@@ -186,7 +216,15 @@ export default function DisplaySettings() {
         </div>
 
         {settings.logo_url && (
-          <img src={settings.logo_url} style={styles.previewLogo} />
+          <>
+            <img src={settings.logo_url} style={styles.previewLogo} />
+            <button
+              onClick={() => handleRemove("logo")}
+              style={styles.removeBtn}
+            >
+              Remove Logo
+            </button>
+          </>
         )}
       </div>
 
@@ -287,6 +325,18 @@ const styles = {
     background: PRIMARY,
     color: "#fff",
     padding: "8px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600",
+  },
+
+  removeBtn: {
+    marginTop: "10px",
+    background: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "8px 12px",
     borderRadius: "8px",
     cursor: "pointer",
     fontSize: "13px",
