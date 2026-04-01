@@ -11,14 +11,15 @@ import {
   Gift,
   Trophy,
   Award,
-  Info
+  Info,
+  Plug,
+  Home as HomeIcon
 } from "lucide-react";
 
-// ✅ BRAND
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
-const APP_VERSION = "1.0.0"; // 👈 update later
+const APP_VERSION = "1.0.0";
 
 export default function SettingsPage() {
   const [section, setSection] = useState("household");
@@ -34,7 +35,7 @@ export default function SettingsPage() {
     connection: navigator.connection?.effectiveType || "Unknown",
   });
 
-  // 🌐 LOCAL IP
+  // 🌐 GET LOCAL IP
   const getLocalIP = async () => {
     return new Promise((resolve) => {
       try {
@@ -68,13 +69,19 @@ export default function SettingsPage() {
     });
   }, []);
 
+  // 🔥 UPDATED MENU
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
     { name: "Display", icon: <Moon />, key: "display" },
     { name: "Notifications", icon: <Bell />, key: "notifications" },
     { name: "Security", icon: <Shield />, key: "security" },
-    { name: "About", icon: <Info />, key: "about" }, // 👈 NEW
+    { name: "About", icon: <Info />, key: "about" },
+
+    // 🆕 NEW SECTION
+    { name: "Integrations", icon: <Plug />, key: "integrations" },
+    { name: "Smart Home", icon: <HomeIcon />, key: "smartHome" },
+
     { name: "Chores", icon: <ClipboardList />, key: "chores" },
   ];
 
@@ -108,7 +115,6 @@ export default function SettingsPage() {
       return (
         <div>
           <h2>About This Device</h2>
-
           <div style={styles.cardBlock}>
             <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
             <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
@@ -119,6 +125,36 @@ export default function SettingsPage() {
             <div style={styles.infoRow}><strong>Screen:</strong> {info.screen}</div>
             <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
             <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // 🔌 INTEGRATIONS
+    if (section === "integrations") {
+      return (
+        <div>
+          <h2>Integrations</h2>
+
+          <div style={styles.subGrid}>
+            <div style={styles.subCard}>Apple HomeKit (Coming)</div>
+            <div style={styles.subCard}>Google Home (Coming)</div>
+            <div style={styles.subCard}>Alexa (Coming)</div>
+            <div style={styles.subCard}>UniFi (Future)</div>
+          </div>
+        </div>
+      );
+    }
+
+    // 🏠 SMART HOME
+    if (section === "smartHome") {
+      return (
+        <div>
+          <h2>Smart Home Control</h2>
+
+          <div style={styles.cardBlock}>
+            <p>This will become your main home control panel.</p>
+            <p>Lights, switches, scenes, and more coming soon.</p>
           </div>
         </div>
       );
@@ -142,13 +178,10 @@ export default function SettingsPage() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-
-        {/* BRAND */}
         <div style={styles.brandBox}>
           <img src={brand} alt="Oikos Display" style={styles.brand} />
         </div>
 
-        {/* MENU */}
         {menu.map((item, i) => {
           const active = section === item.key;
 
