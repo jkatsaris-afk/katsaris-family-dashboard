@@ -35,6 +35,7 @@ const PRIMARY = "#2f6ea6";
 function AppContent() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("home");
+  if (user === null) return null;
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
