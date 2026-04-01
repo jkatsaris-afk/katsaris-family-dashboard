@@ -28,6 +28,10 @@ import ShoppingPage from "./ShoppingPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
+// ✅ NEW IMPORTS
+import FamilyPage from "./FamilyPage";
+import HomeControlsPage from "./HomeControlsPage";
+
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
@@ -129,7 +133,7 @@ function AppContent() {
   return (
     <div style={{ height: "100vh", overflow: "hidden", background: "#eef1f5", display: "flex", flexDirection: "column" }}>
       
-      {/* NIGHT MODE OVERLAY */}
+      {/* NIGHT MODE */}
       {nightMode && (
         <div
           onClick={() => setNightMode(false)}
@@ -161,10 +165,8 @@ function AppContent() {
       >
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        {/* RIGHT CONTROLS */}
         <div style={{ display: "flex", gap: "10px" }}>
-          
-          {/* NIGHT MODE BUTTON */}
+          {/* NIGHT MODE */}
           <div
             onClick={() => setNightMode(!nightMode)}
             style={{
@@ -177,7 +179,7 @@ function AppContent() {
             <Moon size={18} />
           </div>
 
-          {/* SETTINGS BUTTON */}
+          {/* SETTINGS */}
           <div
             onClick={() =>
               setPage((prev) =>
@@ -205,6 +207,10 @@ function AppContent() {
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
         {page === "settings" && <SettingsPage />}
+
+        {/* ✅ NEW PAGES */}
+        {page === "family" && <FamilyPage />}
+        {page === "homeControls" && <HomeControlsPage />}
       </div>
 
       {/* DOCK */}
