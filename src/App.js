@@ -43,7 +43,7 @@ function AppContent() {
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
-  const [displaySettings, setDisplaySettings] = useState(null); // ✅ NEW
+  const [displaySettings, setDisplaySettings] = useState(null);
   const [now, setNow] = useState(new Date());
 
   // AUTH
@@ -72,7 +72,7 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 HOUSEHOLD SETTINGS (FIXED)
+  // 🔥 SETTINGS LOADER (CLEAN)
   useEffect(() => {
     if (!user) return;
 
@@ -94,12 +94,40 @@ function AppContent() {
       if (data) {
         setSettings(data);
         setAutoNightEnabled(data.auto_night_mode);
-        setDisplaySettings(data); // ✅ key for tiles
+        setDisplaySettings(data);
       }
     };
 
     loadSettings();
   }, [user]);
+
+  // 🔥 REALTIME SETTINGS (CORRECT PLACEMENT)
+  useEffect(() => {
+    if (!user || !settings) return;
+
+    const channel = supabase
+      .channel("settings-live")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+        },
+        (payload) => {
+          console.log("🔥 SETTINGS CHANGED:", payload);
+
+          if (payload.new?.id === settings.id) {
+            setDisplaySettings(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, settings]);
 
   // NIGHT MODE
   useEffect(() => {
@@ -115,7 +143,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // 🔥 ALL APPS
+  // ALL APPS
   const allApps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -126,7 +154,7 @@ function AppContent() {
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ];
 
-  // 🔥 FILTERED APPS (THIS IS THE MAGIC)
+  // 🔥 FILTERED APPS
   const apps = displaySettings?.visible_tiles
     ? allApps.filter((app) => displaySettings.visible_tiles[app.page])
     : allApps;
@@ -169,35 +197,16 @@ function AppContent() {
       )}
 
       {/* HEADER */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <div
-            onClick={() => setNightMode(!nightMode)}
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: nightMode ? "#111" : "#fff",
-            }}
-          >
+          <div onClick={() => setNightMode(!nightMode)} style={{ cursor: "pointer", padding: "8px", borderRadius: "10px", background: nightMode ? "#111" : "#fff" }}>
             <Moon size={18} />
           </div>
 
           <div
-            onClick={() =>
-              setPage((prev) =>
-                prev === "settings" ? "home" : "settings"
-              )
-            }
+            onClick={() => setPage((prev) => (prev === "settings" ? "home" : "settings"))}
             style={{
               cursor: "pointer",
               padding: "8px",
@@ -224,34 +233,9 @@ function AppContent() {
       </div>
 
       {/* DOCK */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 1000,
-        }}
-      >
-        <div
-          style={{
-            width: "95%",
-            maxWidth: "1400px",
-            background: "#eef1f5",
-            padding: "12px",
-            marginBottom: "10px",
-            borderRadius: "20px",
-            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-              gap: "12px",
-            }}
-          >
+      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center", zIndex: 1000 }}>
+        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px", boxShadow: "0 -5px 15px rgba(0,0,0,0.1)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
             {apps.map((app, i) => {
               const isActive = page === app.page;
 
@@ -270,12 +254,8 @@ function AppContent() {
                     opacity: isActive ? 1 : 0.85,
                   }}
                 >
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
-                    {app.icon}
-                  </div>
-                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
-                    {app.name}
-                  </div>
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>{app.icon}</div>
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>{app.name}</div>
                 </motion.div>
               );
             })}
