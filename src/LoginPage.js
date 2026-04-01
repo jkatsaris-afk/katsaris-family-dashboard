@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ If already logged in → skip to loading
+  // ✅ If already logged in → skip
   useEffect(() => {
     const checkSession = async () => {
       const {
@@ -25,7 +25,7 @@ export default function LoginPage() {
     checkSession();
   }, [navigate]);
 
-  // 🔐 LOGIN HANDLER
+  // 🔐 LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -45,25 +45,25 @@ export default function LoginPage() {
     navigate("/loading");
   };
 
-  // 🎯 UI (fixed centered tile)
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        background: "#000",
+        background: "#eef1f5",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
+      {/* CARD */}
       <div
         style={{
-          background: "#171717",
+          background: "#fff",
           padding: "32px",
           borderRadius: "20px",
           width: "380px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
         }}
       >
         {/* LOGO */}
@@ -72,21 +72,28 @@ export default function LoginPage() {
         </div>
 
         {/* TITLE */}
-        <h2 style={{ color: "#fff", textAlign: "center", marginBottom: "24px" }}>
+        <h2 style={{ color: "#000", textAlign: "center", marginBottom: "24px" }}>
           Sign in to your Home
         </h2>
 
         {/* FORM */}
-        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <form
+          onSubmit={handleLogin}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={{
-              background: "#000",
-              border: "1px solid #444",
-              color: "#fff",
+              background: "#fff",
+              border: "1px solid #e5e7eb",
+              color: "#000",
               padding: "12px",
               borderRadius: "10px",
             }}
@@ -99,9 +106,9 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={{
-              background: "#000",
-              border: "1px solid #444",
-              color: "#fff",
+              background: "#fff",
+              border: "1px solid #e5e7eb",
+              color: "#000",
               padding: "12px",
               borderRadius: "10px",
             }}
@@ -119,14 +126,38 @@ export default function LoginPage() {
               fontWeight: "600",
               marginTop: "10px",
               cursor: "pointer",
+              border: "none",
             }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
+        {/* NEW USER BUTTON */}
+        <button
+          onClick={() => navigate("/onboarding")}
+          style={{
+            marginTop: "12px",
+            width: "100%",
+            background: "transparent",
+            border: "1px solid #e5e7eb",
+            padding: "12px",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Create Household
+        </button>
+
         {/* FOOTER */}
-        <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
+        <p
+          style={{
+            color: "#666",
+            textAlign: "center",
+            marginTop: "20px",
+          }}
+        >
           Welcome to Oikos Display
         </p>
       </div>
