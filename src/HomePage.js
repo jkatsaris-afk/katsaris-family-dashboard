@@ -17,7 +17,7 @@ export default function HomePage() {
     tomorrowCondition: "",
   });
 
-  // 🕒 LIVE CLOCK
+  // 🕒 CLOCK
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
@@ -25,7 +25,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD HOUSEHOLD LOGO (FIXED)
+  // 🔥 LOAD LOGO
   useEffect(() => {
     const loadLogo = async () => {
       const {
@@ -42,16 +42,11 @@ export default function HomePage() {
 
       if (!member) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("settings")
-        .select("*") // ✅ FIXED (no more 400 error)
+        .select("*")
         .eq("household_id", member.household_id)
         .maybeSingle();
-
-      if (error) {
-        console.error("LOGO LOAD ERROR:", error);
-        return;
-      }
 
       if (data?.logo_url) {
         setLogo(data.logo_url);
@@ -92,7 +87,7 @@ export default function HomePage() {
           tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
         });
 
-      } catch (err) {
+      } catch {
         setWeather({
           temp: "--",
           feels: "--",
@@ -132,58 +127,45 @@ export default function HomePage() {
         alignItems: "center",
         justifyContent: "flex-start",
         paddingTop: "80px",
-        overflow: "hidden",
       }}
     >
 
-      {/* 🔥 GHOSTED LOGO */}
+      {/* ✅ CLEAN LOGO (NOT GHOSTED) */}
       <img
         src={logo}
         alt="Oikos Brand"
         style={{
-          position: "absolute",
-          width: "450px",
-          opacity: 1,
-          top: "60%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
+          width: "220px",
+          marginBottom: "20px",
+          zIndex: 1,
+          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
         }}
       />
 
       {/* 🕒 TIME */}
-      <div
-        style={{
-          fontSize: "110px",
-          fontWeight: "700",
-          color: "#111827",
-          lineHeight: "1",
-          zIndex: 1,
-        }}
-      >
+      <div style={{
+        fontSize: "110px",
+        fontWeight: "700",
+        color: "#111827",
+        lineHeight: "1",
+      }}>
         {formattedTime}
       </div>
 
       {/* 📅 DATE */}
-      <div
-        style={{
-          fontSize: "24px",
-          color: "#6b7280",
-          marginBottom: "25px",
-          zIndex: 1,
-        }}
-      >
+      <div style={{
+        fontSize: "24px",
+        color: "#6b7280",
+        marginBottom: "25px",
+      }}>
         {formattedDate}
       </div>
 
       {/* 🌤️ WEATHER */}
-      <div
-        style={{
-          textAlign: "center",
-          zIndex: 1,
-          color: "#374151",
-        }}
-      >
+      <div style={{
+        textAlign: "center",
+        color: "#374151",
+      }}>
         <div style={{ fontSize: "28px", fontWeight: "600" }}>
           {weather.temp}° • {weather.condition}
         </div>
@@ -192,13 +174,11 @@ export default function HomePage() {
           Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
         </div>
 
-        <div
-          style={{
-            marginTop: "12px",
-            fontSize: "15px",
-            color: "#6b7280"
-          }}
-        >
+        <div style={{
+          marginTop: "12px",
+          fontSize: "15px",
+          color: "#6b7280"
+        }}>
           Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
         </div>
       </div>
