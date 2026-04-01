@@ -28,7 +28,6 @@ import ShoppingPage from "./ShoppingPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
-// ✅ NEW IMPORTS
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
@@ -44,6 +43,7 @@ function AppContent() {
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
+  const [displaySettings, setDisplaySettings] = useState(null); // ✅ NEW
   const [now, setNow] = useState(new Date());
 
   // AUTH
@@ -72,20 +72,29 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // SETTINGS
+  // 🔥 HOUSEHOLD SETTINGS (FIXED)
   useEffect(() => {
     if (!user) return;
 
     const loadSettings = async () => {
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!member) return;
+
       const { data } = await supabase
         .from("settings")
         .select("*")
-        .limit(1)
+        .eq("household_id", member.household_id)
         .maybeSingle();
 
       if (data) {
         setSettings(data);
         setAutoNightEnabled(data.auto_night_mode);
+        setDisplaySettings(data); // ✅ key for tiles
       }
     };
 
@@ -106,7 +115,8 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  const apps = [
+  // 🔥 ALL APPS
+  const allApps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
@@ -116,6 +126,11 @@ function AppContent() {
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ];
 
+  // 🔥 FILTERED APPS (THIS IS THE MAGIC)
+  const apps = displaySettings?.visible_tiles
+    ? allApps.filter((app) => displaySettings.visible_tiles[app.page])
+    : allApps;
+
   const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const date = now.toLocaleDateString(undefined, {
     weekday: "long",
@@ -123,7 +138,6 @@ function AppContent() {
     day: "numeric",
   });
 
-  // LOADING FIX
   if (loadingUser) {
     return <div style={{ padding: 20 }}>Loading...</div>;
   }
@@ -166,7 +180,6 @@ function AppContent() {
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
-          {/* NIGHT MODE */}
           <div
             onClick={() => setNightMode(!nightMode)}
             style={{
@@ -179,7 +192,6 @@ function AppContent() {
             <Moon size={18} />
           </div>
 
-          {/* SETTINGS */}
           <div
             onClick={() =>
               setPage((prev) =>
@@ -207,8 +219,6 @@ function AppContent() {
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
         {page === "settings" && <SettingsPage />}
-
-        {/* ✅ NEW PAGES */}
         {page === "family" && <FamilyPage />}
         {page === "homeControls" && <HomeControlsPage />}
       </div>
