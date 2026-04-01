@@ -8,30 +8,49 @@ export default function LoadingPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      // 🔐 Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        console.log("🔄 Checking user...");
 
-      // ❌ Not logged in → go to login
-      if (!user) {
+        // 🔐 Get current user
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          console.log("❌ No user → redirect to login");
+          navigate("/");
+          return;
+        }
+
+        console.log("✅ User found:", user.id);
+
+        // 🏠 Check household membership
+        const { data: members, error } = await supabase
+          .from("household_members")
+          .select("*")
+          .eq("user_id", user.id);
+
+        console.log("📦 Members result:", members, error);
+
+        if (error) {
+          console.error("❌ Membership query error:", error);
+          navigate("/onboarding");
+          return;
+        }
+
+        // 🔥 KEY LOGIC
+        if (!members || members.length === 0) {
+          console.log("➡️ No household → onboarding");
+          navigate("/onboarding");
+        } else {
+          console.log("➡️ Has household → app");
+          navigate("/app");
+        }
+
+      } catch (err) {
+        console.error("💥 Loading crash:", err);
         navigate("/");
-        return;
-      }
-
-      // 🏠 Check if user has a household
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // 👉 No household → onboarding
-      if (!member) {
-        navigate("/onboarding");
-      } else {
-        // 👉 Has household → main app
-        navigate("/app");
       }
     };
 
@@ -70,8 +89,14 @@ export default function LoadingPage() {
         Checking for your Oikos...
       </div>
 
-      {/* SIMPLE LOADING DOTS */}
-      <div style={{ marginTop: "12px", color: "#999" }}>
+      {/* SUBTEXT */}
+      <div
+        style={{
+          marginTop: "10px",
+          fontSize: "14px",
+          color: "#888",
+        }}
+      >
         Please wait...
       </div>
     </div>
