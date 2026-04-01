@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -21,6 +21,47 @@ const PRIMARY = "#2f6ea6";
 export default function SettingsPage() {
   const [section, setSection] = useState("household");
 
+  const [networkInfo, setNetworkInfo] = useState({
+    ip: "Loading...",
+    userAgent: navigator.userAgent,
+    online: navigator.onLine,
+    connection: navigator.connection?.effectiveType || "Unknown",
+  });
+
+  // 🌐 GET LOCAL IP (best effort)
+  const getLocalIP = async () => {
+    return new Promise((resolve) => {
+      try {
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        pc.createDataChannel("");
+        pc.createOffer().then((offer) => pc.setLocalDescription(offer));
+
+        pc.onicecandidate = (ice) => {
+          if (!ice || !ice.candidate) return;
+
+          const ipMatch = ice.candidate.candidate.match(
+            /([0-9]{1,3}(\.[0-9]{1,3}){3})/
+          );
+
+          if (ipMatch) {
+            resolve(ipMatch[1]);
+            pc.close();
+          }
+        };
+
+        setTimeout(() => resolve("Unavailable"), 1000);
+      } catch {
+        resolve("Unavailable");
+      }
+    });
+  };
+
+  useEffect(() => {
+    getLocalIP().then((ip) => {
+      setNetworkInfo((prev) => ({ ...prev, ip }));
+    });
+  }, []);
+
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
@@ -39,6 +80,7 @@ export default function SettingsPage() {
 
   // 🔁 RIGHT PANEL CONTENT
   const renderContent = () => {
+
     if (section === "chores") {
       return (
         <div>
@@ -46,10 +88,38 @@ export default function SettingsPage() {
           <div style={styles.subGrid}>
             {choreMenu.map((item, i) => (
               <div key={i} style={styles.subCard}>
-                {item.icon}
+                <div style={{ marginBottom: "10px" }}>{item.icon}</div>
                 <div>{item.name}</div>
               </div>
             ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (section === "security") {
+      return (
+        <div>
+          <h2>Security & Network</h2>
+
+          <div style={styles.cardBlock}>
+            <h3>Network</h3>
+
+            <div style={styles.infoRow}>
+              <strong>Local IP:</strong> {networkInfo.ip}
+            </div>
+
+            <div style={styles.infoRow}>
+              <strong>Status:</strong> {networkInfo.online ? "Online" : "Offline"}
+            </div>
+
+            <div style={styles.infoRow}>
+              <strong>Connection:</strong> {networkInfo.connection}
+            </div>
+
+            <div style={styles.infoRow}>
+              <strong>Device:</strong> {networkInfo.userAgent}
+            </div>
           </div>
         </div>
       );
@@ -60,6 +130,7 @@ export default function SettingsPage() {
         <h2 style={{ marginBottom: "20px" }}>
           {section.charAt(0).toUpperCase() + section.slice(1)} Settings
         </h2>
+
         <div style={styles.placeholder}>
           Settings content goes here
         </div>
@@ -70,7 +141,7 @@ export default function SettingsPage() {
   return (
     <div style={styles.container}>
 
-      {/* 🔵 LEFT SIDEBAR */}
+      {/* 🔵 SIDEBAR */}
       <div style={styles.sidebar}>
 
         {/* 🏷️ BRAND */}
@@ -100,7 +171,7 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* ⚙️ RIGHT CONTENT */}
+      {/* ⚙️ CONTENT */}
       <div style={styles.content}>
         {renderContent()}
       </div>
@@ -112,7 +183,7 @@ export default function SettingsPage() {
 const styles = {
   container: {
     display: "flex",
-    height: "calc(100vh - 140px)", // leaves room for header + dock
+    height: "calc(100vh - 140px)",
     background: "#f8fafc",
     borderRadius: "20px",
     overflow: "hidden",
@@ -135,7 +206,6 @@ const styles = {
 
   brand: {
     width: "100%",
-    objectFit: "contain",
   },
 
   menuItem: {
@@ -164,6 +234,7 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "15px",
+    marginTop: "15px",
   },
 
   subCard: {
@@ -171,5 +242,18 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     textAlign: "center",
+    cursor: "pointer",
+  },
+
+  cardBlock: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "15px",
+  },
+
+  infoRow: {
+    marginBottom: "10px",
+    fontSize: "14px",
   },
 };
