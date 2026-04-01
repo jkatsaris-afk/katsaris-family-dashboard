@@ -1,59 +1,59 @@
-export default function SettingsPage({ visibleTiles, setVisibleTiles }) {
+if (section === "display") {
+  return (
+    <div>
+      <h2>Display Settings</h2>
 
-  const toggleTile = (tile) => {
-    setVisibleTiles((prev) =>
-      prev.includes(tile)
-        ? prev.filter((t) => t !== tile)
-        : [...prev, tile]
-    );
-  };
+      {/* 🖼️ HOME SCREEN IMAGE */}
+      <div style={styles.cardBlock}>
+        <h3>Home Screen Image</h3>
 
-  const renderContent = () => {
-
-    if (section === "display") {
-      return (
-        <div>
-          <h2>Display Settings</h2>
-
-          {/* IMAGE */}
-          <div style={styles.cardBlock}>
-            <h3>Home Screen Image</h3>
-            <input type="file" />
-          </div>
-
-          {/* AUTO NIGHT */}
-          <div style={styles.cardBlock}>
-            <h3>Auto Night Mode</h3>
-            <input type="checkbox" />
-          </div>
-
-          {/* TILE CONTROL */}
-          <div style={styles.cardBlock}>
-            <h3>Show Tiles</h3>
-
-            {[
-              "home",
-              "calendar",
-              "chores",
-              "weather",
-              "lists",
-              "family",
-              "homeControls",
-            ].map((tile) => (
-              <div key={tile} style={styles.row}>
-                <input
-                  type="checkbox"
-                  checked={visibleTiles.includes(tile)}
-                  onChange={() => toggleTile(tile)}
-                />
-                <span>{tile}</span>
-              </div>
-            ))}
-          </div>
+        <div style={styles.placeholderRow}>
+          <div>Upload background image</div>
+          <button style={styles.placeholderBtn}>Choose File</button>
         </div>
-      );
-    }
 
-    return <div>Select a setting</div>;
-  };
+        <div style={styles.subText}>
+          Set a custom background for your home screen
+        </div>
+      </div>
+
+      {/* 🌙 AUTO NIGHT MODE */}
+      <div style={styles.cardBlock}>
+        <h3>Auto Night Mode</h3>
+
+        <div style={styles.placeholderRow}>
+          <div>Automatically enable night mode</div>
+          <div style={styles.toggleFake} />
+        </div>
+
+        <div style={styles.subText}>
+          Dim the screen and show clock at night
+        </div>
+      </div>
+
+      {/* 🧱 SHOW TILES */}
+      <div style={styles.cardBlock}>
+        <h3>Show Tiles</h3>
+
+        {[
+          "Home",
+          "Calendar",
+          "Chores",
+          "Weather",
+          "Lists",
+          "Family",
+          "Home Controls",
+        ].map((tile) => (
+          <div key={tile} style={styles.placeholderRow}>
+            <div>{tile}</div>
+            <div style={styles.toggleFake} />
+          </div>
+        ))}
+
+        <div style={styles.subText}>
+          Control which tiles appear on the bottom dock
+        </div>
+      </div>
+    </div>
+  );
 }
