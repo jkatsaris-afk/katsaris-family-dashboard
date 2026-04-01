@@ -47,17 +47,17 @@ export default function App() {
           alignItems: "center",
         }}
       >
-        {/* 🏷️ BRAND LOGO */}
+        {/* 🏷️ BRAND */}
         <img
           src={brand}
           alt="Oikos Display"
           style={{
-            height: "40px",
+            height: "38px",
             objectFit: "contain",
           }}
         />
 
-        {/* ⚙️ SETTINGS GEAR */}
+        {/* ⚙️ SETTINGS */}
         <div
           onClick={() => setPage("settings")}
           style={{
@@ -75,7 +75,7 @@ export default function App() {
       {/* 🔥 PAGE CONTENT */}
       <div
         style={{
-          padding: "10px 20px 120px",
+          padding: "10px 20px 130px", // space for dock
         }}
       >
         {page === "home" && <HomePage />}
@@ -103,69 +103,80 @@ export default function App() {
         )}
       </div>
 
-      {/* 🔥 BOTTOM TILE BAR */}
+      {/* 🔥 FLOATING BOTTOM DOCK */}
       <div
         style={{
           position: "fixed",
           bottom: 0,
           left: 0,
           width: "100%",
-          background: "#eef1f5",
-          padding: "10px 20px 15px",
-          boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+          display: "flex",
+          justifyContent: "center",
           zIndex: 1000,
         }}
       >
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-            gap: "12px",
+            width: "95%",
+            maxWidth: "1400px",
+            background: "#eef1f5",
+            padding: "12px",
+            marginBottom: "10px",
+            borderRadius: "20px",
+            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
           }}
         >
-          {apps.map((app, i) => {
-            const isActive = page === app.page;
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+              gap: "12px",
+            }}
+          >
+            {apps.map((app, i) => {
+              const isActive = page === app.page;
 
-            return (
-              <motion.div
-                key={i}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setPage(app.page)}
-                style={{
-                  background: app.color,
-                  color: "white",
-                  padding: "clamp(10px, 1.5vw, 18px)",
-                  borderRadius: "14px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  opacity: isActive ? 1 : 0.9,
-                  transform: isActive ? "scale(1.05)" : "scale(1)",
-                  boxShadow: isActive
-                    ? "0 8px 16px rgba(0,0,0,0.25)"
-                    : "0 4px 10px rgba(0,0,0,0.1)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <div
+              return (
+                <motion.div
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setPage(app.page)}
                   style={{
-                    fontSize: "clamp(18px, 2vw, 26px)",
-                    marginBottom: "6px",
+                    background: app.color,
+                    color: "white",
+                    padding: "clamp(10px, 1.5vw, 18px)",
+                    borderRadius: "14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    opacity: isActive ? 1 : 0.9,
+                    transform: isActive ? "scale(1.05)" : "scale(1)",
+                    boxShadow: isActive
+                      ? "0 8px 16px rgba(0,0,0,0.25)"
+                      : "0 4px 10px rgba(0,0,0,0.1)",
+                    transition: "all 0.2s ease",
                   }}
                 >
-                  {app.icon}
-                </div>
+                  <div
+                    style={{
+                      fontSize: "clamp(18px, 2vw, 26px)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    {app.icon}
+                  </div>
 
-                <div
-                  style={{
-                    fontWeight: "600",
-                    fontSize: "clamp(9px, 1vw, 12px)",
-                  }}
-                >
-                  {app.name}
-                </div>
-              </motion.div>
-            );
-          })}
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      fontSize: "clamp(9px, 1vw, 12px)",
+                    }}
+                  >
+                    {app.name}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
