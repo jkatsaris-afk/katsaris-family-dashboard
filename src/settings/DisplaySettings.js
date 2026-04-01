@@ -16,7 +16,6 @@ const defaultTiles = {
 export default function DisplaySettings() {
   const [settings, setSettings] = useState(null);
 
-  // 🔥 LOAD USER → HOUSEHOLD → SETTINGS
   useEffect(() => {
     const load = async () => {
       try {
@@ -34,7 +33,7 @@ export default function DisplaySettings() {
 
         if (!member) return;
 
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("settings")
           .select("*")
           .eq("household_id", member.household_id)
@@ -66,7 +65,6 @@ export default function DisplaySettings() {
     load();
   }, []);
 
-  // 🔥 UPDATE SETTINGS
   const updateSettings = async (updates) => {
     if (!settings) return;
 
@@ -80,7 +78,6 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 FILE UPLOAD (NEW)
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file || !settings) return;
@@ -109,10 +106,7 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 TOGGLE TILE
   const toggleTile = (key) => {
-    if (!settings?.visible_tiles) return;
-
     const updated = {
       ...settings.visible_tiles,
       [key]: !settings.visible_tiles[key],
@@ -127,49 +121,57 @@ export default function DisplaySettings() {
     <div>
       <h2>Display Settings</h2>
 
-      {/* 🖼️ BACKGROUND */}
+      {/* 🎨 BACKGROUND STYLE */}
       <div style={styles.cardBlock}>
-        <h3>Background Image</h3>
+        <h3>Background (Select one style)</h3>
+
+        {/* BACKGROUND */}
+        <div style={styles.uploadRow}>
+          <div>
+            <div style={styles.label}>Background Image</div>
+            <div style={styles.sub}>
+              Full screen background for your dashboard
+            </div>
+          </div>
+
+          <label style={styles.uploadBtn}>
+            Upload
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleUpload(e, "background")}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
 
         {settings.background_url && (
-          <img
-            src={settings.background_url}
-            alt="Background"
-            style={{
-              width: "100%",
-              borderRadius: "10px",
-              marginBottom: "10px",
-            }}
-          />
+          <img src={settings.background_url} style={styles.previewLarge} />
         )}
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleUpload(e, "background")}
-        />
-      </div>
+        {/* LOGO */}
+        <div style={styles.uploadRow}>
+          <div>
+            <div style={styles.label}>Center Screen Logo</div>
+            <div style={styles.sub}>
+              Displays centered on the home screen
+            </div>
+          </div>
 
-      {/* 🏠 LOGO */}
-      <div style={styles.cardBlock}>
-        <h3>Logo</h3>
+          <label style={styles.uploadBtn}>
+            Upload
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleUpload(e, "logo")}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
 
         {settings.logo_url && (
-          <img
-            src={settings.logo_url}
-            alt="Logo"
-            style={{
-              height: "60px",
-              marginBottom: "10px",
-            }}
-          />
+          <img src={settings.logo_url} style={styles.previewLogo} />
         )}
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleUpload(e, "logo")}
-        />
       </div>
 
       {/* 🌙 AUTO NIGHT MODE */}
@@ -206,17 +208,9 @@ export default function DisplaySettings() {
       <div style={styles.cardBlock}>
         <h3>Show Tiles</h3>
 
-        {[
-          ["home", "Home"],
-          ["calendar", "Calendar"],
-          ["chores", "Chores"],
-          ["weather", "Weather"],
-          ["lists", "Lists"],
-          ["family", "Family"],
-          ["homeControls", "Home Controls"],
-        ].map(([key, label]) => (
+        {Object.entries(defaultTiles).map(([key]) => (
           <div key={key} style={styles.row}>
-            <span>{label}</span>
+            <span>{key}</span>
 
             <div
               onClick={() => toggleTile(key)}
@@ -248,12 +242,52 @@ const styles = {
     borderRadius: "12px",
     marginTop: "15px",
   },
+
   row: {
     display: "flex",
     justifyContent: "space-between",
     marginTop: "10px",
     alignItems: "center",
   },
+
+  uploadRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "15px",
+  },
+
+  label: {
+    fontWeight: "600",
+    fontSize: "15px",
+  },
+
+  sub: {
+    fontSize: "13px",
+    color: "#6b7280",
+  },
+
+  uploadBtn: {
+    background: PRIMARY,
+    color: "#fff",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600",
+  },
+
+  previewLarge: {
+    width: "100%",
+    borderRadius: "10px",
+    marginTop: "10px",
+  },
+
+  previewLogo: {
+    height: "60px",
+    marginTop: "10px",
+  },
+
   toggle: {
     width: "40px",
     height: "20px",
@@ -261,6 +295,7 @@ const styles = {
     position: "relative",
     cursor: "pointer",
   },
+
   knob: {
     width: "16px",
     height: "16px",
