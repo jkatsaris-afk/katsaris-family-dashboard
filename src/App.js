@@ -121,8 +121,8 @@ function AppContent() {
 
   // 🔒 LOGIN GUARD
   if (!user) {
-    return <LoginPage />;
-  }
+  return <LoginPage />;
+}
 
   return (
     <div
