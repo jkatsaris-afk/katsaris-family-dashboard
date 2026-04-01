@@ -72,7 +72,7 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 SETTINGS LOADER (CLEAN)
+  // SETTINGS LOADER
   useEffect(() => {
     if (!user) return;
 
@@ -101,7 +101,7 @@ function AppContent() {
     loadSettings();
   }, [user]);
 
-  // 🔥 REALTIME SETTINGS (CORRECT PLACEMENT)
+  // REALTIME SETTINGS
   useEffect(() => {
     if (!user || !settings) return;
 
@@ -115,8 +115,6 @@ function AppContent() {
           table: "settings",
         },
         (payload) => {
-          console.log("🔥 SETTINGS CHANGED:", payload);
-
           if (payload.new?.id === settings.id) {
             setDisplaySettings(payload.new);
           }
@@ -143,7 +141,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // ALL APPS
+  // APPS
   const allApps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -154,27 +152,44 @@ function AppContent() {
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ];
 
-  // 🔥 FILTERED APPS
   const apps = displaySettings?.visible_tiles
     ? allApps.filter((app) => displaySettings.visible_tiles[app.page])
     : allApps;
 
-  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const date = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  if (loadingUser) {
-    return <div style={{ padding: 20 }}>Loading...</div>;
-  }
-
+  if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
   return (
-    <div style={{ height: "100vh", overflow: "hidden", background: "#eef1f5", display: "flex", flexDirection: "column" }}>
-      
+    <div
+      style={{
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+
+        // 🔥 BACKGROUND IMAGE
+        background: displaySettings?.background_url
+          ? `url(${displaySettings.background_url}) center/cover no-repeat`
+          : "#eef1f5",
+      }}
+    >
+
+      {/* 🌫️ BACKGROUND OVERLAY */}
+      {displaySettings?.background_url && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: nightMode
+              ? "rgba(0,0,0,0.55)"
+              : "rgba(255,255,255,0.35)",
+            backdropFilter: "blur(6px)", // 🔥 adds nice blur
+            zIndex: 0,
+          }}
+        />
+      )}
+
       {/* NIGHT MODE */}
       {nightMode && (
         <div
@@ -191,13 +206,17 @@ function AppContent() {
             zIndex: 9999
           }}
         >
-          <div style={{ fontSize: "120px", fontWeight: "700" }}>{time}</div>
-          <div style={{ fontSize: "28px", opacity: 0.85 }}>{date}</div>
+          <div style={{ fontSize: "120px", fontWeight: "700" }}>
+            {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </div>
+          <div style={{ fontSize: "28px", opacity: 0.85 }}>
+            {now.toLocaleDateString()}
+          </div>
         </div>
       )}
 
       {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1 }}>
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
@@ -221,7 +240,7 @@ function AppContent() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "10px 20px 120px" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "10px 20px 120px", zIndex: 1 }}>
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
