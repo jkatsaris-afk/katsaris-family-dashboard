@@ -1,24 +1,4 @@
-useEffect(() => {
-  const checkUser = async () => {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    const { data: member } = await supabase
-      .from("household_members")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!member) {
-      navigate("/onboarding");
-    } else {
-      navigate("/home");import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "./supabaseClient";
@@ -30,7 +10,7 @@ export default function LoadingPage() {
   useEffect(() => {
     const checkUser = async () => {
       const {
-        data: { user }
+        data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
@@ -57,7 +37,6 @@ export default function LoadingPage() {
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center bg-black text-white">
       
-      {/* LOGO */}
       <motion.img
         src={logo}
         alt="Oikos Display"
@@ -67,7 +46,6 @@ export default function LoadingPage() {
         transition={{ duration: 0.6 }}
       />
 
-      {/* LOADING TEXT */}
       <motion.div
         className="text-lg tracking-wide text-gray-300"
         initial={{ opacity: 0 }}
@@ -77,7 +55,6 @@ export default function LoadingPage() {
         Checking for your Oikos...
       </motion.div>
 
-      {/* DOT ANIMATION */}
       <div className="flex gap-2 mt-4">
         {[0, 1, 2].map((i) => (
           <motion.div
@@ -85,12 +62,12 @@ export default function LoadingPage() {
             className="w-2 h-2 bg-white rounded-full"
             animate={{
               opacity: [0.2, 1, 0.2],
-              scale: [0.8, 1.2, 0.8]
+              scale: [0.8, 1.2, 0.8],
             }}
             transition={{
               duration: 1,
               repeat: Infinity,
-              delay: i * 0.2
+              delay: i * 0.2,
             }}
           />
         ))}
@@ -98,8 +75,3 @@ export default function LoadingPage() {
     </div>
   );
 }
-    }
-  };
-
-  checkUser();
-}, []);
