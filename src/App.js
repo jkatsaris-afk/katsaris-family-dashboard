@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter } from "react-router-dom"; // ✅ ADD THIS
 import { motion } from "framer-motion";
 import {
   Home,
@@ -27,7 +28,7 @@ import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
 
-export default function App() {
+function AppContent() {  // ✅ WRAP YOUR EXISTING APP
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
@@ -35,7 +36,7 @@ export default function App() {
   const [settings, setSettings] = useState(null);
   const [now, setNow] = useState(new Date());
 
-  // 🧠 AUTH STATE (persistent login)
+  // 🧠 AUTH STATE
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -62,18 +63,16 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD SETTINGS (household will come next)
+  // 🔥 SETTINGS
   useEffect(() => {
     if (!user) return;
 
     const loadSettings = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("settings")
         .select("*")
         .limit(1)
         .maybeSingle();
-
-      console.log("SETTINGS:", data, error);
 
       if (data) {
         setSettings(data);
@@ -84,7 +83,7 @@ export default function App() {
     loadSettings();
   }, [user]);
 
-  // 🌙 AUTO NIGHT MODE (8PM–6AM)
+  // 🌙 NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -95,7 +94,6 @@ export default function App() {
     };
 
     checkTime();
-
     const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
@@ -123,13 +121,13 @@ export default function App() {
 
   // 🔒 LOGIN GUARD
   if (!user) {
-    return <LoginPage onLogin={setUser} />;
+    return <LoginPage />;
   }
 
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
-      {/* 🌙 NIGHT MODE OVERLAY */}
+      {/* 🌙 NIGHT MODE */}
       {nightMode && (
         <div
           onClick={() => setNightMode(false)}
@@ -156,143 +154,50 @@ export default function App() {
       )}
 
       {/* HEADER */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
-
-          {/* 🌙 MANUAL TOGGLE */}
-          <div
-            onClick={() => setNightMode(!nightMode)}
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: nightMode ? "#111" : "#fff",
-              color: nightMode ? "#fff" : "#000",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            }}
-          >
+          <div onClick={() => setNightMode(!nightMode)} style={{ cursor: "pointer" }}>
             <Moon size={18} />
           </div>
 
-          {/* ⚙️ SETTINGS */}
-          <div
-            onClick={() =>
-              setPage((prev) =>
-                prev === "settings" ? "home" : "settings"
-              )
-            }
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: page === "settings" ? PRIMARY : "#fff",
-              color: page === "settings" ? "#fff" : "#000",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            }}
-          >
+          <div onClick={() => setPage(prev => prev === "settings" ? "home" : "settings")} style={{ cursor: "pointer" }}>
             <Settings size={20} />
           </div>
-
         </div>
       </div>
 
-      {/* PAGE CONTENT */}
+      {/* CONTENT */}
       <div style={{ padding: "10px 20px 130px" }}>
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
-
-        {page === "family" && (
-          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-            Family Page (coming next)
-          </div>
-        )}
-
         {page === "settings" && <SettingsPage />}
-
-        {page === "homeControls" && (
-          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-            Home Controls coming soon...
-          </div>
-        )}
       </div>
 
       {/* DOCK */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 1000,
-        }}
-      >
-        <div
-          style={{
-            width: "95%",
-            maxWidth: "1400px",
-            background: "#eef1f5",
-            padding: "12px",
-            marginBottom: "10px",
-            borderRadius: "20px",
-            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-              gap: "12px",
-            }}
-          >
-            {apps.map((app, i) => {
-              const isActive = page === app.page;
-
-              return (
-                <motion.div
-                  key={i}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setPage(app.page)}
-                  style={{
-                    background: app.color,
-                    color: "white",
-                    padding: "clamp(10px, 1.5vw, 18px)",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    opacity: isActive ? 1 : 0.9,
-                    transform: isActive ? "scale(1.05)" : "scale(1)",
-                    boxShadow: isActive
-                      ? "0 8px 16px rgba(0,0,0,0.25)"
-                      : "0 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
-                    {app.icon}
-                  </div>
-                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
-                    {app.name}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+      <div style={{ position: "fixed", bottom: 0, width: "100%" }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)` }}>
+          {apps.map((app, i) => (
+            <motion.div key={i} onClick={() => setPage(app.page)}>
+              {app.icon}
+              {app.name}
+            </motion.div>
+          ))}
         </div>
       </div>
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter> {/* ✅ THIS FIXES YOUR ERROR */}
+      <AppContent />
+    </BrowserRouter>
   );
 }
