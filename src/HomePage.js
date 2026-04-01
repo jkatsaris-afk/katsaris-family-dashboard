@@ -123,75 +123,80 @@ export default function HomePage() {
         position: "relative",
         minHeight: "70vh",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
+        alignItems: "flex-start",
         paddingTop: "80px",
       }}
     >
 
-      {/* 🕒 TIME */}
+      {/* 🔥 GLASS TILE */}
       <div
         style={{
-          fontSize: "110px",
-          fontWeight: "700",
-          color: "#111827",
-          lineHeight: "1",
-        }}
-      >
-        {formattedTime}
-      </div>
-
-      {/* ✅ LOGO UNDER CLOCK */}
-      <img
-        src={logo}
-        alt="Oikos Brand"
-        style={{
-          width: "200px",
-          marginTop: "15px",
-          marginBottom: "20px",
-          zIndex: 1,
-          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
-        }}
-      />
-
-      {/* 📅 DATE */}
-      <div
-        style={{
-          fontSize: "24px",
-          color: "#6b7280",
-          marginBottom: "25px",
-        }}
-      >
-        {formattedDate}
-      </div>
-
-      {/* 🌤️ WEATHER */}
-      <div
-        style={{
+          padding: "40px 60px",
+          borderRadius: "24px",
+          background: "rgba(255,255,255,0.15)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
           textAlign: "center",
-          color: "#374151",
         }}
       >
-        <div style={{ fontSize: "28px", fontWeight: "600" }}>
-          {weather.temp}° • {weather.condition}
-        </div>
 
-        <div style={{ fontSize: "16px", color: "#6b7280" }}>
-          Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
-        </div>
-
+        {/* 🕒 TIME */}
         <div
           style={{
+            fontSize: "110px",
+            fontWeight: "700",
+            color: "#111827",
+            lineHeight: "1",
+          }}
+        >
+          {formattedTime}
+        </div>
+
+        {/* LOGO */}
+        <img
+          src={logo}
+          alt="Oikos Brand"
+          style={{
+            width: "200px",
+            marginTop: "15px",
+            marginBottom: "20px",
+            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
+          }}
+        />
+
+        {/* 📅 DATE */}
+        <div
+          style={{
+            fontSize: "24px",
+            color: "#374151",
+            marginBottom: "20px",
+          }}
+        >
+          {formattedDate}
+        </div>
+
+        {/* 🌤️ WEATHER */}
+        <div style={{ color: "#374151" }}>
+          <div style={{ fontSize: "28px", fontWeight: "600" }}>
+            {weather.temp}° • {weather.condition}
+          </div>
+
+          <div style={{ fontSize: "16px", color: "#6b7280" }}>
+            Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+          </div>
+
+          <div style={{
             marginTop: "12px",
             fontSize: "15px",
             color: "#6b7280",
-          }}
-        >
-          Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+          }}>
+            Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+          </div>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }
