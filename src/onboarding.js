@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "./services/supabaseClient";
+import { supabase } from "./supabaseClient";
 import logo from "./assets/oikos-brand.png";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
-
   const [householdName, setHouseholdName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -13,63 +12,84 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+      if (!user) {
+        navigate("/login");
+        return;
+      }
 
-    const { data: household, error } = await supabase
-      .from("households")
-      .insert({
-        name: householdName,
-        created_by: user.id,
-      })
-      .select()
-      .maybeSingle();
+      const { data: household, error } = await supabase
+        .from("households")
+        .insert({
+          name: householdName,
+          created_by: user.id,
+        })
+        .select()
+        .maybeSingle();
 
-    if (error) {
-      alert(error.message);
+      if (error) throw error;
+
+      const { error: memberError } = await supabase
+        .from("household_members")
+        .insert({
+          user_id: user.id,
+          household_id: household.id,
+          role: "admin",
+        });
+
+      if (memberError) throw memberError;
+
+      navigate("/home");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    await supabase.from("household_members").insert({
-      user_id: user.id,
-      household_id: household.id,
-      role: "admin",
-    });
-
-    navigate("/home");
   };
 
   return (
-    <div className="h-screen bg-black flex items-center justify-center text-white">
-      <div className="bg-neutral-900 p-8 rounded-2xl w-[420px]">
-        
+    <div className="h-screen w-full bg-black flex items-center justify-center text-white">
+      <div className="bg-neutral-900 p-8 rounded-2xl shadow-xl w-[420px]">
+
         <div className="flex justify-center mb-6">
-          <img src={logo} className="w-52" alt="logo" />
+          <img src={logo} alt="Oikos Display" className="w-52" />
         </div>
 
-        <h2 className="text-center text-xl mb-4">
+        <h2 className="text-xl text-center mb-2">
           Create Your Household
         </h2>
 
+        <p className="text-gray-400 text-center mb-6 text-sm">
+          Let’s set up your Oikos
+        </p>
+
         <form onSubmit={handleCreateHousehold} className="flex flex-col gap-4">
           <input
+            type="text"
+            placeholder="Household Name"
             value={householdName}
             onChange={(e) => setHouseholdName(e.target.value)}
-            placeholder="Household Name"
-            className="p-3 bg-black border border-gray-700 rounded-lg"
+            className="bg-black border border-gray-700 p-3 rounded-lg text-white"
+            required
           />
 
-          <button className="bg-blue-600 p-3 rounded-lg">
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 transition p-3 rounded-lg font-semibold"
+          >
             {loading ? "Creating..." : "Create Household"}
           </button>
         </form>
+
+        <p className="text-gray-500 text-xs text-center mt-6">
+          You can add family members next
+        </p>
       </div>
     </div>
   );
