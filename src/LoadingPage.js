@@ -7,9 +7,9 @@ export default function LoadingPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkUser = async () => {
+    const run = async () => {
       try {
-        console.log("🔄 Checking user...");
+        console.log("🔄 LOADING PAGE START");
 
         // 🔐 Get current user
         const {
@@ -17,29 +17,29 @@ export default function LoadingPage() {
           error: userError,
         } = await supabase.auth.getUser();
 
+        console.log("👤 USER:", user, userError);
+
         if (userError || !user) {
-          console.log("❌ No user → redirect to login");
+          console.log("❌ No user → go to login");
           navigate("/");
           return;
         }
 
-        console.log("✅ User found:", user.id);
-
-        // 🏠 Check household membership
+        // 🏠 Get memberships
         const { data: members, error } = await supabase
           .from("household_members")
           .select("*")
           .eq("user_id", user.id);
 
-        console.log("📦 Members result:", members, error);
+        console.log("📦 MEMBERS:", members, error);
 
         if (error) {
-          console.error("❌ Membership query error:", error);
+          console.log("❌ Membership error → onboarding");
           navigate("/onboarding");
           return;
         }
 
-        // 🔥 KEY LOGIC
+        // 🔥 FINAL DECISION
         if (!members || members.length === 0) {
           console.log("➡️ No household → onboarding");
           navigate("/onboarding");
@@ -49,12 +49,12 @@ export default function LoadingPage() {
         }
 
       } catch (err) {
-        console.error("💥 Loading crash:", err);
+        console.error("💥 CRASH:", err);
         navigate("/");
       }
     };
 
-    checkUser();
+    run();
   }, [navigate]);
 
   return (
@@ -72,31 +72,16 @@ export default function LoadingPage() {
       <img
         src={logo}
         alt="Oikos Display"
-        style={{
-          width: "200px",
-          marginBottom: "20px",
-        }}
+        style={{ width: "200px", marginBottom: "20px" }}
       />
 
       {/* TEXT */}
-      <div
-        style={{
-          fontSize: "18px",
-          color: "#444",
-          fontWeight: "500",
-        }}
-      >
+      <div style={{ fontSize: "18px", color: "#444" }}>
         Checking for your Oikos...
       </div>
 
       {/* SUBTEXT */}
-      <div
-        style={{
-          marginTop: "10px",
-          fontSize: "14px",
-          color: "#888",
-        }}
-      >
+      <div style={{ marginTop: "10px", fontSize: "14px", color: "#888" }}>
         Please wait...
       </div>
     </div>
