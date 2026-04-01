@@ -12,7 +12,6 @@ import {
   Moon
 } from "lucide-react";
 
-// ✅ IMPORT PAGES
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
@@ -20,7 +19,6 @@ import ShoppingPage from "./ShoppingPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
-// ✅ IMPORT BRAND
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
@@ -28,13 +26,17 @@ const PRIMARY = "#2f6ea6";
 export default function App() {
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
-  const [now, setNow] = useState(new Date());
 
-  // 🕒 CLOCK
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // 🔥 TILE CONTROL STATE
+  const [visibleTiles, setVisibleTiles] = useState([
+    "home",
+    "calendar",
+    "chores",
+    "weather",
+    "lists",
+    "family",
+    "homeControls",
+  ]);
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -46,82 +48,18 @@ export default function App() {
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ];
 
-  const time = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const date = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
-      {/* 🌙 NIGHT MODE OVERLAY */}
-      {nightMode && (
-        <div
-          onClick={() => setNightMode(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(20, 20, 20, 0.75)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-            color: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-          }}
-        >
-          <div style={{ fontSize: "120px", fontWeight: "700" }}>
-            {time}
-          </div>
-          <div style={{ fontSize: "28px", opacity: 0.85 }}>
-            {date}
-          </div>
-        </div>
-      )}
-
       {/* HEADER */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {/* 🏷️ BRAND */}
-        <img
-          src={brand}
-          alt="Oikos Display"
-          style={{ height: "38px" }}
-        />
+      <div style={styles.header}>
+        <img src={brand} style={{ height: "38px" }} />
 
-        {/* RIGHT CONTROLS */}
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-
-          {/* 🌙 NIGHT MODE */}
-          <div
-            onClick={() => setNightMode(!nightMode)}
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: nightMode ? "#111" : "#fff",
-              color: nightMode ? "#fff" : "#000",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            }}
-          >
+        <div style={styles.headerRight}>
+          <div onClick={() => setNightMode(!nightMode)} style={styles.iconBtn}>
             <Moon size={18} />
           </div>
 
-          {/* ⚙️ SETTINGS (TOGGLE BEHAVIOR) */}
           <div
             onClick={() =>
               setPage((prev) =>
@@ -129,102 +67,57 @@ export default function App() {
               )
             }
             style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
+              ...styles.iconBtn,
               background: page === "settings" ? PRIMARY : "#fff",
               color: page === "settings" ? "#fff" : "#000",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             }}
           >
             <Settings size={20} />
           </div>
-
         </div>
       </div>
 
-      {/* 🔥 PAGE CONTENT */}
+      {/* CONTENT */}
       <div style={{ padding: "10px 20px 130px" }}>
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
-        {page === "family" && (
-          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-            Family Page (coming next)
-          </div>
-        )}
-        {page === "settings" && <SettingsPage />}
-
-        {page === "homeControls" && (
-          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
-            Home Controls coming soon...
-          </div>
+        {page === "family" && <div style={styles.card}>Family Page</div>}
+        {page === "settings" && (
+          <SettingsPage
+            visibleTiles={visibleTiles}
+            setVisibleTiles={setVisibleTiles}
+          />
         )}
       </div>
 
       {/* 🔥 FLOATING DOCK */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 1000,
-        }}
-      >
-        <div
-          style={{
-            width: "95%",
-            maxWidth: "1400px",
-            background: "#eef1f5",
-            padding: "12px",
-            marginBottom: "10px",
-            borderRadius: "20px",
-            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-              gap: "12px",
-            }}
-          >
-            {apps.map((app, i) => {
-              const isActive = page === app.page;
+      <div style={styles.dockWrap}>
+        <div style={styles.dock}>
+          <div style={styles.grid}>
+            {apps
+              .filter((app) => visibleTiles.includes(app.page))
+              .map((app, i) => {
+                const isActive = page === app.page;
 
-              return (
-                <motion.div
-                  key={i}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setPage(app.page)}
-                  style={{
-                    background: app.color,
-                    color: "white",
-                    padding: "clamp(10px, 1.5vw, 18px)",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    opacity: isActive ? 1 : 0.9,
-                    transform: isActive ? "scale(1.05)" : "scale(1)",
-                    boxShadow: isActive
-                      ? "0 8px 16px rgba(0,0,0,0.25)"
-                      : "0 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
-                    {app.icon}
-                  </div>
-                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
-                    {app.name}
-                  </div>
-                </motion.div>
-              );
-            })}
+                return (
+                  <motion.div
+                    key={i}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setPage(app.page)}
+                    style={{
+                      ...styles.tile,
+                      background: app.color,
+                      transform: isActive ? "scale(1.05)" : "scale(1)",
+                    }}
+                  >
+                    <div style={{ fontSize: "22px" }}>{app.icon}</div>
+                    <div style={{ fontSize: "12px" }}>{app.name}</div>
+                  </motion.div>
+                );
+              })}
           </div>
         </div>
       </div>
@@ -232,3 +125,54 @@ export default function App() {
     </div>
   );
 }
+
+const styles = {
+  header: {
+    padding: "15px 20px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerRight: {
+    display: "flex",
+    gap: "10px",
+  },
+  iconBtn: {
+    padding: "8px",
+    borderRadius: "10px",
+    background: "#fff",
+    cursor: "pointer",
+  },
+  dockWrap: {
+    position: "fixed",
+    bottom: 0,
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+  },
+  dock: {
+    width: "95%",
+    maxWidth: "1400px",
+    padding: "12px",
+    marginBottom: "10px",
+    borderRadius: "20px",
+    background: "#eef1f5",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(7, 1fr)",
+    gap: "12px",
+  },
+  tile: {
+    padding: "12px",
+    borderRadius: "14px",
+    color: "#fff",
+    textAlign: "center",
+    cursor: "pointer",
+  },
+  card: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+  },
+};
