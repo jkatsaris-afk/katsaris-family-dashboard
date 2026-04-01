@@ -12,10 +12,8 @@ import {
   Moon
 } from "lucide-react";
 
-// ✅ ADD THIS
 import { supabase } from "./lib/supabase";
 
-// ✅ IMPORT PAGES
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
@@ -23,7 +21,6 @@ import ShoppingPage from "./ShoppingPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
-// ✅ IMPORT BRAND
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
@@ -31,10 +28,9 @@ const PRIMARY = "#2f6ea6";
 export default function App() {
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
-  const [now, setNow] = useState(new Date());
-
-  // ✅ ADD SETTINGS STATE
+  const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
+  const [now, setNow] = useState(new Date());
 
   // 🕒 CLOCK
   useEffect(() => {
@@ -42,27 +38,46 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // ✅ LOAD SETTINGS (ADDED)
+  // 🔥 LOAD SETTINGS FROM DB
   useEffect(() => {
     const loadSettings = async () => {
       const { data, error } = await supabase
         .from("settings")
         .select("*")
         .limit(1)
-        .single();
-
-      if (!error) {
-        setSettings(data);
-        setNightMode(data.auto_night_mode); // 👈 sync night mode
-      }
+        .maybeSingle();
 
       console.log("SETTINGS:", data, error);
+
+      if (!error && data) {
+        setSettings(data);
+        setAutoNightEnabled(data.auto_night_mode);
+      }
     };
 
     loadSettings();
   }, []);
 
-  // ✅ UPDATE SETTINGS (ADDED)
+  // 🌙 AUTO NIGHT MODE SCHEDULE
+  useEffect(() => {
+    if (!autoNightEnabled) return;
+
+    const checkTime = () => {
+      const now = new Date();
+      const hour = now.getHours();
+
+      const isNight = hour >= 20 || hour < 6;
+
+      setNightMode(isNight);
+    };
+
+    checkTime();
+
+    const interval = setInterval(checkTime, 60000);
+    return () => clearInterval(interval);
+  }, [autoNightEnabled]);
+
+  // 🔥 UPDATE SETTINGS
   const updateSettings = async (updates) => {
     if (!settings) return;
 
@@ -75,13 +90,10 @@ export default function App() {
       const updated = { ...settings, ...updates };
       setSettings(updated);
 
-      // keep night mode synced
       if (updates.auto_night_mode !== undefined) {
-        setNightMode(updates.auto_night_mode);
+        setAutoNightEnabled(updates.auto_night_mode);
       }
     }
-
-    console.log("UPDATE:", updates, error);
   };
 
   const apps = [
@@ -111,7 +123,7 @@ export default function App() {
       {/* 🌙 NIGHT MODE OVERLAY */}
       {nightMode && (
         <div
-          onClick={() => setNightMode(false)}
+          onClick={() => setNightMode(false)} // 👈 manual override still works
           style={{
             position: "fixed",
             inset: 0,
@@ -147,15 +159,9 @@ export default function App() {
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
-          {/* 🌙 NIGHT MODE */}
+          {/* 🌙 MANUAL TOGGLE ONLY */}
           <div
-            onClick={() => {
-              const newMode = !nightMode;
-              setNightMode(newMode);
-
-              // ✅ SAVE TO DB
-              updateSettings({ auto_night_mode: newMode });
-            }}
+            onClick={() => setNightMode(!nightMode)}
             style={{
               cursor: "pointer",
               padding: "8px",
@@ -192,7 +198,7 @@ export default function App() {
 
       {/* PAGE CONTENT */}
       <div style={{ padding: "10px 20px 130px" }}>
-        {page === "home" && <HomePage settings={settings} />}
+        {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
@@ -204,13 +210,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ✅ UPDATED */}
-        {page === "settings" && (
-          <SettingsPage
-            settings={settings}
-            updateSettings={updateSettings}
-          />
-        )}
+        {page === "settings" && <SettingsPage />}
 
         {page === "homeControls" && (
           <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
@@ -219,7 +219,7 @@ export default function App() {
         )}
       </div>
 
-      {/* 🔥 FLOATING DOCK (UNCHANGED) */}
+      {/* DOCK (UNCHANGED) */}
       <div
         style={{
           position: "fixed",
