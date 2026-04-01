@@ -72,7 +72,7 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // SETTINGS LOADER
+  // SETTINGS LOAD
   useEffect(() => {
     if (!user) return;
 
@@ -141,7 +141,6 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // APPS
   const allApps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -168,51 +167,25 @@ function AppContent() {
         display: "flex",
         flexDirection: "column",
 
-        // 🔥 BACKGROUND IMAGE
+        // ✅ CLEAN BACKGROUND
         background: displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
       }}
     >
 
-      {/* 🌫️ BACKGROUND OVERLAY */}
+      {/* ✅ CLEAN OVERLAY (NO GHOSTING) */}
       {displaySettings?.background_url && (
         <div
           style={{
             position: "absolute",
             inset: 0,
             background: nightMode
-              ? "rgba(0,0,0,0.55)"
-              : "rgba(255,255,255,0.35)",
-            backdropFilter: "blur(6px)", // 🔥 adds nice blur
+              ? "rgba(0,0,0,0.45)"
+              : "transparent",
             zIndex: 0,
           }}
         />
-      )}
-
-      {/* NIGHT MODE */}
-      {nightMode && (
-        <div
-          onClick={() => setNightMode(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(20,20,20,0.75)",
-            color: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999
-          }}
-        >
-          <div style={{ fontSize: "120px", fontWeight: "700" }}>
-            {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </div>
-          <div style={{ fontSize: "28px", opacity: 0.85 }}>
-            {now.toLocaleDateString()}
-          </div>
-        </div>
       )}
 
       {/* HEADER */}
