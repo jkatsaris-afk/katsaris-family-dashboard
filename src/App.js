@@ -129,7 +129,7 @@ function AppContent() {
   return (
     <div style={{ height: "100vh", overflow: "hidden", background: "#eef1f5", display: "flex", flexDirection: "column" }}>
       
-      {/* NIGHT MODE */}
+      {/* NIGHT MODE OVERLAY */}
       {nightMode && (
         <div
           onClick={() => setNightMode(false)}
@@ -151,8 +151,50 @@ function AppContent() {
       )}
 
       {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
+      <div
+        style={{
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
+
+        {/* RIGHT CONTROLS */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          
+          {/* NIGHT MODE BUTTON */}
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+            }}
+          >
+            <Moon size={18} />
+          </div>
+
+          {/* SETTINGS BUTTON */}
+          <div
+            onClick={() =>
+              setPage((prev) =>
+                prev === "settings" ? "home" : "settings"
+              )
+            }
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: page === "settings" ? PRIMARY : "#fff",
+              color: page === "settings" ? "#fff" : "#000",
+            }}
+          >
+            <Settings size={20} />
+          </div>
+        </div>
       </div>
 
       {/* CONTENT */}
@@ -165,7 +207,7 @@ function AppContent() {
         {page === "settings" && <SettingsPage />}
       </div>
 
-      {/* DOCK (RESTORED) */}
+      {/* DOCK */}
       <div
         style={{
           position: "fixed",
