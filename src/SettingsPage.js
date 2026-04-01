@@ -13,7 +13,7 @@ import {
 
 import brand from "./assets/oikos-brand.png";
 
-// ✅ IMPORT ALL PAGES
+// pages
 import DisplaySettings from "./settings/DisplaySettings";
 import HouseholdSettings from "./settings/HouseholdSettings";
 import MembersSettings from "./settings/MembersSettings";
@@ -39,7 +39,6 @@ export default function SettingsPage() {
     { name: "About", icon: <Info />, key: "about" },
   ];
 
-  // ✅ ROUTING FUNCTION
   const renderContent = () => {
     switch (section) {
       case "household":
@@ -67,21 +66,15 @@ export default function SettingsPage() {
         return <AboutSettings />;
 
       default:
-        return (
-          <div>
-            <h2>Settings</h2>
-            <div style={styles.cardBlock}>Select a menu item</div>
-          </div>
-        );
+        return <div>Select a setting</div>;
     }
   };
 
   return (
     <div style={styles.container}>
 
-      {/* SIDEBAR */}
+      {/* LEFT MENU */}
       <div style={styles.sidebar}>
-
         <div>
           <div style={styles.brandBox}>
             <img src={brand} alt="logo" style={styles.brand} />
@@ -93,7 +86,6 @@ export default function SettingsPage() {
             return (
               <motion.div
                 key={i}
-                whileTap={{ scale: 0.97 }}
                 onClick={() => setSection(item.key)}
                 style={{
                   ...styles.menuItem,
@@ -110,19 +102,21 @@ export default function SettingsPage() {
 
         {/* LOGOUT */}
         <div
-          onClick={() => alert("Logout coming soon")}
+          onClick={async () => {
+            const { supabase } = await import("./lib/supabase");
+            await supabase.auth.signOut();
+            window.location.reload();
+          }}
           style={styles.logout}
         >
           Logout
         </div>
-
       </div>
 
       {/* RIGHT PANEL */}
       <div style={styles.content}>
         {renderContent()}
       </div>
-
     </div>
   );
 }
@@ -135,7 +129,6 @@ const styles = {
     borderRadius: "20px",
     overflow: "hidden",
   },
-
   sidebar: {
     width: "260px",
     background: "#fff",
@@ -144,15 +137,12 @@ const styles = {
     flexDirection: "column",
     justifyContent: "space-between",
   },
-
   brandBox: {
     padding: "10px",
   },
-
   brand: {
     width: "100%",
   },
-
   menuItem: {
     display: "flex",
     alignItems: "center",
@@ -160,20 +150,11 @@ const styles = {
     borderRadius: "10px",
     cursor: "pointer",
   },
-
   content: {
     flex: 1,
     padding: "25px",
     overflowY: "auto",
   },
-
-  cardBlock: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginTop: "15px",
-  },
-
   logout: {
     padding: "12px",
     borderRadius: "10px",
