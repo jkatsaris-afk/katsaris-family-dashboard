@@ -42,39 +42,54 @@ export default function LoginPage() {
       return;
     }
 
-    // 🚀 Always go to loading (AuthGate handles routing)
     navigate("/loading");
   };
 
+  // 🎯 UI (fixed centered tile)
   return (
-    <div className="h-screen w-full bg-black flex items-center justify-center">
-      
-      {/* LOGIN CARD */}
-      <div className="bg-neutral-900 p-8 rounded-2xl shadow-xl w-[380px]">
-        
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          background: "#171717",
+          padding: "32px",
+          borderRadius: "20px",
+          width: "380px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+        }}
+      >
         {/* LOGO */}
-        <div className="flex justify-center mb-6">
-          <img
-            src={logo}
-            alt="Oikos Display"
-            className="w-48"
-          />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
+          <img src={logo} alt="Oikos Display" style={{ width: "180px" }} />
         </div>
 
         {/* TITLE */}
-        <h2 className="text-white text-xl text-center mb-6 tracking-wide">
+        <h2 style={{ color: "#fff", textAlign: "center", marginBottom: "24px" }}>
           Sign in to your Home
         </h2>
 
         {/* FORM */}
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          
+        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-black border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+            style={{
+              background: "#000",
+              border: "1px solid #444",
+              color: "#fff",
+              padding: "12px",
+              borderRadius: "10px",
+            }}
             required
           />
 
@@ -83,21 +98,35 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-black border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+            style={{
+              background: "#000",
+              border: "1px solid #444",
+              color: "#fff",
+              padding: "12px",
+              borderRadius: "10px",
+            }}
             required
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 transition text-white p-3 rounded-lg font-semibold mt-2"
+            style={{
+              background: "#2f6ea6",
+              color: "#fff",
+              padding: "12px",
+              borderRadius: "10px",
+              fontWeight: "600",
+              marginTop: "10px",
+              cursor: "pointer",
+            }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         {/* FOOTER */}
-        <p className="text-gray-400 text-sm text-center mt-6">
+        <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
           Welcome to Oikos Display
         </p>
       </div>
