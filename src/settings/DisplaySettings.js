@@ -6,18 +6,18 @@ const PRIMARY = "#2f6ea6";
 export default function DisplaySettings() {
   const [settings, setSettings] = useState(null);
 
-  // 🔥 LOAD SETTINGS
+  // 🔥 LOAD SETTINGS (FIXED)
   useEffect(() => {
     const loadSettings = async () => {
       const { data, error } = await supabase
         .from("settings")
-        .select("*")
-        .limit(1)
-        .single();
+        .select("*");
 
-      if (!error) setSettings(data);
+      console.log("SETTINGS DEBUG:", data, error);
 
-      console.log("LOAD SETTINGS:", data, error);
+      if (!error && data && data.length > 0) {
+        setSettings(data[0]);
+      }
     };
 
     loadSettings();
@@ -39,7 +39,7 @@ export default function DisplaySettings() {
     console.log("UPDATE:", updates, error);
   };
 
-  // ⛔ Prevent blank crash
+  // ⛔ Prevent blank screen
   if (!settings) {
     return <div>Loading settings...</div>;
   }
@@ -79,6 +79,7 @@ export default function DisplaySettings() {
                 : "#e5e7eb",
               position: "relative",
               cursor: "pointer",
+              flexShrink: 0,
             }}
           >
             <div
@@ -97,7 +98,7 @@ export default function DisplaySettings() {
         </div>
       </div>
 
-      {/* 🧱 TILES (placeholder for now) */}
+      {/* 🧱 TILES */}
       <div style={styles.cardBlock}>
         <h3>Show Tiles</h3>
 
