@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import defaultLogo from "./assets/oikos-brand.png"; // ✅ DEFAULT
+import defaultLogo from "./assets/oikos-brand.png";
 import { supabase } from "./lib/supabase";
 
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
-  const [logo, setLogo] = useState(defaultLogo); // ✅ dynamic logo
+  const [logo, setLogo] = useState(defaultLogo);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -25,7 +25,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD HOUSEHOLD LOGO
+  // 🔥 LOAD HOUSEHOLD LOGO (FIXED)
   useEffect(() => {
     const loadLogo = async () => {
       const {
@@ -42,14 +42,19 @@ export default function HomePage() {
 
       if (!member) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("settings")
-        .select("background_url")
+        .select("*") // ✅ FIXED (no more 400 error)
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.background_url) {
-        setLogo(data.background_url);
+      if (error) {
+        console.error("LOGO LOAD ERROR:", error);
+        return;
+      }
+
+      if (data?.logo_url) {
+        setLogo(data.logo_url);
       }
     };
 
@@ -131,7 +136,7 @@ export default function HomePage() {
       }}
     >
 
-      {/* 🔥 GHOSTED LOGO (DYNAMIC) */}
+      {/* 🔥 GHOSTED LOGO */}
       <img
         src={logo}
         alt="Oikos Brand"
