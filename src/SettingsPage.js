@@ -17,8 +17,7 @@ import brand from "./assets/oikos-brand.png";
 const PRIMARY = "#2f6ea6";
 const APP_VERSION = "1.0.0";
 
-// ✅ ADDED props
-export default function SettingsPage({ settings, updateSettings }) {
+export default function SettingsPage() {
   const [section, setSection] = useState("household");
 
   const [dbStatus, setDbStatus] = useState("Checking...");
@@ -137,21 +136,11 @@ export default function SettingsPage({ settings, updateSettings }) {
             </div>
           </div>
 
-          {/* ✅ UPDATED (CONNECTED TO SUPABASE) */}
           <div style={styles.cardBlock}>
             <h3>Auto Night Mode</h3>
             <div style={styles.row}>
               <span>Enable automatic night mode</span>
-
-              <input
-                type="checkbox"
-                checked={settings?.auto_night_mode || false}
-                onChange={(e) =>
-                  updateSettings({
-                    auto_night_mode: e.target.checked,
-                  })
-                }
-              />
+              <div style={styles.toggle} />
             </div>
           </div>
 
@@ -255,6 +244,7 @@ export default function SettingsPage({ settings, updateSettings }) {
   return (
     <div style={styles.container}>
 
+      {/* SIDEBAR */}
       <div style={styles.sidebar}>
 
         <div>
@@ -283,6 +273,7 @@ export default function SettingsPage({ settings, updateSettings }) {
           })}
         </div>
 
+        {/* 🔻 LOGOUT */}
         <div
           onClick={() => alert("Logout coming soon")}
           style={styles.logout}
@@ -292,6 +283,7 @@ export default function SettingsPage({ settings, updateSettings }) {
 
       </div>
 
+      {/* CONTENT */}
       <div style={styles.content}>
         {renderContent()}
       </div>
@@ -300,4 +292,100 @@ export default function SettingsPage({ settings, updateSettings }) {
   );
 }
 
-const styles = { /* unchanged */ };
+const styles = {
+  container: {
+    display: "flex",
+    height: "calc(100vh - 140px)",
+    background: "#f8fafc",
+    borderRadius: "20px",
+    overflow: "hidden",
+  },
+
+  sidebar: {
+    width: "260px",
+    background: "#fff",
+    padding: "15px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+
+  brandBox: {
+    padding: "10px",
+  },
+
+  brand: {
+    width: "100%",
+  },
+
+  menuItem: {
+    display: "flex",
+    alignItems: "center",
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+  },
+
+  content: {
+    flex: 1,
+    padding: "25px",
+    overflowY: "auto",
+  },
+
+  cardBlock: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "15px",
+  },
+
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "10px",
+  },
+
+  btn: {
+    background: "#2f6ea6",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "6px",
+  },
+
+  toggle: {
+    width: "40px",
+    height: "20px",
+    background: "#e5e7eb",
+    borderRadius: "999px",
+  },
+
+  subGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "15px",
+    marginTop: "15px",
+  },
+
+  subCard: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center",
+  },
+
+  infoRow: {
+    marginBottom: "10px",
+    fontSize: "14px",
+  },
+
+  logout: {
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    color: "#ef4444",
+    fontWeight: "600",
+    textAlign: "center",
+    borderTop: "1px solid #e5e7eb",
+  },
+};
