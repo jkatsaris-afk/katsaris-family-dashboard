@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -14,9 +14,81 @@ import {
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
+const APP_VERSION = "1.0.0";
 
 export default function SettingsPage() {
   const [section, setSection] = useState("household");
+
+  const [info, setInfo] = useState({
+    ip: "Loading...",
+    online: navigator.onLine,
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    language: navigator.language,
+    screen: `${window.innerWidth} x ${window.innerHeight}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    connection: navigator.connection?.effectiveType || "Unknown",
+    location: "Fetching...",
+  });
+
+  // 🌐 LOCAL IP (best effort)
+  const getLocalIP = async () => {
+    return new Promise((resolve) => {
+      try {
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        pc.createDataChannel("");
+        pc.createOffer().then((offer) => pc.setLocalDescription(offer));
+
+        pc.onicecandidate = (ice) => {
+          if (!ice || !ice.candidate) return;
+
+          const match = ice.candidate.candidate.match(
+            /([0-9]{1,3}(\.[0-9]{1,3}){3})/
+          );
+
+          if (match) {
+            resolve(match[1]);
+            pc.close();
+          }
+        };
+
+        setTimeout(() => resolve("Unavailable"), 1000);
+      } catch {
+        resolve("Unavailable");
+      }
+    });
+  };
+
+  // 📍 LOCATION
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      return "Unavailable";
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setInfo((prev) => ({
+          ...prev,
+          location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+        }));
+      },
+      () => {
+        setInfo((prev) => ({
+          ...prev,
+          location: "Denied",
+        }));
+      }
+    );
+  };
+
+  useEffect(() => {
+    getLocalIP().then((ip) => {
+      setInfo((prev) => ({ ...prev, ip }));
+    });
+
+    getLocation();
+  }, []);
 
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
@@ -37,7 +109,6 @@ export default function SettingsPage() {
         <div>
           <h2>Display Settings</h2>
 
-          {/* IMAGE */}
           <div style={styles.cardBlock}>
             <h3>Home Screen Image</h3>
             <div style={styles.row}>
@@ -46,7 +117,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* NIGHT MODE */}
           <div style={styles.cardBlock}>
             <h3>Auto Night Mode</h3>
             <div style={styles.row}>
@@ -55,7 +125,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* TILES */}
           <div style={styles.cardBlock}>
             <h3>Show Tiles</h3>
 
@@ -78,6 +147,28 @@ export default function SettingsPage() {
       );
     }
 
+    // 🧹 CHORES
+    if (section === "chores") {
+      return (
+        <div>
+          <h2>Chore Settings</h2>
+
+          <div style={styles.subGrid}>
+            {[
+              "Recurring Chores",
+              "Store",
+              "Goals",
+              "Awards",
+            ].map((item, i) => (
+              <div key={i} style={styles.subCard}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // 🔌 INTEGRATIONS
     if (section === "integrations") {
       return (
@@ -90,13 +181,23 @@ export default function SettingsPage() {
       );
     }
 
-    // 📄 ABOUT
+    // 📄 ABOUT (FULL RESTORED)
     if (section === "about") {
       return (
         <div>
-          <h2>About</h2>
+          <h2>About This Device</h2>
+
           <div style={styles.cardBlock}>
-            App Version: 1.0.0
+            <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
+            <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
+            <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
+            <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
+            <div style={styles.infoRow}><strong>Platform:</strong> {info.platform}</div>
+            <div style={styles.infoRow}><strong>Language:</strong> {info.language}</div>
+            <div style={styles.infoRow}><strong>Screen:</strong> {info.screen}</div>
+            <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
+            <div style={styles.infoRow}><strong>Location:</strong> {info.location}</div>
+            <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
           </div>
         </div>
       );
@@ -187,6 +288,7 @@ const styles = {
   content: {
     flex: 1,
     padding: "25px",
+    overflowY: "auto",
   },
 
   cardBlock: {
@@ -215,5 +317,24 @@ const styles = {
     height: "20px",
     background: "#e5e7eb",
     borderRadius: "999px",
+  },
+
+  subGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "15px",
+    marginTop: "15px",
+  },
+
+  subCard: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center",
+  },
+
+  infoRow: {
+    marginBottom: "10px",
+    fontSize: "14px",
   },
 };
