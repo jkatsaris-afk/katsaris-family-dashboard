@@ -21,8 +21,8 @@ useEffect(() => {
       navigate("/home");import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { supabase } from "../supabaseClient";
-import logo from "../assets/oikos-brand.png";
+import { supabase } from "./supabaseClient";
+import logo from "./assets/oikos-brand.png";
 
 export default function LoadingPage() {
   const navigate = useNavigate();
