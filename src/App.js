@@ -151,9 +151,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AppContent />} />
+        {/* LOGIN */}
+        <Route path="/" element={<LoginPage />} />
+
+        {/* LOADING */}
         <Route path="/loading" element={<LoadingPage />} />
+
+        {/* ONBOARDING */}
         <Route path="/onboarding" element={<OnboardingPage />} />
+
+        {/* MAIN APP */}
+        <Route path="/app" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
   );
