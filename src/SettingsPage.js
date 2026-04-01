@@ -140,37 +140,7 @@ export default function SettingsPage() {
             <h3>Auto Night Mode</h3>
             <div style={styles.row}>
               <span>Enable automatic night mode</span>
-              <div
-  onClick={() => {
-    if (!settings) return;
-
-    updateSettings({
-      auto_night_mode: !settings.auto_night_mode,
-    });
-  }}
-  style={{
-    width: "40px",
-    height: "20px",
-    borderRadius: "999px",
-    background: settings?.auto_night_mode ? PRIMARY : "#e5e7eb",
-    position: "relative",
-    cursor: "pointer",
-    flexShrink: 0,
-  }}
->
-  <div
-    style={{
-      width: "16px",
-      height: "16px",
-      borderRadius: "50%",
-      background: "#fff",
-      position: "absolute",
-      top: "2px",
-      left: settings?.auto_night_mode ? "22px" : "2px",
-      transition: "all 0.2s ease",
-    }}
-  />
-</div>
+              <div style={styles.toggle} />
             </div>
           </div>
 
