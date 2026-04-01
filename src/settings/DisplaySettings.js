@@ -161,7 +161,7 @@ export default function DisplaySettings() {
 
       {/* 🎨 BACKGROUND + LOGO */}
       <div style={styles.cardBlock}>
-        <h3>Background (Select one style)</h3>
+        <h3>Background</h3>
 
         {/* BACKGROUND */}
         <div style={styles.uploadRow}>
