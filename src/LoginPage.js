@@ -1,106 +1,106 @@
-import React, { useState } from "react";
-import { supabase } from "./lib/supabase";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import logo from "../assets/oikos-brand.png";
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleAuth = async () => {
-    if (isSignup) {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+  // ✅ If already logged in → skip to loading
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (error) return alert(error.message);
+      if (session) {
+        navigate("/loading");
+      }
+    };
 
-      alert("Account created! You can now log in.");
-      setIsSignup(false);
-    } else {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    checkSession();
+  }, [navigate]);
 
-      if (error) return alert(error.message);
+  // 🔐 LOGIN HANDLER
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-      onLogin(data.user);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
     }
+
+    // 🚀 Always go to loading (AuthGate handles routing)
+    navigate("/loading");
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2>Oikos Display</h2>
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-        />
-
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-        />
-
-        <button onClick={handleAuth} style={styles.button}>
-          {isSignup ? "Create Account" : "Login"}
-        </button>
-
-        <div
-          onClick={() => setIsSignup(!isSignup)}
-          style={styles.toggle}
-        >
-          {isSignup
-            ? "Already have an account? Login"
-            : "Create an account"}
+    <div className="h-screen w-full bg-black flex items-center justify-center">
+      
+      {/* LOGIN CARD */}
+      <div className="bg-neutral-900 p-8 rounded-2xl shadow-xl w-[380px]">
+        
+        {/* LOGO */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={logo}
+            alt="Oikos Display"
+            className="w-48"
+          />
         </div>
+
+        {/* TITLE */}
+        <h2 className="text-white text-xl text-center mb-6 tracking-wide">
+          Sign in to your Home
+        </h2>
+
+        {/* FORM */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-black border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="bg-black border border-gray-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 transition text-white p-3 rounded-lg font-semibold mt-2"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        {/* FOOTER */}
+        <p className="text-gray-400 text-sm text-center mt-6">
+          Welcome to Oikos Display
+        </p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#eef1f5",
-  },
-  card: {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "300px",
-    textAlign: "center",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    marginTop: "15px",
-    padding: "10px",
-    width: "100%",
-    background: "#2f6ea6",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-  },
-  toggle: {
-    marginTop: "15px",
-    cursor: "pointer",
-    color: "#2f6ea6",
-    fontSize: "14px",
-  },
-};
