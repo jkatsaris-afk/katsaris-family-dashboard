@@ -14,6 +14,8 @@ import {
 
 import { supabase } from "./lib/supabase";
 
+import LoginPage from "./LoginPage";
+
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
@@ -26,11 +28,33 @@ import brand from "./assets/oikos-brand.png";
 const PRIMARY = "#2f6ea6";
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
   const [now, setNow] = useState(new Date());
+
+  // 🧠 AUTH STATE (persistent login)
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      setUser(user);
+    };
+
+    getUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   // 🕒 CLOCK
   useEffect(() => {
@@ -38,8 +62,10 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD SETTINGS FROM DB
+  // 🔥 LOAD SETTINGS (household will come next)
   useEffect(() => {
+    if (!user) return;
+
     const loadSettings = async () => {
       const { data, error } = await supabase
         .from("settings")
@@ -49,25 +75,22 @@ export default function App() {
 
       console.log("SETTINGS:", data, error);
 
-      if (!error && data) {
+      if (data) {
         setSettings(data);
         setAutoNightEnabled(data.auto_night_mode);
       }
     };
 
     loadSettings();
-  }, []);
+  }, [user]);
 
-  // 🌙 AUTO NIGHT MODE SCHEDULE
+  // 🌙 AUTO NIGHT MODE (8PM–6AM)
   useEffect(() => {
     if (!autoNightEnabled) return;
 
     const checkTime = () => {
-      const now = new Date();
-      const hour = now.getHours();
-
+      const hour = new Date().getHours();
       const isNight = hour >= 20 || hour < 6;
-
       setNightMode(isNight);
     };
 
@@ -76,25 +99,6 @@ export default function App() {
     const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
-
-  // 🔥 UPDATE SETTINGS
-  const updateSettings = async (updates) => {
-    if (!settings) return;
-
-    const { error } = await supabase
-      .from("settings")
-      .update(updates)
-      .eq("id", settings.id);
-
-    if (!error) {
-      const updated = { ...settings, ...updates };
-      setSettings(updated);
-
-      if (updates.auto_night_mode !== undefined) {
-        setAutoNightEnabled(updates.auto_night_mode);
-      }
-    }
-  };
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -117,13 +121,18 @@ export default function App() {
     day: "numeric",
   });
 
+  // 🔒 LOGIN GUARD
+  if (!user) {
+    return <LoginPage onLogin={setUser} />;
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
       {/* 🌙 NIGHT MODE OVERLAY */}
       {nightMode && (
         <div
-          onClick={() => setNightMode(false)} // 👈 manual override still works
+          onClick={() => setNightMode(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -157,9 +166,9 @@ export default function App() {
       >
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "10px" }}>
 
-          {/* 🌙 MANUAL TOGGLE ONLY */}
+          {/* 🌙 MANUAL TOGGLE */}
           <div
             onClick={() => setNightMode(!nightMode)}
             style={{
@@ -219,7 +228,7 @@ export default function App() {
         )}
       </div>
 
-      {/* DOCK (UNCHANGED) */}
+      {/* DOCK */}
       <div
         style={{
           position: "fixed",
