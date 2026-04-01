@@ -11,6 +11,7 @@ import {
   Plug
 } from "lucide-react";
 
+import { supabase } from "./lib/supabase";
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
@@ -18,6 +19,8 @@ const APP_VERSION = "1.0.0";
 
 export default function SettingsPage() {
   const [section, setSection] = useState("household");
+
+  const [dbStatus, setDbStatus] = useState("Checking...");
 
   const [info, setInfo] = useState({
     ip: "Loading...",
@@ -80,7 +83,26 @@ export default function SettingsPage() {
     );
   };
 
+  // 🔌 DB CONNECTION CHECK
   useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase
+          .from("households")
+          .select("id")
+          .limit(1);
+
+        if (error) {
+          setDbStatus("Disconnected");
+        } else {
+          setDbStatus("Connected");
+        }
+      } catch {
+        setDbStatus("Disconnected");
+      }
+    };
+
+    checkConnection();
     getLocalIP().then((ip) => {
       setInfo((prev) => ({ ...prev, ip }));
     });
@@ -186,6 +208,17 @@ export default function SettingsPage() {
 
           <div style={styles.cardBlock}>
             <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
+
+            <div style={styles.infoRow}>
+              <strong>Database:</strong>{" "}
+              <span style={{
+                color: dbStatus === "Connected" ? "#22c55e" : "#ef4444",
+                fontWeight: "600"
+              }}>
+                {dbStatus}
+              </span>
+            </div>
+
             <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
             <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
             <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
