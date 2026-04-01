@@ -34,7 +34,7 @@ const PRIMARY = "#2f6ea6";
 
 function AppContent() {
   const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true); // ✅ ADDED
+  const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
 
   const [nightMode, setNightMode] = useState(false);
@@ -47,7 +47,7 @@ function AppContent() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      setLoadingUser(false); // ✅ FIX
+      setLoadingUser(false);
     };
 
     getUser();
@@ -55,7 +55,7 @@ function AppContent() {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
-        setLoadingUser(false); // ✅ FIX
+        setLoadingUser(false);
       }
     );
 
@@ -119,7 +119,7 @@ function AppContent() {
     day: "numeric",
   });
 
-  // ✅ FIXED LOADING LOGIC
+  // LOADING FIX
   if (loadingUser) {
     return <div style={{ padding: 20 }}>Loading...</div>;
   }
@@ -131,7 +131,20 @@ function AppContent() {
       
       {/* NIGHT MODE */}
       {nightMode && (
-        <div onClick={() => setNightMode(false)} style={{ position: "fixed", inset: 0, background: "rgba(20,20,20,0.75)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", zIndex: 9999 }}>
+        <div
+          onClick={() => setNightMode(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(20,20,20,0.75)",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999
+          }}
+        >
           <div style={{ fontSize: "120px", fontWeight: "700" }}>{time}</div>
           <div style={{ fontSize: "28px", opacity: 0.85 }}>{date}</div>
         </div>
@@ -150,6 +163,66 @@ function AppContent() {
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
         {page === "settings" && <SettingsPage />}
+      </div>
+
+      {/* DOCK (RESTORED) */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            width: "95%",
+            maxWidth: "1400px",
+            background: "#eef1f5",
+            padding: "12px",
+            marginBottom: "10px",
+            borderRadius: "20px",
+            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+              gap: "12px",
+            }}
+          >
+            {apps.map((app, i) => {
+              const isActive = page === app.page;
+
+              return (
+                <motion.div
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setPage(app.page)}
+                  style={{
+                    background: app.color,
+                    color: "white",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    opacity: isActive ? 1 : 0.85,
+                  }}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                    {app.name}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
     </div>
