@@ -1,247 +1,175 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Home,
+  Users,
+  Moon,
+  Bell,
+  Shield,
+  ClipboardList,
+  Repeat,
+  Gift,
+  Trophy,
+  Award
+} from "lucide-react";
 
-const API = "https://script.google.com/macros/s/AKfycbwu26ABWTuw9xG_u5DpT0-Ql-CZeiOw9qfB7ewDVN_zrsD3CiaX0_0XL__VyrASgdee/exec";
+// ✅ BRAND
+import brand from "./assets/oikos-brand.png";
+
+const PRIMARY = "#2f6ea6";
 
 export default function SettingsPage() {
-  const [active, setActive] = useState("family");
+  const [section, setSection] = useState("household");
 
-  return (
-    <div className="settings-shell">
+  const menu = [
+    { name: "Household", icon: <Home />, key: "household" },
+    { name: "Members", icon: <Users />, key: "members" },
+    { name: "Display", icon: <Moon />, key: "display" },
+    { name: "Notifications", icon: <Bell />, key: "notifications" },
+    { name: "Security", icon: <Shield />, key: "security" },
+    { name: "Chores", icon: <ClipboardList />, key: "chores" },
+  ];
 
-      {/* LEFT MENU */}
-      <div className="settings-menu">
+  const choreMenu = [
+    { name: "Recurring Chores", icon: <Repeat />, key: "recurring" },
+    { name: "Store", icon: <Gift />, key: "store" },
+    { name: "Goals", icon: <Trophy />, key: "goals" },
+    { name: "Awards", icon: <Award />, key: "awards" },
+  ];
 
-        <div
-          className={`settings-menu-item ${active === "family" ? "active" : ""}`}
-          onClick={() => setActive("family")}
-        >
-          Family Profiles
-        </div>
-
-        <div
-          className={`settings-menu-item ${active === "network" ? "active" : ""}`}
-          onClick={() => setActive("network")}
-        >
-          Network
-        </div>
-
-        <div
-          className={`settings-menu-item ${active === "chores" ? "active" : ""}`}
-          onClick={() => setActive("chores")}
-        >
-          Recurring Chores
-        </div>
-
-      </div>
-
-      {/* RIGHT PANEL */}
-      <div className="settings-content">
-
-        {active === "family" && <FamilyPage />}
-
-        {active === "network" && <NetworkPage />}
-
-        {active === "chores" && <RecurringChores />}
-
-      </div>
-
-    </div>
-  );
-} 
-
-
-// 🔥 FAMILY PAGE (placeholder)
-function FamilyPage() {
-  return (
-    <div>
-      <h2>Family Profiles</h2>
-      <div className="settings-card">
-        Coming soon...
-      </div>
-    </div>
-  );
-}
-
-
-// 🔥 NETWORK PAGE
-function NetworkPage() {
-  const [info, setInfo] = useState({
-    ip: "Loading...",
-    online: navigator.onLine,
-    type: "Unknown",
-    speed: "Unknown",
-    device: navigator.userAgent
-  });
-
-  useEffect(() => {
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(data => {
-        setInfo(prev => ({ ...prev, ip: data.ip }));
-      });
-
-    const connection =
-      navigator.connection ||
-      navigator.mozConnection ||
-      navigator.webkitConnection;
-
-    if (connection) {
-      setInfo(prev => ({
-        ...prev,
-        type: connection.effectiveType,
-        speed: connection.downlink + " Mbps"
-      }));
-    }
-  }, []);
-
-  return (
-    <div>
-      <h2 style={{ marginBottom: "20px" }}>Network Info</h2>
-
-      <div className="settings-card">
-
-        <div className="settings-row">
-          <div>Public IP</div>
-          <div>{info.ip}</div>
-        </div>
-
-        <div className="settings-row">
-          <div>Status</div>
-          <div>{info.online ? "Online" : "Offline"}</div>
-        </div>
-
-        <div className="settings-row">
-          <div>Connection</div>
-          <div>{info.type}</div>
-        </div>
-
-        <div className="settings-row">
-          <div>Speed</div>
-          <div>{info.speed}</div>
-        </div>
-
-        <div className="settings-row">
-          <div>Device</div>
-          <div style={{ fontSize: "12px" }}>
-            {info.device}
+  // 🔁 RIGHT PANEL CONTENT
+  const renderContent = () => {
+    if (section === "chores") {
+      return (
+        <div>
+          <h2>Chore Settings</h2>
+          <div style={styles.subGrid}>
+            {choreMenu.map((item, i) => (
+              <div key={i} style={styles.subCard}>
+                {item.icon}
+                <div>{item.name}</div>
+              </div>
+            ))}
           </div>
         </div>
+      );
+    }
 
-      </div>
-    </div>
-  );
-}
-
-
-// 🔥 CHORES EDITOR
-function RecurringChores() {
-  const [chores, setChores] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(API + "?type=template")
-      .then(res => res.json())
-      .then(data => {
-        const cleaned = data.slice(1).map(row => ({
-          name: row[0] || "",
-          chore: row[1] || ""
-        }));
-
-        setChores(cleaned);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  if (loading) {
     return (
-      <div className="settings-loading">
-
-        <div className="settings-spinner"></div>
-
-        <div className="settings-loading-text">
-          Checking on the Children
+      <div>
+        <h2 style={{ marginBottom: "20px" }}>
+          {section.charAt(0).toUpperCase() + section.slice(1)} Settings
+        </h2>
+        <div style={styles.placeholder}>
+          Settings content goes here
         </div>
-
-        <div className="settings-dots">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
       </div>
     );
-  }
-
-  const update = (i, field, value) => {
-    const updated = [...chores];
-    updated[i][field] = value;
-    setChores(updated);
-  };
-
-  const addRow = () => {
-    setChores([...chores, { name: "", chore: "" }]);
-  };
-
-  const removeRow = (i) => {
-    setChores(chores.filter((_, index) => index !== i));
-  };
-
-  const save = async () => {
-    await fetch(API, {
-      method: "POST",
-      body: JSON.stringify({
-        saveTemplate: true,
-        chores: chores
-      })
-    });
-
-    alert("Saved!");
   };
 
   return (
-    <div>
+    <div style={styles.container}>
 
-      <h2 style={{ marginBottom: "20px" }}>Recurring Chores</h2>
+      {/* 🔵 LEFT SIDEBAR */}
+      <div style={styles.sidebar}>
 
-      <div className="settings-card">
-
-        <div className="settings-row settings-header">
-          <div>Name</div>
-          <div>Chore</div>
-          <div></div>
+        {/* 🏷️ BRAND */}
+        <div style={styles.brandBox}>
+          <img src={brand} alt="Oikos Display" style={styles.brand} />
         </div>
 
-        {chores.map((c, i) => (
-          <div key={i} className="settings-row">
+        {/* MENU */}
+        {menu.map((item, i) => {
+          const active = section === item.key;
 
-            <input
-              value={c.name}
-              onChange={(e) => update(i, "name", e.target.value)}
-            />
-
-            <input
-              value={c.chore}
-              onChange={(e) => update(i, "chore", e.target.value)}
-            />
-
-            <button
-              className="settings-delete"
-              onClick={() => removeRow(i)}
+          return (
+            <motion.div
+              key={i}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setSection(item.key)}
+              style={{
+                ...styles.menuItem,
+                background: active ? PRIMARY : "transparent",
+                color: active ? "#fff" : "#333",
+              }}
             >
-              ✕
-            </button>
+              <div style={{ marginRight: "10px" }}>{item.icon}</div>
+              {item.name}
+            </motion.div>
+          );
+        })}
+      </div>
 
-          </div>
-        ))}
-
-        <div className="settings-actions">
-          <button onClick={addRow}>+ Add</button>
-          <button onClick={save}>Save</button>
-        </div>
-
+      {/* ⚙️ RIGHT CONTENT */}
+      <div style={styles.content}>
+        {renderContent()}
       </div>
 
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: "flex",
+    height: "calc(100vh - 140px)", // leaves room for header + dock
+    background: "#f8fafc",
+    borderRadius: "20px",
+    overflow: "hidden",
+  },
+
+  sidebar: {
+    width: "260px",
+    background: "#fff",
+    padding: "15px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    borderRight: "1px solid #e5e7eb",
+  },
+
+  brandBox: {
+    padding: "10px",
+    marginBottom: "10px",
+  },
+
+  brand: {
+    width: "100%",
+    objectFit: "contain",
+  },
+
+  menuItem: {
+    display: "flex",
+    alignItems: "center",
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontWeight: "500",
+    transition: "all 0.2s ease",
+  },
+
+  content: {
+    flex: 1,
+    padding: "25px",
+    overflowY: "auto",
+  },
+
+  placeholder: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+  },
+
+  subGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "15px",
+  },
+
+  subCard: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center",
+  },
+};
