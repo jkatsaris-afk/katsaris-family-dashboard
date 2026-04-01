@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import logo from "../assets/oikos-brand.png";
+import { supabase } from "./supabaseClient";
+import logo from "./assets/oikos-brand.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
