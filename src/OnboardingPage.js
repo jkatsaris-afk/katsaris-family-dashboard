@@ -14,6 +14,7 @@ export default function OnboardingPage() {
     setLoading(true);
 
     try {
+      // 🔐 Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -23,30 +24,53 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Create household
-      const { data, error } = await supabase
+      // 🏠 Create household (FIXED WITH .single())
+      const { data: household, error } = await supabase
         .from("households")
         .insert({
           name: householdName,
           created_by: user.id,
         })
-        .select();
+        .select()
+        .single();
 
-      if (error) throw error;
+      console.log("household created:", household);
 
-      const household = data[0];
+      if (error) {
+        console.error("Household error:", error);
+        alert(error.message);
+        setLoading(false);
+        return;
+      }
 
-      // Link user
-      await supabase.from("household_members").insert({
-        user_id: user.id,
-        household_id: household.id,
-        role: "admin",
-      });
+      if (!household) {
+        alert("No household created");
+        setLoading(false);
+        return;
+      }
 
+      // 🔗 Link user to household
+      const { error: memberError } = await supabase
+        .from("household_members")
+        .insert({
+          user_id: user.id,
+          household_id: household.id,
+          role: "admin",
+        });
+
+      if (memberError) {
+        console.error("Member error:", memberError);
+        alert(memberError.message);
+        setLoading(false);
+        return;
+      }
+
+      // 🚀 SUCCESS → go to app
       navigate("/app");
 
     } catch (err) {
-      alert(err.message);
+      console.error("Onboarding crash:", err);
+      alert("Something went wrong");
     } finally {
       setLoading(false);
     }
