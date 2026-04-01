@@ -34,8 +34,9 @@ const PRIMARY = "#2f6ea6";
 
 function AppContent() {
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true); // ✅ ADDED
   const [page, setPage] = useState("home");
-  if (user === null) return null;
+
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
@@ -46,6 +47,7 @@ function AppContent() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      setLoadingUser(false); // ✅ FIX
     };
 
     getUser();
@@ -53,6 +55,7 @@ function AppContent() {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
+        setLoadingUser(false); // ✅ FIX
       }
     );
 
@@ -116,6 +119,11 @@ function AppContent() {
     day: "numeric",
   });
 
+  // ✅ FIXED LOADING LOGIC
+  if (loadingUser) {
+    return <div style={{ padding: 20 }}>Loading...</div>;
+  }
+
   if (!user) return <LoginPage />;
 
   return (
@@ -152,16 +160,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* LOGIN */}
         <Route path="/" element={<LoginPage />} />
-
-        {/* LOADING */}
         <Route path="/loading" element={<LoadingPage />} />
-
-        {/* ONBOARDING */}
         <Route path="/onboarding" element={<OnboardingPage />} />
-
-        {/* MAIN APP */}
         <Route path="/app" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
