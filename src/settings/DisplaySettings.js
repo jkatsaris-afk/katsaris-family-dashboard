@@ -16,6 +16,7 @@ const defaultTiles = {
 export default function DisplaySettings() {
   const [settings, setSettings] = useState(null);
 
+  // 🔥 LOAD SETTINGS
   useEffect(() => {
     const load = async () => {
       try {
@@ -65,22 +66,34 @@ export default function DisplaySettings() {
     load();
   }, []);
 
+  // 🔥 FIXED UPDATE FUNCTION
   const updateSettings = async (updates) => {
     if (!settings) return;
 
-    const { error } = await supabase
+    console.log("UPDATING:", updates, "ID:", settings.id);
+
+    const { data, error } = await supabase
       .from("settings")
       .update(updates)
-      .eq("id", settings.id);
+      .eq("id", settings.id)
+      .select(); // 🔥 FIX
 
-    if (!error) {
-      setSettings({ ...settings, ...updates });
+    console.log("RESULT:", data, error);
+
+    if (!error && data) {
+      setSettings({
+        ...data[0],
+        visible_tiles: data[0].visible_tiles || defaultTiles,
+      });
     }
   };
 
+  // 🔥 FILE UPLOAD
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file || !settings) return;
+
+    console.log("Uploading:", file);
 
     const filePath = `${settings.household_id}/${type}-${Date.now()}`;
 
@@ -99,6 +112,8 @@ export default function DisplaySettings() {
 
     const url = data.publicUrl;
 
+    console.log("PUBLIC URL:", url);
+
     if (type === "background") {
       updateSettings({ background_url: url });
     } else {
@@ -106,6 +121,7 @@ export default function DisplaySettings() {
     }
   };
 
+  // 🔥 TILE TOGGLE
   const toggleTile = (key) => {
     const updated = {
       ...settings.visible_tiles,
@@ -121,7 +137,7 @@ export default function DisplaySettings() {
     <div>
       <h2>Display Settings</h2>
 
-      {/* 🎨 BACKGROUND STYLE */}
+      {/* 🎨 BACKGROUND + LOGO */}
       <div style={styles.cardBlock}>
         <h3>Background (Select one style)</h3>
 
