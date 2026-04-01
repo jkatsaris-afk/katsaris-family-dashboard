@@ -10,25 +10,31 @@ import {
   Repeat,
   Gift,
   Trophy,
-  Award
+  Award,
+  Info
 } from "lucide-react";
 
 // ✅ BRAND
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
+const APP_VERSION = "1.0.0"; // 👈 update later
 
 export default function SettingsPage() {
   const [section, setSection] = useState("household");
 
-  const [networkInfo, setNetworkInfo] = useState({
+  const [info, setInfo] = useState({
     ip: "Loading...",
-    userAgent: navigator.userAgent,
     online: navigator.onLine,
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    language: navigator.language,
+    screen: `${window.innerWidth} x ${window.innerHeight}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     connection: navigator.connection?.effectiveType || "Unknown",
   });
 
-  // 🌐 GET LOCAL IP (best effort)
+  // 🌐 LOCAL IP
   const getLocalIP = async () => {
     return new Promise((resolve) => {
       try {
@@ -39,12 +45,12 @@ export default function SettingsPage() {
         pc.onicecandidate = (ice) => {
           if (!ice || !ice.candidate) return;
 
-          const ipMatch = ice.candidate.candidate.match(
+          const match = ice.candidate.candidate.match(
             /([0-9]{1,3}(\.[0-9]{1,3}){3})/
           );
 
-          if (ipMatch) {
-            resolve(ipMatch[1]);
+          if (match) {
+            resolve(match[1]);
             pc.close();
           }
         };
@@ -58,7 +64,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     getLocalIP().then((ip) => {
-      setNetworkInfo((prev) => ({ ...prev, ip }));
+      setInfo((prev) => ({ ...prev, ip }));
     });
   }, []);
 
@@ -68,6 +74,7 @@ export default function SettingsPage() {
     { name: "Display", icon: <Moon />, key: "display" },
     { name: "Notifications", icon: <Bell />, key: "notifications" },
     { name: "Security", icon: <Shield />, key: "security" },
+    { name: "About", icon: <Info />, key: "about" }, // 👈 NEW
     { name: "Chores", icon: <ClipboardList />, key: "chores" },
   ];
 
@@ -78,7 +85,7 @@ export default function SettingsPage() {
     { name: "Awards", icon: <Award />, key: "awards" },
   ];
 
-  // 🔁 RIGHT PANEL CONTENT
+  // 🔁 CONTENT
   const renderContent = () => {
 
     if (section === "chores") {
@@ -97,29 +104,21 @@ export default function SettingsPage() {
       );
     }
 
-    if (section === "security") {
+    if (section === "about") {
       return (
         <div>
-          <h2>Security & Network</h2>
+          <h2>About This Device</h2>
 
           <div style={styles.cardBlock}>
-            <h3>Network</h3>
-
-            <div style={styles.infoRow}>
-              <strong>Local IP:</strong> {networkInfo.ip}
-            </div>
-
-            <div style={styles.infoRow}>
-              <strong>Status:</strong> {networkInfo.online ? "Online" : "Offline"}
-            </div>
-
-            <div style={styles.infoRow}>
-              <strong>Connection:</strong> {networkInfo.connection}
-            </div>
-
-            <div style={styles.infoRow}>
-              <strong>Device:</strong> {networkInfo.userAgent}
-            </div>
+            <div style={styles.infoRow}><strong>App Version:</strong> {APP_VERSION}</div>
+            <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
+            <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
+            <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
+            <div style={styles.infoRow}><strong>Platform:</strong> {info.platform}</div>
+            <div style={styles.infoRow}><strong>Language:</strong> {info.language}</div>
+            <div style={styles.infoRow}><strong>Screen:</strong> {info.screen}</div>
+            <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
+            <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
           </div>
         </div>
       );
@@ -141,10 +140,10 @@ export default function SettingsPage() {
   return (
     <div style={styles.container}>
 
-      {/* 🔵 SIDEBAR */}
+      {/* SIDEBAR */}
       <div style={styles.sidebar}>
 
-        {/* 🏷️ BRAND */}
+        {/* BRAND */}
         <div style={styles.brandBox}>
           <img src={brand} alt="Oikos Display" style={styles.brand} />
         </div>
@@ -171,7 +170,7 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* ⚙️ CONTENT */}
+      {/* CONTENT */}
       <div style={styles.content}>
         {renderContent()}
       </div>
@@ -215,7 +214,6 @@ const styles = {
     borderRadius: "10px",
     cursor: "pointer",
     fontWeight: "500",
-    transition: "all 0.2s ease",
   },
 
   content: {
@@ -242,7 +240,6 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     textAlign: "center",
-    cursor: "pointer",
   },
 
   cardBlock: {
