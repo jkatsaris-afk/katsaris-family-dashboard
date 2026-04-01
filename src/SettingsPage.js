@@ -31,7 +31,7 @@ export default function SettingsPage() {
     location: "Fetching...",
   });
 
-  // 🌐 LOCAL IP (best effort)
+  // 🌐 LOCAL IP
   const getLocalIP = async () => {
     return new Promise((resolve) => {
       try {
@@ -61,9 +61,7 @@ export default function SettingsPage() {
 
   // 📍 LOCATION
   const getLocation = () => {
-    if (!navigator.geolocation) {
-      return "Unavailable";
-    }
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -86,7 +84,6 @@ export default function SettingsPage() {
     getLocalIP().then((ip) => {
       setInfo((prev) => ({ ...prev, ip }));
     });
-
     getLocation();
   }, []);
 
@@ -181,7 +178,7 @@ export default function SettingsPage() {
       );
     }
 
-    // 📄 ABOUT (FULL RESTORED)
+    // 📄 ABOUT
     if (section === "about") {
       return (
         <div>
@@ -203,7 +200,6 @@ export default function SettingsPage() {
       );
     }
 
-    // DEFAULT
     return (
       <div>
         <h2>{section} Settings</h2>
@@ -217,29 +213,41 @@ export default function SettingsPage() {
 
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
-        <div style={styles.brandBox}>
-          <img src={brand} alt="logo" style={styles.brand} />
+
+        <div>
+          <div style={styles.brandBox}>
+            <img src={brand} alt="logo" style={styles.brand} />
+          </div>
+
+          {menu.map((item, i) => {
+            const active = section === item.key;
+
+            return (
+              <motion.div
+                key={i}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setSection(item.key)}
+                style={{
+                  ...styles.menuItem,
+                  background: active ? PRIMARY : "transparent",
+                  color: active ? "#fff" : "#333",
+                }}
+              >
+                {item.icon}
+                <span style={{ marginLeft: "10px" }}>{item.name}</span>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {menu.map((item, i) => {
-          const active = section === item.key;
+        {/* 🔻 LOGOUT */}
+        <div
+          onClick={() => alert("Logout coming soon")}
+          style={styles.logout}
+        >
+          Logout
+        </div>
 
-          return (
-            <motion.div
-              key={i}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setSection(item.key)}
-              style={{
-                ...styles.menuItem,
-                background: active ? PRIMARY : "transparent",
-                color: active ? "#fff" : "#333",
-              }}
-            >
-              {item.icon}
-              <span style={{ marginLeft: "10px" }}>{item.name}</span>
-            </motion.div>
-          );
-        })}
       </div>
 
       {/* CONTENT */}
@@ -266,7 +274,7 @@ const styles = {
     padding: "15px",
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    justifyContent: "space-between",
   },
 
   brandBox: {
@@ -336,5 +344,15 @@ const styles = {
   infoRow: {
     marginBottom: "10px",
     fontSize: "14px",
+  },
+
+  logout: {
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    color: "#ef4444",
+    fontWeight: "600",
+    textAlign: "center",
+    borderTop: "1px solid #e5e7eb",
   },
 };
