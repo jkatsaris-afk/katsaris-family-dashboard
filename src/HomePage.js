@@ -44,12 +44,12 @@ export default function HomePage() {
 
       const { data } = await supabase
         .from("settings")
-        .select("logo_url")
+        .select("background_url")
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.logo_url) {
-        setLogo(data.logo_url);
+      if (data?.background_url) {
+        setLogo(data.background_url);
       }
     };
 
