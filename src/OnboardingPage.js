@@ -19,11 +19,11 @@ export default function OnboardingPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        navigate("/login");
+        navigate("/");
         return;
       }
 
-      // 🏠 Create household
+      // Create household
       const { data, error } = await supabase
         .from("households")
         .insert({
@@ -36,22 +36,16 @@ export default function OnboardingPage() {
 
       const household = data[0];
 
-      // 🔗 Link user to household
-      const { error: memberError } = await supabase
-        .from("household_members")
-        .insert({
-          user_id: user.id,
-          household_id: household.id,
-          role: "admin",
-        });
+      // Link user
+      await supabase.from("household_members").insert({
+        user_id: user.id,
+        household_id: household.id,
+        role: "admin",
+      });
 
-      if (memberError) throw memberError;
-
-      // 🚀 Done
-      navigate("/home");
+      navigate("/app");
 
     } catch (err) {
-      console.error("Onboarding error:", err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -59,50 +53,93 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="h-screen w-full bg-black flex items-center justify-center text-white">
-      
-      <div className="bg-neutral-900 p-8 rounded-2xl shadow-xl w-[420px]">
-        
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#eef1f5",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* CARD */}
+      <div
+        style={{
+          background: "#fff",
+          padding: "40px",
+          borderRadius: "22px",
+          width: "420px",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.08)",
+          textAlign: "center",
+        }}
+      >
         {/* LOGO */}
-        <div className="flex justify-center mb-6">
-          <img src={logo} alt="Oikos Display" className="w-52" />
-        </div>
+        <img
+          src={logo}
+          alt="Oikos"
+          style={{
+            width: "180px",
+            marginBottom: "20px",
+          }}
+        />
 
         {/* TITLE */}
-        <h2 className="text-xl text-center mb-2">
-          Create Your Household
-        </h2>
+        <h1 style={{ fontSize: "22px", marginBottom: "6px" }}>
+          Create Your Home
+        </h1>
 
-        <p className="text-gray-400 text-center mb-6 text-sm">
-          Let’s set up your Oikos
+        {/* SUBTITLE */}
+        <p style={{ color: "#666", marginBottom: "24px" }}>
+          Let’s set up your Oikos household
         </p>
 
         {/* FORM */}
-        <form onSubmit={handleCreateHousehold} className="flex flex-col gap-4">
-          
+        <form
+          onSubmit={handleCreateHousehold}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "14px",
+          }}
+        >
           <input
             type="text"
             placeholder="Household Name (ex: Katsaris Home)"
             value={householdName}
             onChange={(e) => setHouseholdName(e.target.value)}
-            className="bg-black border border-gray-700 p-3 rounded-lg text-white"
             required
+            style={{
+              padding: "14px",
+              borderRadius: "12px",
+              border: "1px solid #e5e7eb",
+              fontSize: "15px",
+            }}
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 transition p-3 rounded-lg font-semibold"
+            style={{
+              background: "#2f6ea6",
+              color: "#fff",
+              padding: "14px",
+              borderRadius: "12px",
+              border: "none",
+              fontWeight: "600",
+              fontSize: "15px",
+              cursor: "pointer",
+              marginTop: "10px",
+            }}
           >
             {loading ? "Creating..." : "Create Household"}
           </button>
-
         </form>
 
-        <p className="text-gray-500 text-xs text-center mt-6">
+        {/* FOOTER */}
+        <p style={{ marginTop: "18px", fontSize: "13px", color: "#888" }}>
           You can add family members next
         </p>
-
       </div>
     </div>
   );
