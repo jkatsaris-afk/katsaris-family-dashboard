@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter } from "react-router-dom"; // ✅ ADD THIS
+import { BrowserRouter } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -28,7 +28,7 @@ import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
 
-function AppContent() {  // ✅ WRAP YOUR EXISTING APP
+function AppContent() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
@@ -36,7 +36,7 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
   const [settings, setSettings] = useState(null);
   const [now, setNow] = useState(new Date());
 
-  // 🧠 AUTH STATE
+  // 🧠 AUTH
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -63,7 +63,7 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 SETTINGS
+  // ⚙️ SETTINGS
   useEffect(() => {
     if (!user) return;
 
@@ -83,7 +83,7 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
     loadSettings();
   }, [user]);
 
-  // 🌙 NIGHT MODE
+  // 🌙 AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -125,7 +125,15 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
+    <div
+      style={{
+        height: "100vh",
+        overflow: "hidden",
+        background: "#eef1f5",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
 
       {/* 🌙 NIGHT MODE */}
       {nightMode && (
@@ -154,22 +162,56 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
       )}
 
       {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
+      <div
+        style={{
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexShrink: 0,
+        }}
+      >
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <div onClick={() => setNightMode(!nightMode)} style={{ cursor: "pointer" }}>
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+            }}
+          >
             <Moon size={18} />
           </div>
 
-          <div onClick={() => setPage(prev => prev === "settings" ? "home" : "settings")} style={{ cursor: "pointer" }}>
+          <div
+            onClick={() =>
+              setPage((prev) =>
+                prev === "settings" ? "home" : "settings"
+              )
+            }
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: page === "settings" ? PRIMARY : "#fff",
+            }}
+          >
             <Settings size={20} />
           </div>
         </div>
       </div>
 
-      {/* CONTENT */}
-      <div style={{ padding: "10px 20px 130px" }}>
+      {/* CONTENT (SCROLLABLE) */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "10px 20px 120px",
+        }}
+      >
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
@@ -179,14 +221,62 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
       </div>
 
       {/* DOCK */}
-      <div style={{ position: "fixed", bottom: 0, width: "100%" }}>
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)` }}>
-          {apps.map((app, i) => (
-            <motion.div key={i} onClick={() => setPage(app.page)}>
-              {app.icon}
-              {app.name}
-            </motion.div>
-          ))}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            width: "95%",
+            maxWidth: "1400px",
+            background: "#eef1f5",
+            padding: "12px",
+            marginBottom: "10px",
+            borderRadius: "20px",
+            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+              gap: "12px",
+            }}
+          >
+            {apps.map((app, i) => {
+              const isActive = page === app.page;
+
+              return (
+                <motion.div
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setPage(app.page)}
+                  style={{
+                    background: app.color,
+                    color: "white",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    opacity: isActive ? 1 : 0.9,
+                  }}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                    {app.name}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -196,7 +286,7 @@ function AppContent() {  // ✅ WRAP YOUR EXISTING APP
 
 export default function App() {
   return (
-    <BrowserRouter> {/* ✅ THIS FIXES YOUR ERROR */}
+    <BrowserRouter>
       <AppContent />
     </BrowserRouter>
   );
