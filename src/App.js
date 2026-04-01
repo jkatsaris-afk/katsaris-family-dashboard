@@ -15,9 +15,12 @@ import {
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
-import ShoppingPage from "./ShoppingPage"; // now used as Lists
+import ShoppingPage from "./ShoppingPage"; // Lists
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
+
+// ✅ IMPORT BRAND
+import brand from "./assets/oikos-brand.png";
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -44,9 +47,15 @@ export default function App() {
           alignItems: "center",
         }}
       >
-        <div style={{ fontWeight: "600", fontSize: "20px" }}>
-          Katsaris Home
-        </div>
+        {/* 🏷️ BRAND LOGO */}
+        <img
+          src={brand}
+          alt="Oikos Display"
+          style={{
+            height: "40px",
+            objectFit: "contain",
+          }}
+        />
 
         {/* ⚙️ SETTINGS GEAR */}
         <div
@@ -73,7 +82,7 @@ export default function App() {
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
-        {page === "lists" && <ShoppingPage />} {/* reused */}
+        {page === "lists" && <ShoppingPage />}
         {page === "family" && (
           <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
             Family Page (coming next)
@@ -102,7 +111,7 @@ export default function App() {
           left: 0,
           width: "100%",
           background: "#eef1f5",
-          padding: "10px 20px 15px", // 👈 MORE SIDE PADDING
+          padding: "10px 20px 15px",
           boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
           zIndex: 1000,
         }}
