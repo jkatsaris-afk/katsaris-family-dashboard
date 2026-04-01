@@ -120,11 +120,10 @@ export default function HomePage() {
   return (
     <div
       style={{
-        position: "relative",
         minHeight: "70vh",
         display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
+        flexDirection: "column",
+        alignItems: "center",
         paddingTop: "80px",
       }}
     >
@@ -143,37 +142,21 @@ export default function HomePage() {
       >
 
         {/* 🕒 TIME */}
-        <div
-          style={{
-            fontSize: "110px",
-            fontWeight: "700",
-            color: "#111827",
-            lineHeight: "1",
-          }}
-        >
+        <div style={{
+          fontSize: "110px",
+          fontWeight: "700",
+          color: "#111827",
+          lineHeight: "1",
+        }}>
           {formattedTime}
         </div>
 
-        {/* LOGO */}
-        <img
-          src={logo}
-          alt="Oikos Brand"
-          style={{
-            width: "200px",
-            marginTop: "15px",
-            marginBottom: "20px",
-            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
-          }}
-        />
-
         {/* 📅 DATE */}
-        <div
-          style={{
-            fontSize: "24px",
-            color: "#374151",
-            marginBottom: "20px",
-          }}
-        >
+        <div style={{
+          fontSize: "24px",
+          color: "#374151",
+          marginBottom: "20px",
+        }}>
           {formattedDate}
         </div>
 
@@ -197,6 +180,18 @@ export default function HomePage() {
         </div>
 
       </div>
+
+      {/* ✅ LOGO BELOW TILE */}
+      <img
+        src={logo}
+        alt="Oikos Brand"
+        style={{
+          width: "200px",
+          marginTop: "25px",
+          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
+        }}
+      />
+
     </div>
   );
 }
