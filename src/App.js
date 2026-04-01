@@ -1,4 +1,4 @@
-iimport React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -11,6 +11,9 @@ import {
   Users,
   Moon
 } from "lucide-react";
+
+// ✅ ADD THIS
+import { supabase } from "./lib/supabase";
 
 // ✅ IMPORT PAGES
 import HomePage from "./HomePage";
@@ -30,11 +33,56 @@ export default function App() {
   const [nightMode, setNightMode] = useState(false);
   const [now, setNow] = useState(new Date());
 
+  // ✅ ADD SETTINGS STATE
+  const [settings, setSettings] = useState(null);
+
   // 🕒 CLOCK
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // ✅ LOAD SETTINGS (ADDED)
+  useEffect(() => {
+    const loadSettings = async () => {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("*")
+        .limit(1)
+        .single();
+
+      if (!error) {
+        setSettings(data);
+        setNightMode(data.auto_night_mode); // 👈 sync night mode
+      }
+
+      console.log("SETTINGS:", data, error);
+    };
+
+    loadSettings();
+  }, []);
+
+  // ✅ UPDATE SETTINGS (ADDED)
+  const updateSettings = async (updates) => {
+    if (!settings) return;
+
+    const { error } = await supabase
+      .from("settings")
+      .update(updates)
+      .eq("id", settings.id);
+
+    if (!error) {
+      const updated = { ...settings, ...updates };
+      setSettings(updated);
+
+      // keep night mode synced
+      if (updates.auto_night_mode !== undefined) {
+        setNightMode(updates.auto_night_mode);
+      }
+    }
+
+    console.log("UPDATE:", updates, error);
+  };
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -69,7 +117,6 @@ export default function App() {
             inset: 0,
             background: "rgba(20, 20, 20, 0.75)",
             backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
             color: "#fff",
             display: "flex",
             flexDirection: "column",
@@ -96,19 +143,19 @@ export default function App() {
           alignItems: "center",
         }}
       >
-        {/* 🏷️ BRAND */}
-        <img
-          src={brand}
-          alt="Oikos Display"
-          style={{ height: "38px" }}
-        />
+        <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        {/* RIGHT CONTROLS */}
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
           {/* 🌙 NIGHT MODE */}
           <div
-            onClick={() => setNightMode(!nightMode)}
+            onClick={() => {
+              const newMode = !nightMode;
+              setNightMode(newMode);
+
+              // ✅ SAVE TO DB
+              updateSettings({ auto_night_mode: newMode });
+            }}
             style={{
               cursor: "pointer",
               padding: "8px",
@@ -121,7 +168,7 @@ export default function App() {
             <Moon size={18} />
           </div>
 
-          {/* ⚙️ SETTINGS (TOGGLE BEHAVIOR) */}
+          {/* ⚙️ SETTINGS */}
           <div
             onClick={() =>
               setPage((prev) =>
@@ -143,19 +190,27 @@ export default function App() {
         </div>
       </div>
 
-      {/* 🔥 PAGE CONTENT */}
+      {/* PAGE CONTENT */}
       <div style={{ padding: "10px 20px 130px" }}>
-        {page === "home" && <HomePage />}
+        {page === "home" && <HomePage settings={settings} />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
         {page === "lists" && <ShoppingPage />}
+
         {page === "family" && (
           <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
             Family Page (coming next)
           </div>
         )}
-        {page === "settings" && <SettingsPage />}
+
+        {/* ✅ UPDATED */}
+        {page === "settings" && (
+          <SettingsPage
+            settings={settings}
+            updateSettings={updateSettings}
+          />
+        )}
 
         {page === "homeControls" && (
           <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
@@ -164,7 +219,7 @@ export default function App() {
         )}
       </div>
 
-      {/* 🔥 FLOATING DOCK */}
+      {/* 🔥 FLOATING DOCK (UNCHANGED) */}
       <div
         style={{
           position: "fixed",
