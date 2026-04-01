@@ -26,7 +26,6 @@ export default function DisplaySettings() {
 
         if (!user) return;
 
-        // 🔗 Get household
         const { data: member } = await supabase
           .from("household_members")
           .select("*")
@@ -35,14 +34,11 @@ export default function DisplaySettings() {
 
         if (!member) return;
 
-        // 🧠 Load settings for this household
         const { data, error } = await supabase
           .from("settings")
           .select("*")
           .eq("household_id", member.household_id)
           .maybeSingle();
-
-        console.log("SETTINGS LOAD:", data, error);
 
         if (data) {
           setSettings({
@@ -50,8 +46,7 @@ export default function DisplaySettings() {
             visible_tiles: data.visible_tiles || defaultTiles,
           });
         } else {
-          // 🆕 Create default settings
-          const { data: newSettings, error: insertError } = await supabase
+          const { data: newSettings } = await supabase
             .from("settings")
             .insert({
               household_id: member.household_id,
@@ -60,8 +55,6 @@ export default function DisplaySettings() {
             })
             .select()
             .single();
-
-          console.log("CREATED SETTINGS:", newSettings, insertError);
 
           if (newSettings) setSettings(newSettings);
         }
@@ -82,10 +75,37 @@ export default function DisplaySettings() {
       .update(updates)
       .eq("id", settings.id);
 
-    console.log("UPDATE:", updates, error);
-
     if (!error) {
       setSettings({ ...settings, ...updates });
+    }
+  };
+
+  // 🔥 FILE UPLOAD (NEW)
+  const handleUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file || !settings) return;
+
+    const filePath = `${settings.household_id}/${type}-${Date.now()}`;
+
+    const { error } = await supabase.storage
+      .from("oikos-assets")
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      console.error("UPLOAD ERROR:", error);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("oikos-assets")
+      .getPublicUrl(filePath);
+
+    const url = data.publicUrl;
+
+    if (type === "background") {
+      updateSettings({ background_url: url });
+    } else {
+      updateSettings({ logo_url: url });
     }
   };
 
@@ -101,14 +121,56 @@ export default function DisplaySettings() {
     updateSettings({ visible_tiles: updated });
   };
 
-  // ⛔ Prevent blank screen
-  if (!settings) {
-    return <div>Loading settings...</div>;
-  }
+  if (!settings) return <div>Loading settings...</div>;
 
   return (
     <div>
       <h2>Display Settings</h2>
+
+      {/* 🖼️ BACKGROUND */}
+      <div style={styles.cardBlock}>
+        <h3>Background Image</h3>
+
+        {settings.background_url && (
+          <img
+            src={settings.background_url}
+            alt="Background"
+            style={{
+              width: "100%",
+              borderRadius: "10px",
+              marginBottom: "10px",
+            }}
+          />
+        )}
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleUpload(e, "background")}
+        />
+      </div>
+
+      {/* 🏠 LOGO */}
+      <div style={styles.cardBlock}>
+        <h3>Logo</h3>
+
+        {settings.logo_url && (
+          <img
+            src={settings.logo_url}
+            alt="Logo"
+            style={{
+              height: "60px",
+              marginBottom: "10px",
+            }}
+          />
+        )}
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleUpload(e, "logo")}
+        />
+      </div>
 
       {/* 🌙 AUTO NIGHT MODE */}
       <div style={styles.cardBlock}>
