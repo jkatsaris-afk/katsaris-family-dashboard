@@ -13,8 +13,8 @@ import {
   Award,
   Info,
   Plug,
-  Home as HomeIcon,
-  Calendar
+  Calendar,
+  Home as HomeIcon
 } from "lucide-react";
 
 import brand from "./assets/oikos-brand.png";
@@ -69,7 +69,7 @@ export default function SettingsPage() {
     });
   }, []);
 
-  // 🔥 UPDATED MENU ORDER
+  // 🔥 CLEAN MENU
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
@@ -78,11 +78,10 @@ export default function SettingsPage() {
     { name: "Security", icon: <Shield />, key: "security" },
 
     { name: "Integrations", icon: <Plug />, key: "integrations" },
-    { name: "Smart Home", icon: <HomeIcon />, key: "smartHome" },
 
     { name: "Chores", icon: <ClipboardList />, key: "chores" },
 
-    { name: "About", icon: <Info />, key: "about" }, // 👈 moved to bottom
+    { name: "About", icon: <Info />, key: "about" },
   ];
 
   const choreMenu = [
@@ -92,6 +91,7 @@ export default function SettingsPage() {
     { name: "Awards", icon: <Award />, key: "awards" },
   ];
 
+  // 🔁 CONTENT
   const renderContent = () => {
 
     if (section === "chores") {
@@ -110,44 +110,26 @@ export default function SettingsPage() {
       );
     }
 
-    // 🔌 INTEGRATIONS (UPDATED)
+    // 🔌 INTEGRATIONS (SIMPLIFIED)
     if (section === "integrations") {
       return (
         <div>
           <h2>Integrations</h2>
 
           <div style={styles.subGrid}>
+            {/* 📅 GOOGLE CALENDAR */}
             <div style={styles.subCard}>
               <Calendar size={28} style={{ marginBottom: "10px" }} />
               <div>Google Calendar</div>
               <div style={styles.subText}>Connect your family calendar</div>
             </div>
 
+            {/* 🏠 SMART HOME */}
             <div style={styles.subCard}>
-              Apple HomeKit (Coming)
+              <HomeIcon size={28} style={{ marginBottom: "10px" }} />
+              <div>Smart Home</div>
+              <div style={styles.subText}>Control lights, switches, scenes</div>
             </div>
-
-            <div style={styles.subCard}>
-              Google Home (Coming)
-            </div>
-
-            <div style={styles.subCard}>
-              Alexa (Coming)
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // 🏠 SMART HOME
-    if (section === "smartHome") {
-      return (
-        <div>
-          <h2>Smart Home Control</h2>
-
-          <div style={styles.cardBlock}>
-            <p>This will become your main home control panel.</p>
-            <p>Lights, switches, scenes, and more coming soon.</p>
           </div>
         </div>
       );
