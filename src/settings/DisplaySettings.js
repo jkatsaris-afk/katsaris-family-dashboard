@@ -3,26 +3,74 @@ import { supabase } from "../lib/supabase";
 
 const PRIMARY = "#2f6ea6";
 
+const defaultTiles = {
+  home: true,
+  calendar: true,
+  chores: true,
+  weather: true,
+  lists: true,
+  family: true,
+  homeControls: true,
+};
+
 export default function DisplaySettings() {
   const [settings, setSettings] = useState(null);
 
-  // 🔥 LOAD SETTINGS (FIXED 406 ISSUE)
+  // 🔥 LOAD USER → HOUSEHOLD → SETTINGS
   useEffect(() => {
-    const loadSettings = async () => {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+    const load = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      console.log("SETTINGS DEBUG:", data, error);
+        if (!user) return;
 
-      if (!error && data) {
-        setSettings(data);
+        // 🔗 Get household
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!member) return;
+
+        // 🧠 Load settings for this household
+        const { data, error } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("household_id", member.household_id)
+          .maybeSingle();
+
+        console.log("SETTINGS LOAD:", data, error);
+
+        if (data) {
+          setSettings({
+            ...data,
+            visible_tiles: data.visible_tiles || defaultTiles,
+          });
+        } else {
+          // 🆕 Create default settings
+          const { data: newSettings, error: insertError } = await supabase
+            .from("settings")
+            .insert({
+              household_id: member.household_id,
+              auto_night_mode: false,
+              visible_tiles: defaultTiles,
+            })
+            .select()
+            .single();
+
+          console.log("CREATED SETTINGS:", newSettings, insertError);
+
+          if (newSettings) setSettings(newSettings);
+        }
+      } catch (err) {
+        console.error("LOAD ERROR:", err);
       }
     };
 
-    loadSettings();
+    load();
   }, []);
 
   // 🔥 UPDATE SETTINGS
@@ -34,11 +82,23 @@ export default function DisplaySettings() {
       .update(updates)
       .eq("id", settings.id);
 
+    console.log("UPDATE:", updates, error);
+
     if (!error) {
       setSettings({ ...settings, ...updates });
     }
+  };
 
-    console.log("UPDATE:", updates, error);
+  // 🔥 TOGGLE TILE
+  const toggleTile = (key) => {
+    if (!settings?.visible_tiles) return;
+
+    const updated = {
+      ...settings.visible_tiles,
+      [key]: !settings.visible_tiles[key],
+    };
+
+    updateSettings({ visible_tiles: updated });
   };
 
   // ⛔ Prevent blank screen
@@ -49,15 +109,6 @@ export default function DisplaySettings() {
   return (
     <div>
       <h2>Display Settings</h2>
-
-      {/* 🖼️ IMAGE */}
-      <div style={styles.cardBlock}>
-        <h3>Home Screen Image</h3>
-        <div style={styles.row}>
-          <span>Upload background</span>
-          <button style={styles.btn}>Choose File</button>
-        </div>
-      </div>
 
       {/* 🌙 AUTO NIGHT MODE */}
       <div style={styles.cardBlock}>
@@ -73,49 +124,54 @@ export default function DisplaySettings() {
               })
             }
             style={{
-              width: "40px",
-              height: "20px",
-              borderRadius: "999px",
+              ...styles.toggle,
               background: settings.auto_night_mode
                 ? PRIMARY
                 : "#e5e7eb",
-              position: "relative",
-              cursor: "pointer",
-              flexShrink: 0,
             }}
           >
             <div
               style={{
-                width: "16px",
-                height: "16px",
-                borderRadius: "50%",
-                background: "#fff",
-                position: "absolute",
-                top: "2px",
+                ...styles.knob,
                 left: settings.auto_night_mode ? "22px" : "2px",
-                transition: "all 0.2s ease",
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* 🧱 TILES */}
+      {/* 🧱 TILE VISIBILITY */}
       <div style={styles.cardBlock}>
         <h3>Show Tiles</h3>
 
         {[
-          "Home",
-          "Calendar",
-          "Chores",
-          "Weather",
-          "Lists",
-          "Family",
-          "Home Controls",
-        ].map((tile) => (
-          <div key={tile} style={styles.row}>
-            <span>{tile}</span>
-            <div style={styles.toggle} />
+          ["home", "Home"],
+          ["calendar", "Calendar"],
+          ["chores", "Chores"],
+          ["weather", "Weather"],
+          ["lists", "Lists"],
+          ["family", "Family"],
+          ["homeControls", "Home Controls"],
+        ].map(([key, label]) => (
+          <div key={key} style={styles.row}>
+            <span>{label}</span>
+
+            <div
+              onClick={() => toggleTile(key)}
+              style={{
+                ...styles.toggle,
+                background: settings.visible_tiles[key]
+                  ? PRIMARY
+                  : "#e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  ...styles.knob,
+                  left: settings.visible_tiles[key] ? "22px" : "2px",
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -134,18 +190,22 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     marginTop: "10px",
-  },
-  btn: {
-    background: "#2f6ea6",
-    color: "#fff",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: "6px",
+    alignItems: "center",
   },
   toggle: {
     width: "40px",
     height: "20px",
-    background: "#e5e7eb",
     borderRadius: "999px",
+    position: "relative",
+    cursor: "pointer",
+  },
+  knob: {
+    width: "16px",
+    height: "16px",
+    borderRadius: "50%",
+    background: "#fff",
+    position: "absolute",
+    top: "2px",
+    transition: "all 0.2s ease",
   },
 };
