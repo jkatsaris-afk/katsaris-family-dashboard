@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -8,14 +8,15 @@ import {
   CloudSun,
   Settings,
   List,
-  Users
+  Users,
+  Moon
 } from "lucide-react";
 
 // ✅ IMPORT PAGES
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
-import ShoppingPage from "./ShoppingPage"; // Lists
+import ShoppingPage from "./ShoppingPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
@@ -24,6 +25,14 @@ import brand from "./assets/oikos-brand.png";
 
 export default function App() {
   const [page, setPage] = useState("home");
+  const [nightMode, setNightMode] = useState(false);
+  const [now, setNow] = useState(new Date());
+
+  // 🕒 CLOCK FOR NIGHT MODE
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -35,8 +44,40 @@ export default function App() {
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ];
 
+  const time = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const date = now.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
+
+      {/* 🌙 NIGHT MODE OVERLAY */}
+      {nightMode && (
+        <div
+          onClick={() => setNightMode(false)} // tap to exit
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "#111",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div style={{ fontSize: "120px", fontWeight: "700" }}>{time}</div>
+          <div style={{ fontSize: "28px", opacity: 0.8 }}>{date}</div>
+        </div>
+      )}
 
       {/* HEADER */}
       <div
@@ -48,36 +89,45 @@ export default function App() {
         }}
       >
         {/* 🏷️ BRAND */}
-        <img
-          src={brand}
-          alt="Oikos Display"
-          style={{
-            height: "38px",
-            objectFit: "contain",
-          }}
-        />
+        <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        {/* ⚙️ SETTINGS */}
-        <div
-          onClick={() => setPage("settings")}
-          style={{
-            cursor: "pointer",
-            padding: "8px",
-            borderRadius: "10px",
-            background: "#fff",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-          }}
-        >
-          <Settings size={20} />
+        {/* RIGHT SIDE CONTROLS */}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+
+          {/* 🌙 NIGHT MODE TOGGLE */}
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+              color: nightMode ? "#fff" : "#000",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Moon size={18} />
+          </div>
+
+          {/* ⚙️ SETTINGS */}
+          <div
+            onClick={() => setPage("settings")}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: "#fff",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Settings size={20} />
+          </div>
+
         </div>
       </div>
 
       {/* 🔥 PAGE CONTENT */}
-      <div
-        style={{
-          padding: "10px 20px 130px", // space for dock
-        }}
-      >
+      <div style={{ padding: "10px 20px 130px" }}>
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
@@ -91,19 +141,13 @@ export default function App() {
         {page === "settings" && <SettingsPage />}
 
         {page === "homeControls" && (
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              borderRadius: "20px",
-            }}
-          >
+          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
             Home Controls coming soon...
           </div>
         )}
       </div>
 
-      {/* 🔥 FLOATING BOTTOM DOCK */}
+      {/* 🔥 FLOATING DOCK */}
       <div
         style={{
           position: "fixed",
@@ -153,24 +197,12 @@ export default function App() {
                     boxShadow: isActive
                       ? "0 8px 16px rgba(0,0,0,0.25)"
                       : "0 4px 10px rgba(0,0,0,0.1)",
-                    transition: "all 0.2s ease",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "clamp(18px, 2vw, 26px)",
-                      marginBottom: "6px",
-                    }}
-                  >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
                     {app.icon}
                   </div>
-
-                  <div
-                    style={{
-                      fontWeight: "600",
-                      fontSize: "clamp(9px, 1vw, 12px)",
-                    }}
-                  >
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
                     {app.name}
                   </div>
                 </motion.div>
