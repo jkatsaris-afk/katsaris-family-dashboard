@@ -1,6 +1,6 @@
 {
   "name": "family-dashboard",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "dependencies": {
     "framer-motion": "^10.16.4",
