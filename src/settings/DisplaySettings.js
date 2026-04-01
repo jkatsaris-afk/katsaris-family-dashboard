@@ -6,17 +6,19 @@ const PRIMARY = "#2f6ea6";
 export default function DisplaySettings() {
   const [settings, setSettings] = useState(null);
 
-  // 🔥 LOAD SETTINGS (FIXED)
+  // 🔥 LOAD SETTINGS (FIXED 406 ISSUE)
   useEffect(() => {
     const loadSettings = async () => {
       const { data, error } = await supabase
         .from("settings")
-        .select("*");
+        .select("*")
+        .limit(1)
+        .maybeSingle();
 
       console.log("SETTINGS DEBUG:", data, error);
 
-      if (!error && data && data.length > 0) {
-        setSettings(data[0]);
+      if (!error && data) {
+        setSettings(data);
       }
     };
 
