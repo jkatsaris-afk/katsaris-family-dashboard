@@ -1,78 +1,93 @@
-import React, { useState, useEffect } from "react";
+App code
+
+iimport React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Home,
   Calendar,
   ClipboardList,
-  ShoppingCart,
   SlidersHorizontal,
-  Tv,
   CloudSun,
-  Settings
+  Settings,
+  List,
+  Users,
+  Moon
 } from "lucide-react";
-
-// ✅ ADD THIS
-import { supabase } from "./lib/supabase";
 
 // ✅ IMPORT PAGES
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
 import ShoppingPage from "./ShoppingPage";
-import MediaPage from "./MediaPage";
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
+// ✅ IMPORT BRAND
+import brand from "./assets/oikos-brand.png";
+
+const PRIMARY = "#2f6ea6";
+
 export default function App() {
   const [page, setPage] = useState("home");
+  const [nightMode, setNightMode] = useState(false);
+  const [now, setNow] = useState(new Date());
 
-  // ✅ ADD THIS
-  const [settings, setSettings] = useState(null);
-
-  // ✅ ADD THIS (LOAD SETTINGS)
+  // 🕒 CLOCK
   useEffect(() => {
-    const loadSettings = async () => {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("*")
-        .limit(1)
-        .single();
-
-      if (!error) setSettings(data);
-
-      console.log("SETTINGS:", data, error);
-    };
-
-    loadSettings();
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
-
-  // ✅ ADD THIS (UPDATE SETTINGS)
-  const updateSettings = async (updates) => {
-    const { error } = await supabase
-      .from("settings")
-      .update(updates)
-      .eq("id", settings.id);
-
-    if (!error) {
-      setSettings({ ...settings, ...updates });
-    }
-
-    console.log("UPDATE:", updates, error);
-  };
 
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
-    { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-    { name: "Settings", icon: <Settings />, page: "settings", color: "#64748b" },
   ];
+
+  const time = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const date = now.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
+
+      {/* 🌙 NIGHT MODE OVERLAY */}
+      {nightMode && (
+        <div
+          onClick={() => setNightMode(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(20, 20, 20, 0.75)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div style={{ fontSize: "120px", fontWeight: "700" }}>
+            {time}
+          </div>
+          <div style={{ fontSize: "28px", opacity: 0.85 }}>
+            {date}
+          </div>
+        </div>
+      )}
 
       {/* HEADER */}
       <div
@@ -83,76 +98,137 @@ export default function App() {
           alignItems: "center",
         }}
       >
-        <div style={{ fontWeight: "600", fontSize: "20px" }}>
-          Katsaris Home
+        {/* 🏷️ BRAND */}
+        <img
+          src={brand}
+          alt="Oikos Display"
+          style={{ height: "38px" }}
+        />
+
+        {/* RIGHT CONTROLS */}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+
+          {/* 🌙 NIGHT MODE */}
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+              color: nightMode ? "#fff" : "#000",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Moon size={18} />
+          </div>
+
+          {/* ⚙️ SETTINGS (TOGGLE BEHAVIOR) */}
+          <div
+            onClick={() =>
+              setPage((prev) =>
+                prev === "settings" ? "home" : "settings"
+              )
+            }
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: page === "settings" ? PRIMARY : "#fff",
+              color: page === "settings" ? "#fff" : "#000",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Settings size={20} />
+          </div>
+
         </div>
       </div>
 
-      {/* TOP TILE BAR (UNCHANGED) */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-          gap: "18px",
-          padding: "0 20px 20px",
-        }}
-      >
-        {apps.map((app, i) => {
-          const isActive = page === app.page;
-
-          return (
-            <motion.div
-              key={i}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setPage(app.page)}
-              style={{
-                background: app.color,
-                color: "white",
-                padding: "clamp(12px, 2vw, 24px)",
-                borderRadius: "18px",
-                textAlign: "center",
-                cursor: "pointer",
-                opacity: isActive ? 1 : 0.9,
-                transform: isActive ? "scale(1.05)" : "scale(1)",
-                boxShadow: isActive
-                  ? "0 10px 20px rgba(0,0,0,0.25)"
-                  : "0 5px 12px rgba(0,0,0,0.1)",
-                transition: "all 0.2s ease",
-              }}
-            >
-              <div style={{ fontSize: "clamp(20px, 2vw, 32px)", marginBottom: "8px" }}>
-                {app.icon}
-              </div>
-              <div style={{ fontWeight: "600", fontSize: "clamp(10px, 1vw, 14px)" }}>
-                {app.name}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* PAGE CONTENT */}
-      <div style={{ padding: "10px 20px 20px" }}>
-        {page === "home" && <HomePage settings={settings} />}
+      {/* 🔥 PAGE CONTENT */}
+      <div style={{ padding: "10px 20px 130px" }}>
+        {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
-        {page === "shopping" && <ShoppingPage />}
-        {page === "media" && <MediaPage />}
-
-        {/* ✅ UPDATED */}
-        {page === "settings" && (
-          <SettingsPage
-            settings={settings}
-            updateSettings={updateSettings}
-          />
+        {page === "lists" && <ShoppingPage />}
+        {page === "family" && (
+          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
+            Family Page (coming next)
+          </div>
         )}
+        {page === "settings" && <SettingsPage />}
 
         {page === "homeControls" && (
           <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
             Home Controls coming soon...
           </div>
         )}
+      </div>
+
+      {/* 🔥 FLOATING DOCK */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}
+      >
+        <div
+          style={{
+            width: "95%",
+            maxWidth: "1400px",
+            background: "#eef1f5",
+            padding: "12px",
+            marginBottom: "10px",
+            borderRadius: "20px",
+            boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+              gap: "12px",
+            }}
+          >
+            {apps.map((app, i) => {
+              const isActive = page === app.page;
+
+              return (
+                <motion.div
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setPage(app.page)}
+                  style={{
+                    background: app.color,
+                    color: "white",
+                    padding: "clamp(10px, 1.5vw, 18px)",
+                    borderRadius: "14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    opacity: isActive ? 1 : 0.9,
+                    transform: isActive ? "scale(1.05)" : "scale(1)",
+                    boxShadow: isActive
+                      ? "0 8px 16px rgba(0,0,0,0.25)"
+                      : "0 4px 10px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                    {app.name}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
     </div>
