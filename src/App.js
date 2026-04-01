@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Routes, Route } from "react-router-dom";
+import OnboardingPage from "./OnboardingPage";
+import LoadingPage from "./LoadingPage";
 import {
   Home,
   Calendar,
@@ -287,7 +290,13 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/loading" element={<LoadingPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+      </Routes>
     </BrowserRouter>
+  );
+}
   );
 }
