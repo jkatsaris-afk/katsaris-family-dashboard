@@ -23,6 +23,8 @@ import SettingsPage from "./SettingsPage";
 // ✅ IMPORT BRAND
 import brand from "./assets/oikos-brand.png";
 
+const PRIMARY = "#2f6ea6";
+
 export default function App() {
   const [page, setPage] = useState("home");
   const [nightMode, setNightMode] = useState(false);
@@ -58,15 +60,15 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#eef1f5" }}>
 
-      {/* 🌙 NIGHT MODE OVERLAY (DIM VERSION) */}
+      {/* 🌙 NIGHT MODE OVERLAY */}
       {nightMode && (
         <div
           onClick={() => setNightMode(false)}
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(20, 20, 20, 0.75)", // 👈 dim overlay
-            backdropFilter: "blur(4px)", // 👈 subtle blur
+            background: "rgba(20, 20, 20, 0.75)",
+            backdropFilter: "blur(4px)",
             WebkitBackdropFilter: "blur(4px)",
             color: "#fff",
             display: "flex",
@@ -79,7 +81,6 @@ export default function App() {
           <div style={{ fontSize: "120px", fontWeight: "700" }}>
             {time}
           </div>
-
           <div style={{ fontSize: "28px", opacity: 0.85 }}>
             {date}
           </div>
@@ -99,16 +100,13 @@ export default function App() {
         <img
           src={brand}
           alt="Oikos Display"
-          style={{
-            height: "38px",
-            objectFit: "contain",
-          }}
+          style={{ height: "38px" }}
         />
 
         {/* RIGHT CONTROLS */}
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
-          {/* 🌙 NIGHT MODE BUTTON */}
+          {/* 🌙 NIGHT MODE */}
           <div
             onClick={() => setNightMode(!nightMode)}
             style={{
@@ -123,14 +121,19 @@ export default function App() {
             <Moon size={18} />
           </div>
 
-          {/* ⚙️ SETTINGS */}
+          {/* ⚙️ SETTINGS (TOGGLE BEHAVIOR) */}
           <div
-            onClick={() => setPage("settings")}
+            onClick={() =>
+              setPage((prev) =>
+                prev === "settings" ? "home" : "settings"
+              )
+            }
             style={{
               cursor: "pointer",
               padding: "8px",
               borderRadius: "10px",
-              background: "#fff",
+              background: page === "settings" ? PRIMARY : "#fff",
+              color: page === "settings" ? "#fff" : "#000",
               boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             }}
           >
@@ -211,24 +214,12 @@ export default function App() {
                     boxShadow: isActive
                       ? "0 8px 16px rgba(0,0,0,0.25)"
                       : "0 4px 10px rgba(0,0,0,0.1)",
-                    transition: "all 0.2s ease",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "clamp(18px, 2vw, 26px)",
-                      marginBottom: "6px",
-                    }}
-                  >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
                     {app.icon}
                   </div>
-
-                  <div
-                    style={{
-                      fontWeight: "600",
-                      fontSize: "clamp(9px, 1vw, 12px)",
-                    }}
-                  >
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
                     {app.name}
                   </div>
                 </motion.div>
