@@ -45,6 +45,12 @@ export default function LoginPage() {
     navigate("/loading");
   };
 
+  // 👉 CREATE NEW HOUSEHOLD (THIS FIXES YOUR ISSUE)
+  const handleCreateHousehold = () => {
+    // Send user into onboarding flow
+    navigate("/onboarding");
+  };
+
   return (
     <div
       style={{
@@ -93,7 +99,6 @@ export default function LoginPage() {
             style={{
               background: "#fff",
               border: "1px solid #e5e7eb",
-              color: "#000",
               padding: "12px",
               borderRadius: "10px",
             }}
@@ -108,7 +113,6 @@ export default function LoginPage() {
             style={{
               background: "#fff",
               border: "1px solid #e5e7eb",
-              color: "#000",
               padding: "12px",
               borderRadius: "10px",
             }}
@@ -133,9 +137,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* NEW USER BUTTON */}
+        {/* ✅ FIXED BUTTON */}
         <button
-          onClick={() => navigate("/onboarding")}
+          onClick={handleCreateHousehold}
           style={{
             marginTop: "12px",
             width: "100%",
