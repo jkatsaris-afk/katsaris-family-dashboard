@@ -4,19 +4,18 @@ import {
   Home,
   Calendar,
   ClipboardList,
-  ShoppingCart,
   SlidersHorizontal,
-  Tv,
   CloudSun,
-  Settings
+  Settings,
+  List,
+  Users
 } from "lucide-react";
 
 // ✅ IMPORT PAGES
 import HomePage from "./HomePage";
 import ChoresPage from "./ChoresPage";
 import UpcomingEvents from "./UpcomingEvents";
-import ShoppingPage from "./ShoppingPage";
-import MediaPage from "./MediaPage";
+import ShoppingPage from "./ShoppingPage"; // now used as Lists
 import WeatherPage from "./WeatherPage";
 import SettingsPage from "./SettingsPage";
 
@@ -28,10 +27,9 @@ export default function App() {
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
     { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
     { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Shopping", icon: <ShoppingCart />, page: "shopping", color: "#8b5cf6" },
-    { name: "Media", icon: <Tv />, page: "media", color: "#6366f1" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-    { name: "Settings", icon: <Settings />, page: "settings", color: "#64748b" },
   ];
 
   return (
@@ -49,20 +47,38 @@ export default function App() {
         <div style={{ fontWeight: "600", fontSize: "20px" }}>
           Katsaris Home
         </div>
+
+        {/* ⚙️ SETTINGS GEAR */}
+        <div
+          onClick={() => setPage("settings")}
+          style={{
+            cursor: "pointer",
+            padding: "8px",
+            borderRadius: "10px",
+            background: "#fff",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Settings size={20} />
+        </div>
       </div>
 
       {/* 🔥 PAGE CONTENT */}
       <div
         style={{
-          padding: "10px 20px 120px", // 👈 prevents overlap with bottom nav
+          padding: "10px 20px 120px",
         }}
       >
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
         {page === "weather" && <WeatherPage />}
-        {page === "shopping" && <ShoppingPage />}
-        {page === "media" && <MediaPage />}
+        {page === "lists" && <ShoppingPage />} {/* reused */}
+        {page === "family" && (
+          <div style={{ background: "#fff", padding: "20px", borderRadius: "20px" }}>
+            Family Page (coming next)
+          </div>
+        )}
         {page === "settings" && <SettingsPage />}
 
         {page === "homeControls" && (
@@ -86,7 +102,7 @@ export default function App() {
           left: 0,
           width: "100%",
           background: "#eef1f5",
-          padding: "10px 10px 15px",
+          padding: "10px 20px 15px", // 👈 MORE SIDE PADDING
           boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
           zIndex: 1000,
         }}
