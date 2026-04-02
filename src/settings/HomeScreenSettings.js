@@ -1,6 +1,7 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Image, Palette, Settings2, LayoutGrid } from "lucide-react";
 
 const PRIMARY = "#2f6ea6";
 
@@ -195,9 +196,12 @@ export default function HomeScreenSettings() {
     <div>
       <h2>Home Screen Settings</h2>
 
-      {/* ===== BLOCK 11A: BACKGROUND ===== */}
+      {/* ===== BLOCK 11A: APPEARANCE ===== */}
       <div style={styles.cardBlock}>
-        <h3>Background Settings</h3>
+        <div style={styles.cardHeader}>
+          <Image size={20} />
+          <span>Appearance</span>
+        </div>
 
         <div style={styles.uploadRow}>
           <div>
@@ -233,7 +237,10 @@ export default function HomeScreenSettings() {
 
       {/* ===== BLOCK 11B: BRANDING ===== */}
       <div style={styles.cardBlock}>
-        <h3>Branding</h3>
+        <div style={styles.cardHeader}>
+          <Palette size={20} />
+          <span>Branding</span>
+        </div>
 
         <div style={styles.row}>
           <span>Show Logo on Home Screen</span>
@@ -294,9 +301,12 @@ export default function HomeScreenSettings() {
         )}
       </div>
 
-      {/* ===== BLOCK 11C: AUTO NIGHT MODE ===== */}
+      {/* ===== BLOCK 11C: BEHAVIOR ===== */}
       <div style={styles.cardBlock}>
-        <h3>Auto Night Mode</h3>
+        <div style={styles.cardHeader}>
+          <Settings2 size={20} />
+          <span>Behavior</span>
+        </div>
 
         <div style={styles.row}>
           <span>Enable automatic night mode</span>
@@ -322,9 +332,12 @@ export default function HomeScreenSettings() {
         </div>
       </div>
 
-      {/* ===== BLOCK 11D: TILE VISIBILITY ===== */}
+      {/* ===== BLOCK 11D: LAYOUT ===== */}
       <div style={styles.cardBlock}>
-        <h3>Show Tiles</h3>
+        <div style={styles.cardHeader}>
+          <LayoutGrid size={20} />
+          <span>Layout</span>
+        </div>
 
         {Object.entries(defaultTiles).map(([key]) => (
           <div key={key} style={styles.row}>
@@ -361,6 +374,14 @@ const styles = {
     padding: "20px",
     borderRadius: "12px",
     marginTop: "15px",
+  },
+  cardHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "18px",
+    fontWeight: "600",
+    marginBottom: "10px",
   },
   row: {
     display: "flex",
