@@ -1,6 +1,5 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
-import defaultLogo from "./assets/oikos-brand.png";
 import { supabase } from "./lib/supabase";
 
 
@@ -9,8 +8,7 @@ export default function HomePage() {
 
   // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
-  const [logo, setLogo] = useState(defaultLogo);
-  const [showLogo, setShowLogo] = useState(true);
+  const [logo, setLogo] = useState(null);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -34,52 +32,83 @@ export default function HomePage() {
   }, []);
 
 
-// ===== BLOCK 5: LOAD LOGO + BRANDING =====
-useEffect(() => {
-  const loadLogo = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  // ===== BLOCK 5: LOAD SETTINGS + REALTIME =====
+  useEffect(() => {
 
-      if (!user) return;
+    let householdId = null;
 
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+    const loadSettings = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!member) return;
+        if (!user) return;
 
-      const { data } = await supabase
-        .from("settings")
-        .select("*")
-        .eq("household_id", member.household_id)
-        .maybeSingle();
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("household_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (data) {
-        setShowLogo(data.show_logo ?? true);
+        if (!member) return;
 
-        if (data.logo_url) {
-          setLogo(data.logo_url);
-        } else {
-          setLogo(defaultLogo);
+        householdId = member.household_id;
+
+        const { data } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("household_id", householdId)
+          .maybeSingle();
+
+        if (data) {
+          // ✅ ONLY show logo if it exists
+          if (data.logo_url) {
+            setLogo(data.logo_url);
+          } else {
+            setLogo(null);
+          }
         }
+
+      } catch (err) {
+        console.error("LOAD SETTINGS ERROR:", err);
       }
+    };
 
-    } catch (err) {
-      console.error("LOAD LOGO ERROR:", err);
-    }
-  };
+    loadSettings();
 
-  loadLogo();
+    // 🔥 REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel("settings-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+        },
+        (payload) => {
+          const updated = payload.new;
 
-  const interval = setInterval(loadLogo, 2000); // 🔥 live update
+          // only react to THIS household
+          if (updated?.household_id === householdId) {
+            if (updated.logo_url) {
+              setLogo(updated.logo_url);
+            } else {
+              setLogo(null);
+            }
+          }
+        }
+      )
+      .subscribe();
 
-  return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
 
-}, []);
+  }, []);
+
+
   // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
@@ -126,7 +155,6 @@ useEffect(() => {
     };
 
     fetchWeather();
-
     const interval = setInterval(fetchWeather, 600000);
 
     return () => clearInterval(interval);
@@ -178,7 +206,7 @@ useEffect(() => {
       </div>
 
       {/* ===== BLOCK 8B: LOGO ===== */}
-      {showLogo && (
+      {logo && (
         <img
           src={logo}
           alt="Oikos Brand"
