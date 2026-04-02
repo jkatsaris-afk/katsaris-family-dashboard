@@ -5,7 +5,9 @@ import { supabase } from "./lib/supabase";
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
-  const [isSleeping, setIsSleeping] = useState(false);
+
+  const [nightMode, setNightMode] = useState(false);
+  const [autoNightMode, setAutoNightMode] = useState(false);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -26,36 +28,27 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 💤 INACTIVITY → SLEEP MODE
+  // 🌙 AUTO NIGHT MODE (only if enabled from DB)
   useEffect(() => {
-    let timeout;
+    if (!autoNightMode) return;
 
-    const resetTimer = () => {
-      setIsSleeping(false);
-      clearTimeout(timeout);
+    const checkNightMode = () => {
+      const hour = new Date().getHours();
+      const shouldBeNight = hour >= 20 || hour < 6;
 
-      timeout = setTimeout(() => {
-        setIsSleeping(true);
-      }, 900000); // 15 minutes
+      setNightMode((prev) =>
+        prev !== shouldBeNight ? shouldBeNight : prev
+      );
     };
 
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("touchstart", resetTimer);
-    window.addEventListener("click", resetTimer);
+    checkNightMode();
+    const interval = setInterval(checkNightMode, 60000);
+    return () => clearInterval(interval);
+  }, [autoNightMode]);
 
-    resetTimer();
-
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("touchstart", resetTimer);
-      window.removeEventListener("click", resetTimer);
-    };
-  }, []);
-
-  // 🔥 LOAD LOGO (Supabase)
+  // 🔥 LOAD SETTINGS + LOGO FROM SUPABASE
   useEffect(() => {
-    const loadLogo = async () => {
+    const loadData = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -76,12 +69,13 @@ export default function HomePage() {
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.logo_url) {
-        setLogo(data.logo_url);
-      }
+      if (data?.logo_url) setLogo(data.logo_url);
+      if (data?.night_mode !== undefined) setNightMode(data.night_mode);
+      if (data?.auto_night_mode !== undefined)
+        setAutoNightMode(data.auto_night_mode);
     };
 
-    loadLogo();
+    loadData();
   }, []);
 
   // 🌤️ WEATHER
@@ -149,101 +143,73 @@ export default function HomePage() {
   return (
     <div
       style={{
-        position: "relative",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        backgroundImage: `url("/background.jpg")`,
+        justifyContent: nightMode ? "center" : "flex-start",
+        paddingTop: nightMode ? "0px" : "120px",
+        background: nightMode ? "#000" : undefined,
+        backgroundImage: nightMode ? "none" : `url("/background.jpg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      {/* 🌙 SLEEP MODE OVERLAY (ONLY WHEN SLEEPING) */}
-      {isSleeping && (
+      {/* MAIN CONTENT */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        {/* TILE */}
         <div
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(6px)",
-            zIndex: 1,
-          }}
-        />
-      )}
-
-      {/* 💤 SLEEP MODE CLOCK ONLY */}
-      {isSleeping ? (
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            color: "#ffffff",
-            fontSize: "100px",
-            fontWeight: "600",
+            padding: "40px 60px",
+            borderRadius: "24px",
+            background: nightMode
+              ? "transparent"
+              : "rgba(255,255,255,0.15)",
+            backdropFilter: nightMode ? "none" : "blur(12px)",
+            boxShadow: nightMode
+              ? "none"
+              : "0 10px 30px rgba(0,0,0,0.4)",
+            textAlign: "center",
           }}
         >
-          {formattedTime}
-        </div>
-      ) : (
-        /* 🏠 NORMAL UI */
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            paddingTop: "80px",
-          }}
-        >
-          {/* 🔥 GLASS TILE */}
+          {/* TIME */}
           <div
             style={{
-              padding: "40px 60px",
-              borderRadius: "24px",
-              background: "rgba(255,255,255,0.15)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              textAlign: "center",
+              fontSize: "110px",
+              fontWeight: "700",
+              color: nightMode ? "#ffffff" : "#111827",
             }}
           >
-            {/* 🕒 TIME */}
-            <div
-              style={{
-                fontSize: "110px",
-                fontWeight: "700",
-                color: "#111827",
-                lineHeight: "1",
-              }}
-            >
-              {formattedTime}
-            </div>
+            {formattedTime}
+          </div>
 
-            {/* 📅 DATE */}
-            <div
-              style={{
-                fontSize: "24px",
-                color: "#374151",
-                marginBottom: "20px",
-              }}
-            >
-              {formattedDate}
-            </div>
+          {/* DATE */}
+          <div
+            style={{
+              fontSize: "24px",
+              color: nightMode
+                ? "rgba(255,255,255,0.8)"
+                : "#374151",
+              marginBottom: "20px",
+            }}
+          >
+            {formattedDate}
+          </div>
 
-            {/* 🌤️ WEATHER */}
+          {/* WEATHER (hidden in night mode) */}
+          {!nightMode && (
             <div style={{ color: "#374151" }}>
               <div style={{ fontSize: "28px", fontWeight: "600" }}>
                 {weather.temp}° • {weather.condition}
               </div>
 
-              <div style={{ fontSize: "16px", color: "#6b7280" }}>
+              <div style={{ fontSize: "16px", opacity: 0.8 }}>
                 Feels like {weather.feels}° • H {weather.high}° / L{" "}
                 {weather.low}°
               </div>
@@ -252,27 +218,28 @@ export default function HomePage() {
                 style={{
                   marginTop: "12px",
                   fontSize: "15px",
-                  color: "#6b7280",
+                  opacity: 0.8,
                 }}
               >
                 Tomorrow: {weather.tomorrowHigh}° /{" "}
                 {weather.tomorrowLow}° • {weather.tomorrowCondition}
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* 🏠 LOGO */}
+        {/* LOGO (hidden in night mode) */}
+        {!nightMode && (
           <img
             src={logo}
             alt="Oikos Brand"
             style={{
               width: "200px",
               marginTop: "25px",
-              filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
             }}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
