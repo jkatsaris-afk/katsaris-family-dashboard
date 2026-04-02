@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Image, Palette, Settings2, LayoutGrid } from "lucide-react";
+import { getProfile } from "../profileStore"; // ✅ NEW
 
 const PRIMARY = "#2f6ea6";
 
@@ -21,57 +22,46 @@ const defaultTiles = {
 // ===== BLOCK 3: MAIN COMPONENT =====
 export default function HomeScreenSettings() {
 
-  // ===== BLOCK 4: STATE =====
   const [settings, setSettings] = useState(null);
+  const [profile, setProfile] = useState(null); // ✅ NEW
 
 
   // ===== BLOCK 5: LOAD SETTINGS =====
   useEffect(() => {
     const load = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const p = getProfile(); // ✅ get selected profile
+        if (!p) return;
 
-        if (!user) return;
+        setProfile(p);
 
-        const { data: member } = await supabase
-          .from("household_members")
+        let { data } = await supabase
+          .from("profile_settings")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("profile_id", p.id)
           .maybeSingle();
 
-        if (!member) return;
-
-        const { data } = await supabase
-          .from("settings")
-          .select("*")
-          .eq("household_id", member.household_id)
-          .maybeSingle();
-
-        if (data) {
-          setSettings({
-            ...data,
-            visible_tiles: data.visible_tiles || defaultTiles,
-          });
-        } else {
+        // ✅ CREATE SETTINGS IF NONE EXIST
+        if (!data) {
           const { data: newSettings } = await supabase
-            .from("settings")
+            .from("profile_settings")
             .insert({
-              household_id: member.household_id,
+              profile_id: p.id,
               auto_night_mode: false,
               visible_tiles: defaultTiles,
+              background_url: null,
+              logo_url: null,
             })
             .select()
             .single();
 
-          if (newSettings) {
-            setSettings({
-              ...newSettings,
-              visible_tiles: newSettings.visible_tiles || defaultTiles,
-            });
-          }
+          data = newSettings;
         }
+
+        setSettings({
+          ...data,
+          visible_tiles: data.visible_tiles || defaultTiles,
+        });
 
       } catch (err) {
         console.error("LOAD ERROR:", err);
@@ -84,18 +74,18 @@ export default function HomeScreenSettings() {
 
   // ===== BLOCK 6: UPDATE SETTINGS =====
   const updateSettings = async (updates) => {
-    if (!settings) return;
+    if (!settings || !profile) return;
 
     try {
-      const { error } = await supabase
-        .from("settings")
-        .update(updates)
-        .eq("id", settings.id);
-
-      if (error) {
-        console.error("UPDATE ERROR:", error);
-        return;
-      }
+      await supabase
+        .from("profile_settings")
+        .upsert(
+          {
+            profile_id: profile.id,
+            ...updates,
+          },
+          { onConflict: "profile_id" }
+        );
 
       setSettings((prev) => ({
         ...prev,
@@ -115,7 +105,7 @@ export default function HomeScreenSettings() {
     const file = e.target.files[0];
     if (!file || !settings) return;
 
-    const filePath = `${settings.household_id}/${type}-${Date.now()}`;
+    const filePath = `${profile.id}/${type}-${Date.now()}`; // ✅ FIXED
 
     const { error } = await supabase.storage
       .from("oikos-assets")
@@ -160,11 +150,10 @@ export default function HomeScreenSettings() {
           .remove([path]);
       }
 
-      if (type === "background") {
-        updateSettings({ background_url: null });
-      } else {
-        updateSettings({ logo_url: null });
-      }
+      updateSettings({
+        [type === "background" ? "background_url" : "logo_url"]: null,
+      });
+
     } catch (err) {
       console.error("REMOVE ERROR:", err);
     }
@@ -191,7 +180,7 @@ export default function HomeScreenSettings() {
     <div>
       <h2>Home Screen Settings</h2>
 
-      {/* ===== BLOCK 11A: APPEARANCE ===== */}
+      {/* APPEARANCE */}
       <div style={styles.cardBlock}>
         <div style={styles.cardHeader}>
           <Image size={20} />
@@ -230,46 +219,7 @@ export default function HomeScreenSettings() {
         )}
       </div>
 
-      {/* ===== BLOCK 11B: BRANDING ===== */}
-      <div style={styles.cardBlock}>
-        <div style={styles.cardHeader}>
-          <Palette size={20} />
-          <span>Branding</span>
-        </div>
-
-        <div style={styles.uploadRow}>
-          <div>
-            <div style={styles.label}>Center Screen Logo</div>
-            <div style={styles.sub}>
-              Displays centered on the home screen
-            </div>
-          </div>
-
-          <label style={styles.uploadBtn}>
-            Upload
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleUpload(e, "logo")}
-              style={{ display: "none" }}
-            />
-          </label>
-        </div>
-
-        {settings.logo_url && (
-          <>
-            <img src={settings.logo_url} style={styles.previewLogo} />
-            <button
-              onClick={() => handleRemove("logo")}
-              style={styles.removeBtn}
-            >
-              Remove Logo
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* ===== BLOCK 11C: BEHAVIOR ===== */}
+      {/* BEHAVIOR */}
       <div style={styles.cardBlock}>
         <div style={styles.cardHeader}>
           <Settings2 size={20} />
@@ -300,7 +250,7 @@ export default function HomeScreenSettings() {
         </div>
       </div>
 
-      {/* ===== BLOCK 11D: LAYOUT ===== */}
+      {/* LAYOUT */}
       <div style={styles.cardBlock}>
         <div style={styles.cardHeader}>
           <LayoutGrid size={20} />
@@ -333,94 +283,3 @@ export default function HomeScreenSettings() {
     </div>
   );
 }
-
-
-// ===== BLOCK 12: STYLES =====
-const styles = {
-  cardBlock: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginTop: "15px",
-  },
-  cardHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "18px",
-    fontWeight: "600",
-    marginBottom: "10px",
-  },
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginTop: "10px",
-    alignItems: "center",
-  },
-  uploadRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "15px",
-  },
-  label: {
-    fontWeight: "600",
-    fontSize: "15px",
-  },
-  sub: {
-    fontSize: "13px",
-    color: "#6b7280",
-  },
-  uploadBtn: {
-    background: PRIMARY,
-    color: "#fff",
-    padding: "8px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-  },
-  removeBtn: {
-    marginTop: "10px",
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    padding: "8px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-  },
-  previewLarge: {
-    width: "100%",
-    maxWidth: "400px",
-    height: "200px",
-    objectFit: "cover",
-    borderRadius: "12px",
-    marginTop: "10px",
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-  },
-  previewLogo: {
-    height: "60px",
-    marginTop: "10px",
-  },
-  toggle: {
-    width: "40px",
-    height: "20px",
-    borderRadius: "999px",
-    position: "relative",
-    cursor: "pointer",
-  },
-  knob: {
-    width: "16px",
-    height: "16px",
-    borderRadius: "50%",
-    background: "#fff",
-    position: "absolute",
-    top: "2px",
-    transition: "all 0.2s ease",
-  },
-};
