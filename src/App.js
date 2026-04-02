@@ -76,6 +76,14 @@ function AppContent() {
     }
   }, []);
 
+  // ===== FORCE PROFILE SELECT (ADDED) =====
+  useEffect(() => {
+    if (!profile) {
+      console.log("⚠️ No profile selected → opening profile picker");
+      setShowProfiles(true);
+    }
+  }, [profile]);
+
   // ===== LISTEN FOR PROFILE =====
   useEffect(() => {
     const unsub = subscribeProfile((newProfile) => {
