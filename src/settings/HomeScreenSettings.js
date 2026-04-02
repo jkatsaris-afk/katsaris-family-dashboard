@@ -47,17 +47,19 @@ export default function HomeScreenSettings() {
 
         if (data) {
           setSettings({
-            ...data,
-            visible_tiles: data.visible_tiles || defaultTiles,
-          });
+  ...data,
+  show_logo: data.show_logo ?? true,
+  visible_tiles: data.visible_tiles || defaultTiles,
+});
         } else {
           const { data: newSettings } = await supabase
             .from("settings")
             .insert({
               household_id: member.household_id,
               auto_night_mode: false,
+              show_logo: true,
               visible_tiles: defaultTiles,
-            })
+              })
             .select()
             .single();
 
@@ -209,6 +211,28 @@ export default function HomeScreenSettings() {
         )}
       </div>
 {/* ===== BLOCK 11A: BRANDING ===== */}
+<div style={styles.row}>
+  <span>Show Logo on Home Screen</span>
+
+  <div
+    onClick={() =>
+      updateSettings({
+        show_logo: !settings.show_logo,
+      })
+    }
+    style={{
+      ...styles.toggle,
+      background: settings.show_logo ? PRIMARY : "#e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        ...styles.knob,
+        left: settings.show_logo ? "22px" : "2px",
+      }}
+    />
+  </div>
+</div>
 <div style={styles.cardBlock}>
   <h3>Branding</h3>
 
