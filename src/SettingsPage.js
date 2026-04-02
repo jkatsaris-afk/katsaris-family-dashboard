@@ -144,12 +144,13 @@ export default function SettingsPage() {
 // ===== BLOCK 8: STYLES =====
 const styles = {
   container: {
-    display: "flex",
-    height: "calc(100vh - 140px)",
-    background: "#f8fafc",
-    borderRadius: "20px",
-    overflow: "hidden",
-  },
+  display: "flex",
+  height: "100%",      // 👈 CRITICAL
+  minHeight: 0,        // 👈 THIS fixes overflow issues
+  background: "#f8fafc",
+  borderRadius: "20px",
+  overflow: "hidden",
+},
   sidebar: {
     width: "260px",
     background: "#fff",
