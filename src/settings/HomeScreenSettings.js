@@ -68,10 +68,11 @@ export default function HomeScreenSettings() {
           data = newSettings;
         }
 
-        setSettings({
-          ...data,
-          visible_tiles: data.visible_tiles || defaultTiles,
-        });
+      setSettings({
+  ...data,
+  visible_tiles: data.visible_tiles || defaultTiles,
+  visible_widgets: data.visible_widgets || {},
+});
 
       } catch (err) {
         console.error("LOAD ERROR:", err);
@@ -179,7 +180,15 @@ export default function HomeScreenSettings() {
 
     updateSettings({ visible_tiles: updated });
   };
+// ===== BLOCK 9B: WIDGET TOGGLE =====
+const toggleWidget = (key) => {
+  const updated = {
+    ...(settings.visible_widgets || {}),
+    [key]: !settings.visible_widgets?.[key],
+  };
 
+  updateSettings({ visible_widgets: updated });
+};
 
   // ===== BLOCK 10: LOADING =====
   if (!settings) return <div>Loading settings...</div>;
@@ -288,6 +297,43 @@ export default function HomeScreenSettings() {
   <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
     Returns to Home after 10 minutes of inactivity
   </div>
+</div>
+
+{/* WIDGETS */}
+<div style={styles.cardBlock}>
+  <div style={styles.cardHeader}>
+    <LayoutGrid size={20} />
+    <span>Widgets</span>
+  </div>
+
+  {[
+    ["clock", "Clock"],
+    ["weather", "Weather"],
+    ["events", "Today's Events"],
+    ["countdown", "Countdown"],
+    ["bible", "Daily Bible Verse"],
+  ].map(([key, label]) => (
+    <div key={key} style={styles.row}>
+      <span>{label}</span>
+
+      <div
+        onClick={() => toggleWidget(key)}
+        style={{
+          ...styles.toggle,
+          background: settings.visible_widgets?.[key]
+            ? PRIMARY
+            : "#e5e7eb",
+        }}
+      >
+        <div
+          style={{
+            ...styles.knob,
+            left: settings.visible_widgets?.[key] ? "22px" : "2px",
+          }}
+        />
+      </div>
+    </div>
+  ))}
 </div>
       {/* LAYOUT */}
       <div style={styles.cardBlock}>
