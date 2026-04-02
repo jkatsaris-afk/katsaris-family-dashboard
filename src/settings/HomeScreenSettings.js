@@ -54,7 +54,7 @@ export default function HomeScreenSettings() {
               visible_tiles: defaultTiles,
               background_url: null,
               logo_url: null,
-              home_show_household_name: true, // ✅ ADDED
+              home_show_household_name: true,
             })
             .select()
             .single();
@@ -227,30 +227,6 @@ const toggleWidget = (key) => {
           </label>
         </div>
 
-        {/* ✅ NEW TOGGLE */}
-        <div style={styles.row}>
-          <span>Show Household Name</span>
-
-          <div
-            onClick={() =>
-              updateSettings({
-                home_show_household_name: !settings.home_show_household_name,
-              })
-            }
-            style={{
-              ...styles.toggle,
-              background: settings.home_show_household_name ? PRIMARY : "#e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.home_show_household_name ? "22px" : "2px",
-              }}
-            />
-          </div>
-        </div>
-
         {settings.background_url && (
           <>
             <img src={settings.background_url} style={styles.previewLarge} />
@@ -260,226 +236,30 @@ const toggleWidget = (key) => {
             >
               Remove Background
             </button>
+
+            {/* ✅ MOVED TO HERE */}
+            <div style={styles.row}>
+              <span>Show Household Name</span>
+
+              <div
+                onClick={() =>
+                  updateSettings({
+                    home_show_household_name: !settings.home_show_household_name,
+                  })
+                }
+                style={{
+                  ...styles.toggle,
+                  background: settings.home_show_household_name ? PRIMARY : "#e5e7eb",
+                }}
+              >
+                <div
+                  style={{
+                    ...styles.knob,
+                    left: settings.home_show_household_name ? "22px" : "2px",
+                  }}
+                />
+              </div>
+            </div>
           </>
         )}
       </div>
-
-
-      {/* BEHAVIOR */}
-      <div style={styles.cardBlock}>
-        <div style={styles.cardHeader}>
-          <Settings2 size={20} />
-          <span>Behavior</span>
-        </div>
-
-        <div style={styles.row}>
-          <span>Enable automatic night mode</span>
-
-          <div
-            onClick={() =>
-              updateSettings({
-                auto_night_mode: !settings.auto_night_mode,
-              })
-            }
-            style={{
-              ...styles.toggle,
-              background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.auto_night_mode ? "22px" : "2px",
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={styles.row}>
-          <span>Return to Home after inactivity</span>
-
-          <div
-            onClick={() =>
-              updateSettings({
-                inactivity_enabled: !settings.inactivity_enabled,
-              })
-            }
-            style={{
-              ...styles.toggle,
-              background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.inactivity_enabled ? "22px" : "2px",
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-          Returns to Home after 10 minutes of inactivity
-        </div>
-      </div>
-
-
-      {/* WIDGETS */}
-      <div style={styles.cardBlock}>
-        <div style={styles.cardHeader}>
-          <LayoutGrid size={20} />
-          <span>Widgets</span>
-        </div>
-
-        {[
-          ["clock", "Clock"],
-          ["date", "Date"],
-          ["weather", "Weather"],
-          ["events", "Today's Events"],
-          ["countdown", "Countdown"],
-          ["bible", "Daily Bible Verse"],
-        ].map(([key, label]) => (
-          <div key={key} style={styles.row}>
-            <span>{label}</span>
-
-            <div
-              onClick={() => toggleWidget(key)}
-              style={{
-                ...styles.toggle,
-                background: settings.visible_widgets?.[key]
-                  ? PRIMARY
-                  : "#e5e7eb",
-              }}
-            >
-              <div
-                style={{
-                  ...styles.knob,
-                  left: settings.visible_widgets?.[key] ? "22px" : "2px",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-
-      {/* LAYOUT */}
-      <div style={styles.cardBlock}>
-        <div style={styles.cardHeader}>
-          <LayoutGrid size={20} />
-          <span>Layout</span>
-        </div>
-
-        {Object.entries(defaultTiles).map(([key]) => (
-          <div key={key} style={styles.row}>
-            <span>{key}</span>
-
-            <div
-              onClick={() => toggleTile(key)}
-              style={{
-                ...styles.toggle,
-                background: settings.visible_tiles[key]
-                  ? PRIMARY
-                  : "#e5e7eb",
-              }}
-            >
-              <div
-                style={{
-                  ...styles.knob,
-                  left: settings.visible_tiles[key] ? "22px" : "2px",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-
-// ===== STYLES =====
-const styles = {
-  cardBlock: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    marginTop: "15px",
-  },
-  cardHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "18px",
-    fontWeight: "600",
-    marginBottom: "10px",
-  },
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginTop: "10px",
-    alignItems: "center",
-  },
-  uploadRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "15px",
-  },
-  label: {
-    fontWeight: "600",
-    fontSize: "15px",
-  },
-  sub: {
-    fontSize: "13px",
-    color: "#6b7280",
-  },
-  uploadBtn: {
-    background: PRIMARY,
-    color: "#fff",
-    padding: "8px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-  },
-  removeBtn: {
-    marginTop: "10px",
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    padding: "8px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "600",
-  },
-  previewLarge: {
-    width: "100%",
-    maxWidth: "300px",
-    height: "140px",
-    objectFit: "cover",
-    borderRadius: "12px",
-    marginTop: "10px",
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto",
-    border: "1px solid #e5e7eb",
-  },
-  toggle: {
-    width: "40px",
-    height: "20px",
-    borderRadius: "999px",
-    position: "relative",
-    cursor: "pointer",
-  },
-  knob: {
-    width: "16px",
-    height: "16px",
-    borderRadius: "50%",
-    background: "#fff",
-    position: "absolute",
-    top: "2px",
-    transition: "all 0.2s ease",
-  },
-};
