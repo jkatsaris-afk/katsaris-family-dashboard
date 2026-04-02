@@ -57,10 +57,8 @@ useEffect(() => {
         .maybeSingle();
 
       if (data) {
-        // ✅ Toggle
         setShowLogo(data.show_logo ?? true);
 
-        // ✅ Logo with fallback
         if (data.logo_url) {
           setLogo(data.logo_url);
         } else {
@@ -70,22 +68,20 @@ useEffect(() => {
 
     } catch (err) {
       console.error("LOAD LOGO ERROR:", err);
-
-      // fallback safety
       setLogo(defaultLogo);
       setShowLogo(true);
     }
   };
 
-  // initial load
+  // run once
   loadLogo();
 
-  // 🔥 TEMP SYNC: keep UI updated when settings change
-  const interval = setInterval(() => {
-    loadLogo();
-  }, 2000);
+  // keep UI in sync
+  const interval = setInterval(loadLogo, 2000);
 
-  return () => clearInterval(interval);
+  return () => {
+    clearInterval(interval);
+  };
 
 }, []);
   
