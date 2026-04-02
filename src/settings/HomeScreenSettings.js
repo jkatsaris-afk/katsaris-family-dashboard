@@ -308,6 +308,7 @@ const toggleWidget = (key) => {
 
   {[
     ["clock", "Clock"],
+     ["date", "Date"],
     ["weather", "Weather"],
     ["events", "Today's Events"],
     ["countdown", "Countdown"],
