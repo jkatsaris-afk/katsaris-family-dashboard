@@ -32,8 +32,7 @@ import HomeControlsPage from "./HomeControlsPage";
 
 import ProfilesPage from "./ProfilesPage";
 
-import { User } from "lucide-react";
-import { getProfile, subscribeProfile, setProfile } from "./profileStore"; // ✅ added setProfile
+import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
 
@@ -43,7 +42,6 @@ const PRIMARY = "#2f6ea6";
 // ===== BLOCK 2: MAIN COMPONENT =====
 function AppContent() {
 
-  // ===== BLOCK 3: STATE =====
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
@@ -57,13 +55,13 @@ function AppContent() {
   const [now, setNow] = useState(new Date());
   const [profile, setProfileState] = useState(null);
 
-  // ===== BLOCK 4: CLOCK =====
+  // ===== CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // ===== BLOCK 4A: RESTORE PROFILE =====
+  // ===== RESTORE PROFILE =====
   useEffect(() => {
     const saved = localStorage.getItem("activeProfile");
 
@@ -71,23 +69,22 @@ function AppContent() {
       try {
         const parsed = JSON.parse(saved);
         setProfileState(parsed);
-        setProfile(parsed); // 🔥 push into global store
+        setProfile(parsed);
       } catch (err) {
         console.error("PROFILE RESTORE ERROR:", err);
       }
     }
   }, []);
 
-  // ===== BLOCK 4B: LISTEN FOR PROFILE CHANGES =====
+  // ===== LISTEN FOR PROFILE =====
   useEffect(() => {
     const unsub = subscribeProfile((newProfile) => {
       setProfileState(newProfile);
     });
-
     return () => unsub();
   }, []);
 
-  // ===== BLOCK 5: AUTH =====
+  // ===== AUTH =====
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -107,7 +104,7 @@ function AppContent() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ===== BLOCK 6: LOAD SETTINGS (PROFILE BASED) =====
+  // ===== LOAD SETTINGS =====
   useEffect(() => {
     if (!profile) return;
 
@@ -118,7 +115,6 @@ function AppContent() {
         .eq("profile_id", profile.id)
         .maybeSingle();
 
-      // ✅ CREATE SETTINGS IF MISSING
       if (!data) {
         const { data: newData } = await supabase
           .from("profile_settings")
@@ -141,7 +137,7 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
-  // ===== BLOCK 7: AUTO NIGHT MODE =====
+  // ===== AUTO NIGHT =====
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -155,7 +151,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // ===== BLOCK 8: APP FILTER =====
+  // ===== APP FILTER (FIXED) =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -167,23 +163,30 @@ function AppContent() {
   ].filter(app => {
     const tiles = displaySettings?.visible_tiles;
     if (!tiles) return true;
-    if (typeof tiles === "object") return tiles[app.page] !== false;
+
+    if (typeof tiles === "object") {
+      return tiles[app.page] === undefined ? true : tiles[app.page];
+    }
+
     return true;
   });
 
-  // ===== BLOCK 9: VISIBILITY =====
+  // ===== VISIBILITY (FIXED) =====
   const isVisible = (pageName) => {
     const tiles = displaySettings?.visible_tiles;
     if (!tiles) return true;
-    if (typeof tiles === "object") return tiles[pageName] !== false;
+
+    if (typeof tiles === "object") {
+      return tiles[pageName] === undefined ? true : tiles[pageName];
+    }
+
     return true;
   };
 
-  // ===== BLOCK 10: AUTH GUARD =====
+  // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
-  // ===== BLOCK 11: TIME =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -195,7 +198,6 @@ function AppContent() {
     minute: "2-digit",
   });
 
-  // ===== BLOCK 12: MAIN UI =====
   return (
     <div
       style={{
@@ -209,15 +211,18 @@ function AppContent() {
       }}
     >
 
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
 
-          {/* 👤 PROFILE BUTTON */}
+          {/* 🔥 PROFILE BUTTON (UPDATED) */}
           <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
-            <User size={16} />
+            <img
+              src={profile?.avatar_url || "/default-avatar.png"}
+              style={styles.profileAvatar}
+            />
             <span>{profile?.first_name || "Profile"}</span>
           </div>
 
@@ -245,7 +250,7 @@ function AppContent() {
         </div>
       </div>
 
-      {/* ===== CONTENT ===== */}
+      {/* CONTENT */}
       <div style={{ padding: "10px 20px 120px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
@@ -257,7 +262,7 @@ function AppContent() {
         {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
       </div>
 
-      {/* ===== DOCK ===== */}
+      {/* DOCK */}
       <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
@@ -312,11 +317,18 @@ const styles = {
   profileBtn: {
     display: "flex",
     alignItems: "center",
-    gap: "6px",
+    gap: "8px",
     background: "#fff",
     padding: "6px 10px",
-    borderRadius: "8px",
+    borderRadius: "20px",
     cursor: "pointer",
     boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+  },
+
+  profileAvatar: {
+    width: "26px",
+    height: "26px",
+    borderRadius: "50%",
+    objectFit: "cover",
   },
 };
