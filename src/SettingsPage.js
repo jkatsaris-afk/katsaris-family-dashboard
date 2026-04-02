@@ -172,9 +172,11 @@ const styles = {
     cursor: "pointer",
   },
   content: {
-    flex: 1,
-    padding: "25px",
-    overflowY: "auto",
+  flex: 1,
+  padding: "25px",
+  paddingBottom: "140px", // 👈 match dock space
+  overflowY: "auto",
+},
   },
   logout: {
     padding: "12px",
