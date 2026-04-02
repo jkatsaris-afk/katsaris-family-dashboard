@@ -174,7 +174,7 @@ export default function HomeScreenSettings() {
 
       {/* ===== BLOCK 11A: BACKGROUND + LOGO ===== */}
       <div style={styles.cardBlock}>
-        <h3>Branding & Background</h3>
+        <h3>Background Settings</h3>
 
         {/* BACKGROUND */}
         <div style={styles.uploadRow}>
@@ -207,40 +207,42 @@ export default function HomeScreenSettings() {
             </button>
           </>
         )}
-
-        {/* LOGO */}
-        <div style={styles.uploadRow}>
-          <div>
-            <div style={styles.label}>Center Screen Logo</div>
-            <div style={styles.sub}>
-              Displays centered on the home screen
-            </div>
-          </div>
-
-          <label style={styles.uploadBtn}>
-            Upload
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleUpload(e, "logo")}
-              style={{ display: "none" }}
-            />
-          </label>
-        </div>
-
-        {settings.logo_url && (
-          <>
-            <img src={settings.logo_url} style={styles.previewLogo} />
-            <button
-              onClick={() => handleRemove("logo")}
-              style={styles.removeBtn}
-            >
-              Remove Logo
-            </button>
-          </>
-        )}
       </div>
+{/* ===== BLOCK 11A: BRANDING ===== */}
+<div style={styles.cardBlock}>
+  <h3>Branding</h3>
 
+  <div style={styles.uploadRow}>
+    <div>
+      <div style={styles.label}>Center Screen Logo</div>
+      <div style={styles.sub}>
+        Displays centered on the home screen
+      </div>
+    </div>
+
+    <label style={styles.uploadBtn}>
+      Upload
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleUpload(e, "logo")}
+        style={{ display: "none" }}
+      />
+    </label>
+  </div>
+
+  {settings.logo_url && (
+    <>
+      <img src={settings.logo_url} style={styles.previewLogo} />
+      <button
+        onClick={() => handleRemove("logo")}
+        style={styles.removeBtn}
+      >
+        Remove Logo
+      </button>
+    </>
+  )}
+</div>
       {/* ===== BLOCK 11B: AUTO NIGHT MODE ===== */}
       <div style={styles.cardBlock}>
         <h3>Auto Night Mode</h3>
