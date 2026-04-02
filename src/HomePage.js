@@ -6,9 +6,6 @@ export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
 
-  const [nightMode, setNightMode] = useState(false);
-  const [autoNightMode, setAutoNightMode] = useState(false);
-
   const [weather, setWeather] = useState({
     temp: "--",
     feels: "--",
@@ -28,27 +25,9 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌙 AUTO NIGHT MODE (only if enabled)
+  // 🔥 LOAD LOGO
   useEffect(() => {
-    if (!autoNightMode) return;
-
-    const checkNightMode = () => {
-      const hour = new Date().getHours();
-      const shouldBeNight = hour >= 20 || hour < 6;
-
-      setNightMode((prev) =>
-        prev !== shouldBeNight ? shouldBeNight : prev
-      );
-    };
-
-    checkNightMode();
-    const interval = setInterval(checkNightMode, 60000);
-    return () => clearInterval(interval);
-  }, [autoNightMode]);
-
-  // 🔥 LOAD SETTINGS + LOGO
-  useEffect(() => {
-    const loadData = async () => {
+    const loadLogo = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -69,13 +48,12 @@ export default function HomePage() {
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.logo_url) setLogo(data.logo_url);
-      if (data?.night_mode !== undefined) setNightMode(data.night_mode);
-      if (data?.auto_night_mode !== undefined)
-        setAutoNightMode(data.auto_night_mode);
+      if (data?.logo_url) {
+        setLogo(data.logo_url);
+      }
     };
 
-    loadData();
+    loadLogo();
   }, []);
 
   // 🌤️ WEATHER
@@ -94,7 +72,7 @@ export default function HomePage() {
         );
         const forecast = await forecastRes.json();
 
-        const tomorrow = forecast.list.find((item) =>
+        const tomorrow = forecast.list.find(item =>
           item.dt_txt.includes("12:00:00")
         );
 
@@ -106,10 +84,9 @@ export default function HomePage() {
           condition: current.weather[0].description,
           tomorrowHigh: tomorrow ? Math.round(tomorrow.main.temp_max) : "--",
           tomorrowLow: tomorrow ? Math.round(tomorrow.main.temp_min) : "--",
-          tomorrowCondition: tomorrow
-            ? tomorrow.weather[0].description
-            : "",
+          tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
         });
+
       } catch {
         setWeather({
           temp: "--",
@@ -143,101 +120,78 @@ export default function HomePage() {
   return (
     <div
       style={{
-        position: "relative",
-        minHeight: "100vh",
-        width: "100%",
-
+        minHeight: "70vh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: nightMode ? "center" : "flex-start",
-        paddingTop: nightMode ? "0px" : "120px",
-
-        backgroundColor: nightMode ? "#000" : undefined,
-        backgroundImage: nightMode ? "none" : `url("/background.jpg")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-
-        pointerEvents: "none", // 🔥 allow clicks to pass through
+        paddingTop: "80px",
       }}
     >
-      {/* CONTENT (clickable again) */}
+
+      {/* 🔥 GLASS TILE */}
       <div
         style={{
+          padding: "40px 60px",
+          borderRadius: "24px",
+          background: "rgba(255,255,255,0.15)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
           textAlign: "center",
-          pointerEvents: "auto", // ✅ re-enable clicks here
         }}
       >
-        {/* TILE */}
-        <div
-          style={{
-            padding: "40px 60px",
-            borderRadius: "24px",
-            background: nightMode
-              ? "transparent"
-              : "rgba(255,255,255,0.15)",
-            backdropFilter: nightMode ? "none" : "blur(12px)",
-            boxShadow: nightMode
-              ? "none"
-              : "0 10px 30px rgba(0,0,0,0.4)",
-          }}
-        >
-          {/* TIME */}
-          <div
-            style={{
-              fontSize: "110px",
-              fontWeight: "700",
-              color: nightMode ? "#ffffff" : "#111827",
-            }}
-          >
-            {formattedTime}
-          </div>
 
-          {/* DATE */}
-          <div
-            style={{
-              fontSize: "24px",
-              color: nightMode
-                ? "rgba(255,255,255,0.8)"
-                : "#374151",
-              marginBottom: "20px",
-            }}
-          >
-            {formattedDate}
-          </div>
-
-          {/* WEATHER */}
-          {!nightMode && (
-            <div style={{ color: "#374151" }}>
-              <div style={{ fontSize: "28px", fontWeight: "600" }}>
-                {weather.temp}° • {weather.condition}
-              </div>
-
-              <div style={{ fontSize: "16px", opacity: 0.8 }}>
-                Feels like {weather.feels}° • H {weather.high}° / L{" "}
-                {weather.low}°
-              </div>
-
-              <div style={{ marginTop: "12px", fontSize: "15px", opacity: 0.8 }}>
-                Tomorrow: {weather.tomorrowHigh}° /{" "}
-                {weather.tomorrowLow}° • {weather.tomorrowCondition}
-              </div>
-            </div>
-          )}
+        {/* 🕒 TIME */}
+        <div style={{
+          fontSize: "110px",
+          fontWeight: "700",
+          color: "#111827",
+          lineHeight: "1",
+        }}>
+          {formattedTime}
         </div>
 
-        {/* LOGO */}
-        {!nightMode && (
-          <img
-            src={logo}
-            alt="Oikos Brand"
-            style={{
-              width: "200px",
-              marginTop: "25px",
-            }}
-          />
-        )}
+        {/* 📅 DATE */}
+        <div style={{
+          fontSize: "24px",
+          color: "#374151",
+          marginBottom: "20px",
+        }}>
+          {formattedDate}
+        </div>
+
+        {/* 🌤️ WEATHER */}
+        <div style={{ color: "#374151" }}>
+          <div style={{ fontSize: "28px", fontWeight: "600" }}>
+            {weather.temp}° • {weather.condition}
+          </div>
+
+          <div style={{ fontSize: "16px", color: "#6b7280" }}>
+            Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+          </div>
+
+          <div style={{
+            marginTop: "12px",
+            fontSize: "15px",
+            color: "#6b7280",
+          }}>
+            Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+          </div>
+        </div>
+
       </div>
+
+      {/* ✅ LOGO BELOW TILE */}
+      <img
+        src={logo}
+        alt="Oikos Brand"
+        style={{
+          width: "200px",
+          marginTop: "25px",
+          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
+        }}
+      />
+
     </div>
   );
 }
