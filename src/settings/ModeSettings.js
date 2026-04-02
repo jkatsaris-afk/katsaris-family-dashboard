@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-import homeLogo from "../assets/homelogo.png";
+// LOGOS
+import homeLogo from "../assets/oikos-brand.png"; // ✅ UPDATED
 import businessLogo from "../assets/businesslogo.png";
 import eduLogo from "../assets/edulogo.png";
 import tvLogo from "../assets/tvlogo.png";
@@ -33,7 +34,7 @@ export default function ModeSettings() {
       {/* TITLE */}
       <h2 style={styles.title}>Mode Settings</h2>
 
-      {/* MODE OPTIONS */}
+      {/* MODE GRID */}
       <div style={styles.grid}>
         {modes.map((mode) => {
           const active = selectedMode === mode.key;
@@ -60,7 +61,7 @@ export default function ModeSettings() {
               {/* NAME */}
               <div style={styles.name}>{mode.name}</div>
 
-              {/* TOGGLE INDICATOR */}
+              {/* TOGGLE */}
               <div
                 style={{
                   ...styles.toggle,
