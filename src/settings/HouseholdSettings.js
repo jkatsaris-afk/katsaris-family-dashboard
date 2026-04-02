@@ -186,6 +186,7 @@ const styles = {
     borderRadius: "12px",
     marginTop: "15px",
   },
+
   cardHeader: {
     display: "flex",
     alignItems: "center",
@@ -194,27 +195,34 @@ const styles = {
     fontWeight: "600",
     marginBottom: "15px",
   },
+
   row: {
     display: "flex",
     justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: "15px",
   },
+
   readonly: {
     fontSize: "13px",
     color: "#6b7280",
   },
+
   inputGroup: {
     marginBottom: "15px",
   },
+
   input: {
-    width: "100%",
-    padding: "10px",
+    width: "25%",        // 👈 smaller width
+    minWidth: "180px",   // 👈 keeps usable size
+    padding: "8px",
     borderRadius: "8px",
     border: "1px solid #e5e7eb",
   },
+
   saveBtn: {
     marginTop: "10px",
-    background: PRIMARY,
+    background: "#2f6ea6",
     color: "#fff",
     border: "none",
     padding: "10px 15px",
