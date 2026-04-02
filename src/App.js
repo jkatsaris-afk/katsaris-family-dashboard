@@ -1,7 +1,6 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { motion } from "framer-motion";
 
 import OnboardingPage from "./OnboardingPage";
 import LoadingPage from "./LoadingPage";
@@ -15,8 +14,7 @@ import {
   CloudSun,
   Settings,
   List,
-  Users,
-  Moon
+  Users
 } from "lucide-react";
 
 import { supabase } from "./lib/supabase";
@@ -30,24 +28,25 @@ import SettingsPage from "./SettingsPage";
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
-// ✅ NEW
+// ✅ Profiles
 import ProfilesPage from "./ProfilesPage";
-
 import { User } from "lucide-react";
-import { getProfile, subscribeProfile } from "./profileStore";
+import { getProfile, setProfile, subscribeProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
 
 
-// ===== BLOCK 2: MAIN COMPONENT =====
+// ===== MAIN APP =====
 function AppContent() {
 
-  // ===== BLOCK 3: STATE =====
+  // ===== STATE =====
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
+
+  const [showProfiles, setShowProfiles] = useState(false); // ✅ FIX
 
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
@@ -56,16 +55,24 @@ function AppContent() {
   const [now, setNow] = useState(new Date());
   const [profile, setProfileState] = useState(null);
 
-  // ===== BLOCK 4: CLOCK =====
+  // ===== CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // ===== BLOCK 4B: PROFILE LOAD + SUBSCRIBE =====
+  // ===== PROFILE LOAD (WITH PERSIST) =====
   useEffect(() => {
-    const p = getProfile();
-    setProfileState(p);
+    const saved = localStorage.getItem("activeProfile");
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setProfile(parsed);
+      setProfileState(parsed);
+    } else {
+      const p = getProfile();
+      setProfileState(p);
+    }
 
     const unsub = subscribeProfile((newProfile) => {
       setProfileState(newProfile);
@@ -74,8 +81,7 @@ function AppContent() {
     return () => unsub();
   }, []);
 
-
-  // ===== BLOCK 5: AUTH =====
+  // ===== AUTH =====
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -95,8 +101,7 @@ function AppContent() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-
-  // ===== BLOCK 6: LOAD SETTINGS (PROFILE BASED) =====
+  // ===== LOAD SETTINGS (PER PROFILE) =====
   useEffect(() => {
     if (!profile) return;
 
@@ -116,8 +121,7 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
-
-  // ===== BLOCK 7: AUTO NIGHT MODE =====
+  // ===== AUTO NIGHT MODE =====
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -131,95 +135,67 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-
-  // ===== BLOCK 8: APPS =====
+  // ===== APPS =====
   const apps = [
-    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
-    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
-    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
-    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
-    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-  ].filter(app => {
-    const tiles = displaySettings?.visible_tiles;
-    if (!tiles) return true;
-    if (typeof tiles === "object") return tiles[app.page] !== false;
-    return true;
-  });
+    { name: "Home", icon: <Home />, page: "home" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar" },
+    { name: "Chores", icon: <ClipboardList />, page: "chores" },
+    { name: "Weather", icon: <CloudSun />, page: "weather" },
+    { name: "Lists", icon: <List />, page: "lists" },
+    { name: "Family", icon: <Users />, page: "family" },
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls" },
+  ];
 
-
-  // ===== BLOCK 9: VISIBILITY =====
-  const isVisible = (pageName) => {
-    const tiles = displaySettings?.visible_tiles;
-    if (!tiles) return true;
-    if (typeof tiles === "object") return tiles[pageName] !== false;
-    return true;
-  };
-
-
-  // ===== BLOCK 10: AUTH GUARD =====
+  // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
-
-  // ===== BLOCK 11: TIME =====
-  const formattedDate = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  const formattedTime = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-
-
-  // ===== BLOCK 12: MAIN UI =====
+  // ===== UI =====
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
         <img src={brand} style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
 
-          {/* 👤 PROFILE BUTTON */}
-          <div onClick={() => setPage("profiles")} style={styles.profileBtn}>
+          {/* PROFILE BUTTON */}
+          <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
             <User size={16} />
             <span>{profile?.first_name || "Profile"}</span>
           </div>
 
-          <div onClick={() => setPage("settings")} style={{ background: "#fff", padding: 8, borderRadius: 10 }}>
+          <div onClick={() => setPage("settings")} style={styles.settingsBtn}>
             <Settings size={20} />
           </div>
 
         </div>
       </div>
 
-      {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
-      <div style={{ padding: "10px 20px 120px", height: "100%" }}>
+      {/* CONTENT */}
+      <div style={{ padding: "10px 20px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
-        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
-        {page === "chores" && isVisible("chores") && <ChoresPage />}
-        {page === "weather" && isVisible("weather") && <WeatherPage />}
-        {page === "lists" && isVisible("lists") && <ShoppingPage />}
+        {page === "calendar" && <UpcomingEvents />}
+        {page === "chores" && <ChoresPage />}
+        {page === "weather" && <WeatherPage />}
+        {page === "lists" && <ShoppingPage />}
         {page === "settings" && <SettingsPage />}
-        {page === "family" && isVisible("family") && <FamilyPage />}
-        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-
-        {/* ✅ THIS IS THE KEY CHANGE */}
-        {page === "profiles" && <ProfilesPage />}
+        {page === "family" && <FamilyPage />}
+        {page === "homeControls" && <HomeControlsPage />}
       </div>
+
+      {/* ✅ OVERLAY FIX */}
+      {showProfiles && (
+        <ProfilesPage onClose={() => setShowProfiles(false)} />
+      )}
 
     </div>
   );
 }
 
 
-// ===== BLOCK 13: ROUTER =====
+// ===== ROUTER =====
 export default function App() {
   return (
     <BrowserRouter>
@@ -234,7 +210,7 @@ export default function App() {
 }
 
 
-// ===== BLOCK 14: STYLES =====
+// ===== STYLES =====
 const styles = {
   profileBtn: {
     display: "flex",
@@ -243,6 +219,12 @@ const styles = {
     background: "#fff",
     padding: "6px 10px",
     borderRadius: "8px",
+    cursor: "pointer",
+  },
+  settingsBtn: {
+    background: "#fff",
+    padding: 8,
+    borderRadius: 10,
     cursor: "pointer",
   },
 };
