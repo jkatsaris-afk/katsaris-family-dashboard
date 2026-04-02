@@ -1,3 +1,38 @@
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { motion } from "framer-motion";
+
+import OnboardingPage from "./OnboardingPage";
+import LoadingPage from "./LoadingPage";
+import LoginPage from "./LoginPage";
+
+import {
+  Home,
+  Calendar,
+  ClipboardList,
+  SlidersHorizontal,
+  CloudSun,
+  Settings,
+  List,
+  Users,
+  Moon
+} from "lucide-react";
+
+import { supabase } from "./lib/supabase";
+
+import HomePage from "./HomePage";
+import ChoresPage from "./ChoresPage";
+import UpcomingEvents from "./UpcomingEvents";
+import ShoppingPage from "./ShoppingPage";
+import WeatherPage from "./WeatherPage";
+import SettingsPage from "./SettingsPage";
+import FamilyPage from "./FamilyPage";
+import HomeControlsPage from "./HomeControlsPage";
+
+import brand from "./assets/oikos-brand.png";
+
+const PRIMARY = "#2f6ea6";
+
 function AppContent() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -7,7 +42,6 @@ function AppContent() {
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
   const [settings, setSettings] = useState(null);
   const [displaySettings, setDisplaySettings] = useState(null);
-  const [now, setNow] = useState(new Date());
 
   // AUTH
   useEffect(() => {
@@ -27,12 +61,6 @@ function AppContent() {
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
-
-  // CLOCK
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
   }, []);
 
   // SETTINGS LOAD
@@ -64,33 +92,7 @@ function AppContent() {
     loadSettings();
   }, [user]);
 
-  // REALTIME SETTINGS
-  useEffect(() => {
-    if (!user || !settings) return;
-
-    const channel = supabase
-      .channel("settings-live")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "settings",
-        },
-        (payload) => {
-          if (payload.new?.id === settings.id) {
-            setDisplaySettings(payload.new);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, settings]);
-
-  // 🌙 AUTO NIGHT MODE
+  // AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -125,12 +127,10 @@ function AppContent() {
     <div
       style={{
         height: "100vh",
-        overflow: "hidden",
-        position: "relative",
         display: "flex",
         flexDirection: "column",
 
-        // 🔥 BACKGROUND CONTROL
+        // 🌙 NIGHT MODE BACKGROUND
         background: nightMode
           ? "#000"
           : displaySettings?.background_url
@@ -138,6 +138,7 @@ function AppContent() {
           : "#eef1f5",
       }}
     >
+
       {/* HEADER */}
       <div
         style={{
@@ -184,15 +185,12 @@ function AppContent() {
       <div
         style={{
           flex: 1,
-          overflowY: "auto",
-
-          padding: nightMode ? "0px" : "10px 20px 120px",
 
           display: nightMode ? "flex" : "block",
           alignItems: nightMode ? "center" : "unset",
           justifyContent: nightMode ? "center" : "unset",
 
-          zIndex: 5,
+          padding: nightMode ? "0px" : "10px 20px 120px",
         }}
       >
         {page === "home" && <HomePage />}
@@ -267,5 +265,19 @@ function AppContent() {
         </div>
       )}
     </div>
+  );
+}
+
+// ✅ THIS IS THE CRITICAL PART (fixes your error)
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/loading" element={<LoadingPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/app" element={<AppContent />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
