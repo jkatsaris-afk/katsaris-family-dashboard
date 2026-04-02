@@ -24,56 +24,64 @@ export default function HomeScreenSettings() {
   const [settings, setSettings] = useState(null);
 
 
-  // ===== BLOCK 5: LOAD SETTINGS =====
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+// ===== BLOCK 5: LOAD SETTINGS =====
+useEffect(() => {
+  const load = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        const { data: member } = await supabase
-          .from("household_members")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      if (!user) return;
 
-        if (!member) return;
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-        const { data } = await supabase
+      if (!member) return;
+
+      const { data } = await supabase
+        .from("settings")
+        .select("*")
+        .eq("household_id", member.household_id)
+        .maybeSingle();
+
+      if (data) {
+        setSettings({
+          ...data,
+          show_logo: data.show_logo ?? true, // ✅ ensure exists
+          visible_tiles: data.visible_tiles || defaultTiles,
+        });
+      } else {
+        const { data: newSettings } = await supabase
           .from("settings")
-          .select("*")
-          .eq("household_id", member.household_id)
-          .maybeSingle();
+          .insert({
+            household_id: member.household_id,
+            auto_night_mode: false,
+            show_logo: true, // ✅ default
+            visible_tiles: defaultTiles,
+          })
+          .select()
+          .single();
 
-        if (data) {
+        if (newSettings) {
           setSettings({
-  ...data,
-  show_logo: data.show_logo ?? true,
-  visible_tiles: data.visible_tiles || defaultTiles,
-});
-        } else {
-          const { data: newSettings } = await supabase
-            .from("settings")
-            .insert({
-              household_id: member.household_id,
-              auto_night_mode: false,
-              show_logo: true,
-              visible_tiles: defaultTiles,
-              })
-            .select()
-            .single();
-
-          if (newSettings) setSettings(newSettings);
+            ...newSettings,
+            show_logo: newSettings.show_logo ?? true,
+            visible_tiles: newSettings.visible_tiles || defaultTiles,
+          });
         }
-      } catch (err) {
-        console.error("LOAD ERROR:", err);
       }
-    };
 
-    load();
-  }, []);
+    } catch (err) {
+      console.error("LOAD ERROR:", err);
+    }
+  };
 
-
+  load();
+}, []);
   // ===== BLOCK 6: UPDATE SETTINGS =====
   const updateSettings = async (updates) => {
     if (!settings) return;
@@ -214,6 +222,67 @@ export default function HomeScreenSettings() {
 <div style={styles.cardBlock}>
   <h3>Branding</h3>
 
+  {/* TOGGLE */}
+  <div style={styles.row}>
+    <span>Show Logo on Home Screen</span>
+
+    <div
+      onClick={() =>
+        updateSettings({
+          show_logo: !(settings.show_logo ?? true),
+        })
+      }
+      style={{
+        ...styles.toggle,
+        background: (settings.show_logo ?? true)
+          ? PRIMARY
+          : "#e5e7eb",
+      }}
+    >
+      <div
+        style={{
+          ...styles.knob,
+          left: (settings.show_logo ?? true)
+            ? "22px"
+            : "2px",
+        }}
+      />
+    </div>
+  </div>
+
+  {/* UPLOAD */}
+  <div style={styles.uploadRow}>
+    <div>
+      <div style={styles.label}>Center Screen Logo</div>
+      <div style={styles.sub}>
+        Displays centered on the home screen
+      </div>
+    </div>
+
+    <label style={styles.uploadBtn}>
+      Upload
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleUpload(e, "logo")}
+        style={{ display: "none" }}
+      />
+    </label>
+  </div>
+
+  {/* PREVIEW */}
+  {settings.logo_url && (
+    <>
+      <img src={settings.logo_url} style={styles.previewLogo} />
+      <button
+        onClick={() => handleRemove("logo")}
+        style={styles.removeBtn}
+      >
+        Remove Logo
+      </button>
+    </>
+  )}
+</div>
   {/* TOGGLE */}
   <div style={styles.row}>
     <span>Show Logo on Home Screen</span>
