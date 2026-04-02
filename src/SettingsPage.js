@@ -174,7 +174,6 @@ const styles = {
   content: {
     flex: 1,
     padding: "25px",
-    paddingBottom: "140px", // 👈 keeps content above dock
     overflowY: "auto",
   },
   logout: {
