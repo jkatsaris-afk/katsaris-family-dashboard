@@ -145,7 +145,8 @@ export default function SettingsPage() {
 const styles = {
   container: {
     display: "flex",
-    height: "calc(100vh - 140px)",
+    height: "100%",
+    paddingBottom: "20px",
     background: "#f8fafc",
     borderRadius: "20px",
     overflow: "hidden",
