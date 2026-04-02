@@ -229,63 +229,66 @@ export default function HomeScreenSettings() {
         )}
       </div>
 
+  
       {/* BEHAVIOR */}
-      <div style={styles.cardBlock}>
-        <div style={styles.cardHeader}>
-          <Settings2 size={20} />
-          <span>Behavior</span>
-        </div>
+<div style={styles.cardBlock}>
+  <div style={styles.cardHeader}>
+    <Settings2 size={20} />
+    <span>Behavior</span>
+  </div>
 
-        <div style={styles.row}>
-          <span>Enable automatic night mode</span>
-        {/* ===== INACTIVITY TIMEOUT ===== */}
-<div style={styles.row}>
-  <span>Return to Home after inactivity</span>
+  {/* NIGHT MODE */}
+  <div style={styles.row}>
+    <span>Enable automatic night mode</span>
 
-  <div
-    onClick={() =>
-      updateSettings({
-        inactivity_enabled: !settings.inactivity_enabled,
-      })
-    }
-    style={{
-      ...styles.toggle,
-      background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
-    }}
-  >
     <div
+      onClick={() =>
+        updateSettings({
+          auto_night_mode: !settings.auto_night_mode,
+        })
+      }
       style={{
-        ...styles.knob,
-        left: settings.inactivity_enabled ? "22px" : "2px",
+        ...styles.toggle,
+        background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
       }}
-    />
+    >
+      <div
+        style={{
+          ...styles.knob,
+          left: settings.auto_night_mode ? "22px" : "2px",
+        }}
+      />
+    </div>
+  </div>
+
+  {/* INACTIVITY TIMEOUT (NOW CLEAN) */}
+  <div style={styles.row}>
+    <span>Return to Home after inactivity</span>
+
+    <div
+      onClick={() =>
+        updateSettings({
+          inactivity_enabled: !settings.inactivity_enabled,
+        })
+      }
+      style={{
+        ...styles.toggle,
+        background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
+      }}
+    >
+      <div
+        style={{
+          ...styles.knob,
+          left: settings.inactivity_enabled ? "22px" : "2px",
+        }}
+      />
+    </div>
+  </div>
+
+  <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+    Returns to Home after 10 minutes of inactivity
   </div>
 </div>
-
-<div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-  Returns to Home after 10 minutes of inactivity
-</div>
-          <div
-            onClick={() =>
-              updateSettings({
-                auto_night_mode: !settings.auto_night_mode,
-              })
-            }
-            style={{
-              ...styles.toggle,
-              background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.auto_night_mode ? "22px" : "2px",
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* LAYOUT */}
       <div style={styles.cardBlock}>
         <div style={styles.cardHeader}>
