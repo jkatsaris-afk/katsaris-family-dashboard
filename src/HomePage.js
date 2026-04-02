@@ -10,7 +10,7 @@ export default function HomePage() {
   // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
-
+  const [showLogo, setShowLogo] = useState(true);
   const [weather, setWeather] = useState({
     temp: "--",
     feels: "--",
@@ -32,9 +32,10 @@ export default function HomePage() {
   }, []);
 
 
-  // ===== BLOCK 5: LOAD LOGO =====
-  useEffect(() => {
-    const loadLogo = async () => {
+ // ===== BLOCK 5: LOAD LOGO + BRANDING =====
+useEffect(() => {
+  const loadLogo = async () => {
+    try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -55,13 +56,29 @@ export default function HomePage() {
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.logo_url) {
-        setLogo(data.logo_url);
-      }
-    };
+      if (data) {
+        // ✅ Show logo toggle
+        setShowLogo(data.show_logo ?? true);
 
-    loadLogo();
-  }, []);
+        // ✅ Logo with fallback
+        if (data.logo_url) {
+          setLogo(data.logo_url);
+        } else {
+          setLogo(defaultLogo);
+        }
+      }
+
+    } catch (err) {
+      console.error("LOAD LOGO ERROR:", err);
+
+      // fallback safety
+      setLogo(defaultLogo);
+      setShowLogo(true);
+    }
+  };
+
+  loadLogo();
+}, []);
 
 
   // ===== BLOCK 6: WEATHER =====
