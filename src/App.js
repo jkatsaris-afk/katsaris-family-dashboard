@@ -30,6 +30,9 @@ import SettingsPage from "./SettingsPage";
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
+// ✅ ADDED
+import ProfilesPage from "./ProfilesPage";
+
 import { User } from "lucide-react";
 import { getProfile, subscribeProfile } from "./profileStore";
 
@@ -45,6 +48,9 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
+
+  // ✅ ADDED
+  const [showProfiles, setShowProfiles] = useState(false);
 
   const [nightMode, setNightMode] = useState(false);
   const [autoNightEnabled, setAutoNightEnabled] = useState(false);
@@ -71,7 +77,6 @@ function AppContent() {
     return () => unsub();
   }, []);
 
-
   // ===== BLOCK 5: AUTH =====
   useEffect(() => {
     const getUser = async () => {
@@ -91,7 +96,6 @@ function AppContent() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
-
 
   // ===== BLOCK 6: LOAD SETTINGS (PROFILE BASED) =====
   useEffect(() => {
@@ -113,7 +117,6 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
-
   // ===== BLOCK 7: AUTO NIGHT MODE =====
   useEffect(() => {
     if (!autoNightEnabled) return;
@@ -127,7 +130,6 @@ function AppContent() {
     const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
-
 
   // ===== BLOCK 8: APP FILTER =====
   const apps = [
@@ -145,7 +147,6 @@ function AppContent() {
     return true;
   });
 
-
   // ===== BLOCK 9: VISIBILITY =====
   const isVisible = (pageName) => {
     const tiles = displaySettings?.visible_tiles;
@@ -154,11 +155,9 @@ function AppContent() {
     return true;
   };
 
-
   // ===== BLOCK 10: AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
-
 
   // ===== BLOCK 11: TIME =====
   const formattedDate = now.toLocaleDateString(undefined, {
@@ -171,7 +170,6 @@ function AppContent() {
     hour: "numeric",
     minute: "2-digit",
   });
-
 
   // ===== BLOCK 12: MAIN UI =====
   return (
@@ -187,7 +185,7 @@ function AppContent() {
       }}
     >
 
-      {/* ===== BLOCK 12A: NIGHT MODE ===== */}
+      {/* ===== NIGHT MODE ===== */}
       {nightMode && (
         <div
           onClick={() => setNightMode(false)}
@@ -213,22 +211,15 @@ function AppContent() {
         </div>
       )}
 
-      {/* ===== BLOCK 12B: HEADER ===== */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      {/* ===== HEADER ===== */}
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
 
           {/* 👤 PROFILE BUTTON */}
           <div
-            onClick={() => setPage("profiles")}
+            onClick={() => setShowProfiles(true)} // ✅ FIXED
             style={styles.profileBtn}
           >
             <User size={16} />
@@ -255,10 +246,11 @@ function AppContent() {
           >
             <Settings size={20} />
           </div>
+
         </div>
       </div>
 
-      {/* ===== BLOCK 12C: CONTENT ===== */}
+      {/* ===== CONTENT ===== */}
       <div style={{ padding: "10px 20px 120px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
@@ -268,10 +260,9 @@ function AppContent() {
         {page === "settings" && <SettingsPage />}
         {page === "family" && isVisible("family") && <FamilyPage />}
         {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-        {page === "profiles" && <FamilyPage />} {/* TEMP until you make ProfilesPage */}
       </div>
 
-      {/* ===== BLOCK 12D: DOCK ===== */}
+      {/* ===== DOCK ===== */}
       <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
@@ -296,12 +287,17 @@ function AppContent() {
         </div>
       </div>
 
+      {/* ✅ PROFILE OVERLAY */}
+      {showProfiles && (
+        <ProfilesPage onClose={() => setShowProfiles(false)} />
+      )}
+
     </div>
   );
 }
 
 
-// ===== BLOCK 13: ROUTER =====
+// ===== ROUTER =====
 export default function App() {
   return (
     <BrowserRouter>
@@ -316,7 +312,7 @@ export default function App() {
 }
 
 
-// ===== BLOCK 14: STYLES =====
+// ===== STYLES =====
 const styles = {
   profileBtn: {
     display: "flex",
