@@ -177,6 +177,37 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
+  // ===== INACTIVITY TIMER =====
+useEffect(() => {
+  if (!displaySettings?.inactivity_enabled) return;
+
+  let timeout;
+
+  const resetTimer = () => {
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+      console.log("⏱ Inactivity → returning home");
+      setPage("home");
+    }, 10 * 60 * 1000); // 10 minutes
+  };
+
+  const events = ["mousemove", "mousedown", "touchstart", "keydown"];
+
+  events.forEach((event) =>
+    window.addEventListener(event, resetTimer)
+  );
+
+  resetTimer();
+
+  return () => {
+    clearTimeout(timeout);
+    events.forEach((event) =>
+      window.removeEventListener(event, resetTimer)
+    );
+  };
+}, [displaySettings]);
+  
   // ===== APP FILTER =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
