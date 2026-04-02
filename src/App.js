@@ -1,6 +1,4 @@
-// =========================
-// 📦 IMPORTS
-// =========================
+// ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -37,14 +35,10 @@ import brand from "./assets/oikos-brand.png";
 const PRIMARY = "#2f6ea6";
 
 
-// =========================
-// 🚀 MAIN APP CONTENT
-// =========================
+// ===== BLOCK 2: MAIN COMPONENT =====
 function AppContent() {
 
-  // =========================
-  // 🧠 STATE
-  // =========================
+  // ===== BLOCK 3: STATE =====
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
@@ -56,18 +50,14 @@ function AppContent() {
   const [now, setNow] = useState(new Date());
 
 
-  // =========================
-  // 🕒 CLOCK (USED FOR NIGHT MODE)
-  // =========================
+  // ===== BLOCK 4: CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
 
-  // =========================
-  // 🔐 AUTH HANDLING
-  // =========================
+  // ===== BLOCK 5: AUTH =====
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -88,9 +78,7 @@ function AppContent() {
   }, []);
 
 
-  // =========================
-  // ⚙️ LOAD SETTINGS FROM DB
-  // =========================
+  // ===== BLOCK 6: LOAD SETTINGS =====
   useEffect(() => {
     if (!user) return;
 
@@ -110,6 +98,7 @@ function AppContent() {
         .maybeSingle();
 
       if (data) {
+        console.log("VISIBLE TILES RAW:", data.visible_tiles); // DEBUG
         setAutoNightEnabled(data.auto_night_mode);
         setDisplaySettings(data);
       }
@@ -119,9 +108,7 @@ function AppContent() {
   }, [user]);
 
 
-  // =========================
-  // 🌙 AUTO NIGHT MODE
-  // =========================
+  // ===== BLOCK 7: AUTO NIGHT MODE =====
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -136,10 +123,7 @@ function AppContent() {
   }, [autoNightEnabled]);
 
 
-  // =========================
-  // 📱 APP LIST (USES visible_tiles FROM DB)
-  // 🔥 THIS IS YOUR FIXED BLOCK
-  // =========================
+  // ===== BLOCK 8: SAFE APP FILTER (DOCK CONTROL) =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -149,33 +133,58 @@ function AppContent() {
     { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
   ].filter(app => {
-    // If settings not loaded yet → show all
-    if (!displaySettings || !displaySettings.visible_tiles) return true;
+    const tiles = displaySettings?.visible_tiles;
 
-    // Only show apps listed in DB
-    return displaySettings.visible_tiles.includes(app.page);
+    if (!tiles) return true;
+
+    // handle string case
+    if (typeof tiles === "string") {
+      try {
+        const parsed = JSON.parse(tiles);
+        return Array.isArray(parsed) ? parsed.includes(app.page) : true;
+      } catch {
+        return true;
+      }
+    }
+
+    // handle array
+    if (Array.isArray(tiles)) {
+      return tiles.includes(app.page);
+    }
+
+    return true;
   });
 
 
-  // =========================
-  // 🔒 OPTIONAL PAGE ACCESS GUARD
-  // =========================
+  // ===== BLOCK 9: PAGE ACCESS GUARD =====
   const isVisible = (pageName) => {
-    if (!displaySettings?.visible_tiles) return true;
-    return displaySettings.visible_tiles.includes(pageName);
+    const tiles = displaySettings?.visible_tiles;
+
+    if (!tiles) return true;
+
+    if (typeof tiles === "string") {
+      try {
+        const parsed = JSON.parse(tiles);
+        return Array.isArray(parsed) ? parsed.includes(pageName) : true;
+      } catch {
+        return true;
+      }
+    }
+
+    if (Array.isArray(tiles)) {
+      return tiles.includes(pageName);
+    }
+
+    return true;
   };
 
 
-  // =========================
-  // ⛔ AUTH GATES
-  // =========================
+  // ===== BLOCK 10: AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
 
-  // =========================
-  // 🕒 FORMAT TIME/DATE
-  // =========================
+  // ===== BLOCK 11: TIME FORMAT =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -188,167 +197,75 @@ function AppContent() {
   });
 
 
-  // =========================
-  // 🎨 MAIN UI
-  // =========================
+  // ===== BLOCK 12: MAIN UI =====
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
+    <div style={{ height: "100vh", position: "relative" }}>
 
-        background: displaySettings?.background_url
-          ? `url(${displaySettings.background_url}) center/cover no-repeat`
-          : "#eef1f5",
-      }}
-    >
-
-      {/* =========================
-          🌙 NIGHT MODE OVERLAY
-      ========================= */}
+      {/* ===== BLOCK 12A: NIGHT MODE ===== */}
       {nightMode && (
         <div
-          onClick={() => {
-            if (!autoNightEnabled) setNightMode(false);
-          }}
+          onClick={() => !autoNightEnabled && setNightMode(false)}
           style={{
             position: "fixed",
             inset: 0,
             background: "rgba(0,0,0,0.9)",
             zIndex: 9999,
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
             justifyContent: "center",
-            textAlign: "center",
-            cursor: "pointer",
+            alignItems: "center",
+            flexDirection: "column"
           }}
         >
-          <div style={{ fontSize: "120px", color: "#fff" }}>
-            {formattedTime}
-          </div>
-
-          <div style={{ fontSize: "28px", color: "#ccc" }}>
-            {formattedDate}
-          </div>
+          <div style={{ fontSize: 120, color: "#fff" }}>{formattedTime}</div>
+          <div style={{ fontSize: 28, color: "#ccc" }}>{formattedDate}</div>
         </div>
       )}
 
+      {/* ===== BLOCK 12B: HEADER ===== */}
+      <div style={{ padding: 20, display: "flex", justifyContent: "space-between" }}>
+        <img src={brand} style={{ height: 38 }} />
 
-      {/* =========================
-          🖥 MAIN APP AREA
-      ========================= */}
-      <div style={{ zIndex: 1 }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          <div onClick={() => { setAutoNightEnabled(false); setNightMode(true); }}>
+            <Moon />
+          </div>
 
-        {/* =========================
-            🔝 HEADER
-        ========================= */}
-        <div style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between"
-        }}>
-          <img src={brand} style={{ height: "38px" }} />
-
-          <div style={{ display: "flex", gap: "10px" }}>
-
-            {/* 🌙 MANUAL NIGHT BUTTON */}
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setAutoNightEnabled(false);
-                setNightMode(true);
-              }}
-              style={{ background: "#fff", padding: 8, borderRadius: 10 }}
-            >
-              <Moon size={18} />
-            </div>
-
-            {/* ⚙️ SETTINGS BUTTON */}
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setPage(prev => prev === "settings" ? "home" : "settings");
-              }}
-              style={{
-                background: page === "settings" ? PRIMARY : "#fff",
-                padding: 8,
-                borderRadius: 10
-              }}
-            >
-              <Settings size={20} />
-            </div>
+          <div onClick={() => setPage(p => p === "settings" ? "home" : "settings")}>
+            <Settings />
           </div>
         </div>
-
-
-        {/* =========================
-            📄 PAGE CONTENT
-        ========================= */}
-        <div style={{ padding: "10px 20px 120px" }}>
-          {page === "home" && <HomePage displaySettings={displaySettings} />}
-          {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
-          {page === "chores" && isVisible("chores") && <ChoresPage />}
-          {page === "weather" && isVisible("weather") && <WeatherPage />}
-          {page === "lists" && isVisible("lists") && <ShoppingPage />}
-          {page === "settings" && <SettingsPage />}
-          {page === "family" && isVisible("family") && <FamilyPage />}
-          {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-        </div>
-
-
-        {/* =========================
-            📱 DOCK (BOTTOM NAV)
-        ========================= */}
-        <div style={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-        }}>
-          <div style={{
-            width: "95%",
-            background: "#eef1f5",
-            padding: "12px",
-            borderRadius: "20px",
-          }}>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-              gap: "12px",
-            }}>
-              {apps.map((app, i) => (
-                <motion.div
-                  key={i}
-                  onClick={() => setPage(app.page)}
-                  style={{
-                    background: app.color,
-                    color: "white",
-                    padding: "14px",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                  }}
-                >
-                  {app.icon}
-                  <div>{app.name}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
       </div>
+
+      {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
+      <div style={{ padding: "10px 20px 120px" }}>
+        {page === "home" && <HomePage displaySettings={displaySettings} />}
+        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
+        {page === "chores" && isVisible("chores") && <ChoresPage />}
+        {page === "weather" && isVisible("weather") && <WeatherPage />}
+        {page === "lists" && isVisible("lists") && <ShoppingPage />}
+        {page === "settings" && <SettingsPage />}
+        {page === "family" && isVisible("family") && <FamilyPage />}
+        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
+      </div>
+
+      {/* ===== BLOCK 12D: DOCK ===== */}
+      <div style={{ position: "fixed", bottom: 0, width: "100%" }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length},1fr)` }}>
+          {apps.map((app, i) => (
+            <motion.div key={i} onClick={() => setPage(app.page)}>
+              {app.icon}
+              <div>{app.name}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
 
 
-// =========================
-// 🌐 ROUTER WRAPPER
-// =========================
+// ===== BLOCK 13: ROUTER =====
 export default function App() {
   return (
     <BrowserRouter>
