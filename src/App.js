@@ -256,7 +256,7 @@ const isVisible = (pageName) => {
       </div>
 
       {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
-      <div style={{ padding: "10px 20px 120px" }}>
+      <div style={{ padding: "10px 20px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
         {page === "chores" && isVisible("chores") && <ChoresPage />}
