@@ -265,11 +265,18 @@ return (
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
+  pageTitle: {
+    fontSize: "22px",
+    fontWeight: "700",
+    marginBottom: "10px",
+  },
+
   cardBlock: {
     background: "#fff",
     padding: "20px",
-    borderRadius: "12px",
-    marginTop: "15px",
+    borderRadius: "16px",
+    marginTop: "10px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   },
 
   cardHeader: {
@@ -278,39 +285,59 @@ const styles = {
     gap: "10px",
     fontSize: "18px",
     fontWeight: "600",
-    marginBottom: "15px",
+    marginBottom: "10px",
   },
 
-  row: {
+  settingRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "15px",
+    padding: "12px 0",
   },
 
-  readonly: {
-    fontSize: "13px",
+  divider: {
+    height: "1px",
+    background: "#f1f5f9",
+  },
+
+  label: {
+    fontWeight: "600",
+    fontSize: "14px",
+  },
+
+  sub: {
+    fontSize: "12px",
     color: "#6b7280",
   },
 
-  inputGroup: {
-    marginBottom: "15px",
+  readonly: {
+    fontSize: "12px",
+    color: "#6b7280",
+    background: "#f8fafc",
+    padding: "6px 10px",
+    borderRadius: "6px",
   },
 
   input: {
-    width: "25%",        // 👈 smaller width
-    minWidth: "180px",   // 👈 keeps usable size
-    padding: "8px",
+    width: "220px",
+    padding: "8px 10px",
     borderRadius: "8px",
     border: "1px solid #e5e7eb",
+    background: "#fff",
+    fontSize: "14px",
+  },
+
+  saveRow: {
+    marginTop: "20px",
+    display: "flex",
+    justifyContent: "flex-end",
   },
 
   saveBtn: {
-    marginTop: "10px",
     background: "#2f6ea6",
     color: "#fff",
     border: "none",
-    padding: "10px 15px",
+    padding: "10px 16px",
     borderRadius: "8px",
     cursor: "pointer",
     fontWeight: "600",
