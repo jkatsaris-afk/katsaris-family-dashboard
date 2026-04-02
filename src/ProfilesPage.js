@@ -32,20 +32,33 @@ export default function ProfilesPage({ onClose }) {
           return;
         }
 
-        setHouseholdId(member.household_id);
+        const hid = member.household_id;
+        setHouseholdId(hid);
 
         // GET PROFILES
         const { data: profileData, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("household_id", member.household_id);
+          .eq("household_id", hid);
 
         if (error) {
           console.error("Profile load error:", error);
           return;
         }
 
-        setProfiles(profileData || []);
+        const list = profileData || [];
+        setProfiles(list);
+
+        // 🔥 AUTO-SELECT FIRST PROFILE IF NONE SAVED
+        const saved = localStorage.getItem("activeProfile");
+
+        if (!saved && list.length > 0) {
+          const first = list[0];
+          console.log("AUTO SELECT PROFILE:", first);
+
+          setProfile(first);
+          localStorage.setItem("activeProfile", JSON.stringify(first));
+        }
 
       } catch (err) {
         console.error("Load error:", err);
@@ -61,12 +74,18 @@ export default function ProfilesPage({ onClose }) {
   const selectProfile = (profile) => {
     if (!profile) return;
 
+    console.log("SETTING PROFILE:", profile);
+
+    // ✅ set globally
     setProfile(profile);
 
-    // persist selected profile
+    // ✅ persist
     localStorage.setItem("activeProfile", JSON.stringify(profile));
 
-    onClose && onClose();
+    // ✅ small delay ensures subscribers update
+    setTimeout(() => {
+      onClose && onClose();
+    }, 50);
   };
 
   // ===== UI =====
@@ -81,7 +100,7 @@ export default function ProfilesPage({ onClose }) {
 
         {/* EMPTY */}
         {!loading && profiles.length === 0 && (
-          <div style={styles.message}>No profiles yet</div>
+          <div style={styles.message}>No profiles found</div>
         )}
 
         {/* ===== VERTICAL LIST ===== */}
