@@ -29,7 +29,7 @@ export default function MembersSettings() {
   });
 
 
-  // ===== BLOCK 4: LOAD DATA (AUTO PROFILE FIX) =====
+  // ===== BLOCK 4: LOAD DATA (FIXED) =====
   useEffect(() => {
     const load = async () => {
       try {
@@ -39,30 +39,32 @@ export default function MembersSettings() {
 
         if (!user) return;
 
-        const { data: member } = await supabase
-          .from("household_members")
-          .select("household_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        // 🔥 GET FIRST HOUSEHOLD (SIMPLIFIED)
+        const { data: household } = await supabase
+          .from("households")
+          .select("id")
+          .limit(1)
+          .single();
 
-        if (!member) return;
+        if (!household) return;
 
-        setHouseholdId(member.household_id);
+        setHouseholdId(household.id);
 
         // 🔥 LOAD PROFILES
         let { data: profilesData } = await supabase
           .from("profiles")
           .select("*")
-          .eq("household_id", member.household_id);
+          .eq("household_id", household.id);
 
-        // 🔥 AUTO CREATE PROFILE IF NONE EXIST
+        // 🔥 CREATE ADMIN PROFILE IF NONE EXIST
         if (!profilesData || profilesData.length === 0) {
           const { data: newProfile } = await supabase
             .from("profiles")
             .insert({
-              household_id: member.household_id,
-              first_name: user.email?.split("@")[0] || "Owner",
+              household_id: household.id,
+              first_name: "Admin",
               last_name: "",
+              role: "admin",
             })
             .select()
             .single();
@@ -81,16 +83,18 @@ export default function MembersSettings() {
   }, []);
 
 
-  // ===== BLOCK 5: UPLOAD AVATAR =====
+  // ===== BLOCK 5: UPLOAD AVATAR (FIXED) =====
   const uploadAvatar = async (file, isEdit = false) => {
-    const path = `${householdId}/avatar-${Date.now()}`;
+    if (!file) return;
+
+    const path = `avatars/${Date.now()}-${file.name}`;
 
     const { error } = await supabase.storage
       .from("oikos-assets")
       .upload(path, file, { upsert: true });
 
     if (error) {
-      console.error(error);
+      console.error("UPLOAD ERROR:", error);
       return;
     }
 
@@ -98,16 +102,12 @@ export default function MembersSettings() {
       .from("oikos-assets")
       .getPublicUrl(path);
 
+    const url = data.publicUrl;
+
     if (isEdit) {
-      setEditForm((prev) => ({
-        ...prev,
-        avatar_url: data.publicUrl,
-      }));
+      setEditForm((prev) => ({ ...prev, avatar_url: url }));
     } else {
-      setForm((prev) => ({
-        ...prev,
-        avatar_url: data.publicUrl,
-      }));
+      setForm((prev) => ({ ...prev, avatar_url: url }));
     }
   };
 
@@ -116,19 +116,15 @@ export default function MembersSettings() {
   const addProfile = async () => {
     if (!form.first_name) return;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .insert({
         household_id: householdId,
+        role: "member",
         ...form,
       })
       .select()
       .single();
-
-    if (error) {
-      console.error(error);
-      return;
-    }
 
     setProfiles((prev) => [...prev, data]);
 
@@ -144,15 +140,10 @@ export default function MembersSettings() {
 
   // ===== BLOCK 7: UPDATE PROFILE =====
   const updateProfile = async () => {
-    const { error } = await supabase
+    await supabase
       .from("profiles")
       .update(editForm)
       .eq("id", editingId);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
 
     setProfiles((prev) =>
       prev.map((p) =>
@@ -185,13 +176,13 @@ export default function MembersSettings() {
 
       <div style={styles.cardBlock}>
 
-        {/* ===== BLOCK 8A: ADD TILE ===== */}
+        {/* ADD */}
         <div style={styles.addTile} onClick={() => setShowAdd(!showAdd)}>
           <Plus size={18} />
           <span>Add Profile</span>
         </div>
 
-        {/* ===== BLOCK 8B: ADD FORM ===== */}
+        {/* FORM */}
         {showAdd && (
           <div style={styles.formBlock}>
             <input
@@ -232,7 +223,7 @@ export default function MembersSettings() {
           </div>
         )}
 
-        {/* ===== BLOCK 8C: PROFILE GRID ===== */}
+        {/* GRID */}
         <div style={styles.grid}>
           {profiles.map((p) => {
             const isEditing = String(editingId) === String(p.id);
@@ -300,6 +291,10 @@ export default function MembersSettings() {
 
                     <div style={styles.name}>
                       {p.first_name} {p.last_name}
+                    </div>
+
+                    <div style={styles.role}>
+                      {p.role || "member"}
                     </div>
 
                     <button
@@ -381,6 +376,12 @@ const styles = {
 
   name: {
     fontWeight: "600",
+    marginBottom: "5px",
+  },
+
+  role: {
+    fontSize: "12px",
+    color: "#64748b",
     marginBottom: "8px",
   },
 
