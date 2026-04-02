@@ -15,7 +15,8 @@ import {
 import brand from "./assets/oikos-brand.png";
 
 // ===== BLOCK 2: SETTINGS PAGES =====
-import DisplaySettings from "./settings/DisplaySettings";
+import HomeScreenSettings from "./settings/HomeScreenSettings";
+import TileAppSettings from "./settings/TileAppSettings";
 import HouseholdSettings from "./settings/HouseholdSettings";
 import MembersSettings from "./settings/MembersSettings";
 import NotificationsSettings from "./settings/NotificationsSettings";
@@ -60,7 +61,7 @@ export default function SettingsPage() {
         return <MembersSettings />;
 
       case "display":
-        return <DisplaySettings />;
+        return <HomeScreenSettings />;
 
       case "mode":
         return <ModeSettings />;
@@ -74,8 +75,8 @@ export default function SettingsPage() {
       case "integrations":
         return <IntegrationsSettings />;
 
-      case "chores":
-        return <ChoreSettings />;
+     case "tiles":
+        return <TileAppSettings />;
 
       case "about":
         return <AboutSettings />;
