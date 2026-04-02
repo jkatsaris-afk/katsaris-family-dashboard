@@ -98,9 +98,7 @@ function AppContent() {
 
     const checkTime = () => {
       const hour = new Date().getHours();
-      const shouldBeNight = hour >= 20 || hour < 6;
-
-      setNightMode(shouldBeNight);
+      setNightMode(hour >= 20 || hour < 6);
     };
 
     checkTime();
@@ -127,8 +125,8 @@ function AppContent() {
 
   return (
     <div
-      onClick={() => {
-        if (nightMode && !autoNightEnabled) {
+      onClick={(e) => {
+        if (e.target === e.currentTarget && nightMode && !autoNightEnabled) {
           setNightMode(false);
         }
       }}
@@ -136,77 +134,88 @@ function AppContent() {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
 
-        // 🌙 90% TINT NIGHT MODE
-        background: nightMode
-          ? "rgba(0,0,0,0.9)"
-          : displaySettings?.background_url
+        // Background always visible
+        background: displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
       }}
     >
+      {/* 🌙 GLASS OVERLAY */}
+      {nightMode && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)", // 80% dim
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            zIndex: 1,
+          }}
+        />
+      )}
 
       {/* HEADER */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          zIndex: 10,
-        }}
-      >
-        <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
+      {!nightMode && (
+        <div
+          style={{
+            padding: "15px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            zIndex: 10,
+          }}
+        >
+          <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          {/* 🌙 TOGGLE */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setAutoNightEnabled(false);
-              setNightMode(!nightMode);
-            }}
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: nightMode ? "#111" : "#fff",
-            }}
-          >
-            <Moon size={18} />
-          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setAutoNightEnabled(false);
+                setNightMode(!nightMode);
+              }}
+              style={{
+                cursor: "pointer",
+                padding: "8px",
+                borderRadius: "10px",
+                background: nightMode ? "#111" : "#fff",
+              }}
+            >
+              <Moon size={18} />
+            </div>
 
-          {/* ⚙ SETTINGS */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setPage((prev) =>
-                prev === "settings" ? "home" : "settings"
-              );
-            }}
-            style={{
-              cursor: "pointer",
-              padding: "8px",
-              borderRadius: "10px",
-              background: page === "settings" ? PRIMARY : "#fff",
-              color: page === "settings" ? "#fff" : "#000",
-            }}
-          >
-            <Settings size={20} />
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setPage((prev) =>
+                  prev === "settings" ? "home" : "settings"
+                );
+              }}
+              style={{
+                cursor: "pointer",
+                padding: "8px",
+                borderRadius: "10px",
+                background: page === "settings" ? PRIMARY : "#fff",
+                color: page === "settings" ? "#fff" : "#000",
+              }}
+            >
+              <Settings size={20} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* CONTENT */}
       <div
         style={{
           flex: 1,
-
           display: nightMode ? "flex" : "block",
           alignItems: nightMode ? "center" : "unset",
           justifyContent: nightMode ? "center" : "unset",
-
           padding: nightMode ? "0px" : "10px 20px 120px",
+          zIndex: 5,
         }}
       >
         {page === "home" && <HomePage nightMode={nightMode} />}
@@ -287,7 +296,7 @@ function AppContent() {
   );
 }
 
-// ✅ REQUIRED DEFAULT EXPORT
+// REQUIRED DEFAULT EXPORT
 export default function App() {
   return (
     <BrowserRouter>
