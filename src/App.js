@@ -137,7 +137,6 @@ function AppContent() {
 
     if (!tiles) return true;
 
-    // handle string case
     if (typeof tiles === "string") {
       try {
         const parsed = JSON.parse(tiles);
@@ -147,7 +146,6 @@ function AppContent() {
       }
     }
 
-    // handle array
     if (Array.isArray(tiles)) {
       return tiles.includes(app.page);
     }
@@ -156,7 +154,7 @@ function AppContent() {
   });
 
 
-  // ===== BLOCK 9: PAGE ACCESS GUARD =====
+  // ===== BLOCK 9: PAGE VISIBILITY GUARD =====
   const isVisible = (pageName) => {
     const tiles = displaySettings?.visible_tiles;
 
@@ -197,41 +195,79 @@ function AppContent() {
   });
 
 
-  // ===== BLOCK 12: MAIN UI =====
+  // ===== BLOCK 12: MAIN UI (YOUR ORIGINAL STYLE PRESERVED) =====
   return (
-    <div style={{ height: "100vh", position: "relative" }}>
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        background: displaySettings?.background_url
+          ? `url(${displaySettings.background_url}) center/cover no-repeat`
+          : "#eef1f5",
+      }}
+    >
 
       {/* ===== BLOCK 12A: NIGHT MODE ===== */}
       {nightMode && (
         <div
-          onClick={() => !autoNightEnabled && setNightMode(false)}
+          onClick={() => {
+            if (!autoNightEnabled) setNightMode(false);
+          }}
           style={{
             position: "fixed",
             inset: 0,
             background: "rgba(0,0,0,0.9)",
             zIndex: 9999,
             display: "flex",
-            justifyContent: "center",
+            flexDirection: "column",
             alignItems: "center",
-            flexDirection: "column"
+            justifyContent: "center",
+            textAlign: "center",
+            cursor: "pointer",
           }}
         >
-          <div style={{ fontSize: 120, color: "#fff" }}>{formattedTime}</div>
-          <div style={{ fontSize: 28, color: "#ccc" }}>{formattedDate}</div>
+          <div style={{ fontSize: "120px", color: "#fff" }}>
+            {formattedTime}
+          </div>
+          <div style={{ fontSize: "28px", color: "#ccc" }}>
+            {formattedDate}
+          </div>
         </div>
       )}
 
       {/* ===== BLOCK 12B: HEADER ===== */}
-      <div style={{ padding: 20, display: "flex", justifyContent: "space-between" }}>
-        <img src={brand} style={{ height: 38 }} />
+      <div
+        style={{
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <img src={brand} style={{ height: "38px" }} />
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <div onClick={() => { setAutoNightEnabled(false); setNightMode(true); }}>
-            <Moon />
+        <div style={{ display: "flex", gap: "10px" }}>
+          <div
+            onClick={() => {
+              setAutoNightEnabled(false);
+              setNightMode(true);
+            }}
+            style={{ background: "#fff", padding: 8, borderRadius: 10 }}
+          >
+            <Moon size={18} />
           </div>
 
-          <div onClick={() => setPage(p => p === "settings" ? "home" : "settings")}>
-            <Settings />
+          <div
+            onClick={() => setPage(p => p === "settings" ? "home" : "settings")}
+            style={{
+              background: page === "settings" ? PRIMARY : "#fff",
+              padding: 8,
+              borderRadius: 10
+            }}
+          >
+            <Settings size={20} />
           </div>
         </div>
       </div>
@@ -249,14 +285,50 @@ function AppContent() {
       </div>
 
       {/* ===== BLOCK 12D: DOCK ===== */}
-      <div style={{ position: "fixed", bottom: 0, width: "100%" }}>
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length},1fr)` }}>
-          {apps.map((app, i) => (
-            <motion.div key={i} onClick={() => setPage(app.page)}>
-              {app.icon}
-              <div>{app.name}</div>
-            </motion.div>
-          ))}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "95%",
+            maxWidth: "1400px",
+            background: "#eef1f5",
+            padding: "12px",
+            marginBottom: "10px",
+            borderRadius: "20px",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+              gap: "12px",
+            }}
+          >
+            {apps.map((app, i) => (
+              <motion.div
+                key={i}
+                onClick={() => setPage(app.page)}
+                style={{
+                  background: app.color,
+                  color: "white",
+                  padding: "14px",
+                  borderRadius: "14px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {app.icon}
+                <div>{app.name}</div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
