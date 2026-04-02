@@ -93,7 +93,7 @@ const updateSettings = async (updates) => {
     const { data, error } = await supabase
       .from("settings")
       .update(updates)
-      .eq("id", settings.id)
+      .eq("household_id", settings.household_id) // 🔥 FIX
       .select()
       .single();
 
@@ -102,7 +102,6 @@ const updateSettings = async (updates) => {
       return;
     }
 
-    // ✅ FIX: do NOT override show_logo
     setSettings((prev) => ({
       ...prev,
       ...data,
@@ -113,37 +112,6 @@ const updateSettings = async (updates) => {
     console.error("UPDATE ERROR:", err);
   }
 };
-
-  // ===== BLOCK 7: FILE UPLOAD =====
-  const handleUpload = async (e, type) => {
-    const file = e.target.files[0];
-    if (!file || !settings) return;
-
-    const filePath = `${settings.household_id}/${type}-${Date.now()}`;
-
-    const { error } = await supabase.storage
-      .from("oikos-assets")
-      .upload(filePath, file, { upsert: true });
-
-    if (error) {
-      console.error("UPLOAD ERROR:", error);
-      return;
-    }
-
-    const { data } = supabase.storage
-      .from("oikos-assets")
-      .getPublicUrl(filePath);
-
-    const url = data.publicUrl;
-
-    if (type === "background") {
-      updateSettings({ background_url: url });
-    } else {
-      updateSettings({ logo_url: url });
-    }
-  };
-
-
   // ===== BLOCK 8: REMOVE IMAGE =====
   const handleRemove = async (type) => {
     if (!settings) return;
