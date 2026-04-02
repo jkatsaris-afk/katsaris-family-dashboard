@@ -30,6 +30,9 @@ import SettingsPage from "./SettingsPage";
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
+import { User } from "lucide-react";
+import { getProfile, subscribeProfile } from "./profileStore";
+
 import brand from "./assets/oikos-brand.png";
 
 const PRIMARY = "#2f6ea6";
@@ -48,12 +51,24 @@ function AppContent() {
 
   const [displaySettings, setDisplaySettings] = useState(null);
   const [now, setNow] = useState(new Date());
-
+  const [profile, setProfileState] = useState(null);
 
   // ===== BLOCK 4: CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // ===== BLOCK 4B: LOAD + LISTEN PROFILE =====
+  useEffect(() => {
+    const p = getProfile();
+    setProfileState(p);
+
+    const unsub = subscribeProfile((newProfile) => {
+      setProfileState(newProfile);
+    });
+
+    return () => unsub();
   }, []);
 
 
@@ -78,34 +93,25 @@ function AppContent() {
   }, []);
 
 
-  // ===== BLOCK 6: LOAD SETTINGS =====
+  // ===== BLOCK 6: LOAD SETTINGS (PROFILE BASED) =====
   useEffect(() => {
-    if (!user) return;
+    if (!profile) return;
 
     const loadSettings = async () => {
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!member) return;
-
       const { data } = await supabase
-        .from("settings")
+        .from("profile_settings")
         .select("*")
-        .eq("household_id", member.household_id)
+        .eq("profile_id", profile.id)
         .maybeSingle();
 
       if (data) {
-        console.log("VISIBLE TILES RAW:", data.visible_tiles); // DEBUG
         setAutoNightEnabled(data.auto_night_mode);
         setDisplaySettings(data);
       }
     };
 
     loadSettings();
-  }, [user]);
+  }, [profile]);
 
 
   // ===== BLOCK 7: AUTO NIGHT MODE =====
@@ -123,49 +129,38 @@ function AppContent() {
   }, [autoNightEnabled]);
 
 
-  // ===== BLOCK 8: APP FILTER (OBJECT-BASED) =====
-const apps = [
-  { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-  { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
-  { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
-  { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-  { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
-  { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
-  { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-].filter(app => {
-  const tiles = displaySettings?.visible_tiles;
+  // ===== BLOCK 8: APP FILTER =====
+  const apps = [
+    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
+    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
+    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
+  ].filter(app => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") return tiles[app.page] !== false;
+    return true;
+  });
 
-  // show everything until settings load
-  if (!tiles) return true;
 
-  // ✅ HANDLE OBJECT FORMAT (YOUR CASE)
-  if (typeof tiles === "object") {
-    return tiles[app.page] !== false; 
-  }
+  // ===== BLOCK 9: VISIBILITY =====
+  const isVisible = (pageName) => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") return tiles[pageName] !== false;
+    return true;
+  };
 
-  // fallback safety
-  return true;
-});
-
-  // ===== BLOCK 9: PAGE VISIBILITY (OBJECT-BASED) =====
-const isVisible = (pageName) => {
-  const tiles = displaySettings?.visible_tiles;
-
-  if (!tiles) return true;
-
-  if (typeof tiles === "object") {
-    return tiles[pageName] !== false;
-  }
-
-  return true;
-};
 
   // ===== BLOCK 10: AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
 
-  // ===== BLOCK 11: TIME FORMAT =====
+  // ===== BLOCK 11: TIME =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -178,7 +173,7 @@ const isVisible = (pageName) => {
   });
 
 
-  // ===== BLOCK 12: MAIN UI (YOUR ORIGINAL STYLE PRESERVED) =====
+  // ===== BLOCK 12: MAIN UI =====
   return (
     <div
       style={{
@@ -230,6 +225,16 @@ const isVisible = (pageName) => {
         <img src={brand} style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
+
+          {/* 👤 PROFILE BUTTON */}
+          <div
+            onClick={() => setPage("profiles")}
+            style={styles.profileBtn}
+          >
+            <User size={16} />
+            <span>{profile?.first_name || "Profile"}</span>
+          </div>
+
           <div
             onClick={() => {
               setAutoNightEnabled(false);
@@ -253,50 +258,23 @@ const isVisible = (pageName) => {
         </div>
       </div>
 
-  {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
-      
-<div
-  style={{
-    padding: "10px 20px 120px",
-    height: "100%",
-  }}
->
-  {page === "home" && <HomePage displaySettings={displaySettings} />}
-  {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
-  {page === "chores" && isVisible("chores") && <ChoresPage />}
-  {page === "weather" && isVisible("weather") && <WeatherPage />}
-  {page === "lists" && isVisible("lists") && <ShoppingPage />}
-  {page === "settings" && <SettingsPage />}
-  {page === "family" && isVisible("family") && <FamilyPage />}
-  {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-</div>
+      {/* ===== BLOCK 12C: CONTENT ===== */}
+      <div style={{ padding: "10px 20px 120px", height: "100%" }}>
+        {page === "home" && <HomePage displaySettings={displaySettings} />}
+        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
+        {page === "chores" && isVisible("chores") && <ChoresPage />}
+        {page === "weather" && isVisible("weather") && <WeatherPage />}
+        {page === "lists" && isVisible("lists") && <ShoppingPage />}
+        {page === "settings" && <SettingsPage />}
+        {page === "family" && isVisible("family") && <FamilyPage />}
+        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
+        {page === "profiles" && <FamilyPage />} {/* TEMP until you make ProfilesPage */}
+      </div>
+
       {/* ===== BLOCK 12D: DOCK ===== */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "95%",
-            maxWidth: "1400px",
-            background: "#eef1f5",
-            padding: "12px",
-            marginBottom: "10px",
-            borderRadius: "20px",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
-              gap: "12px",
-            }}
-          >
+      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
             {apps.map((app, i) => (
               <motion.div
                 key={i}
@@ -336,3 +314,18 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+
+// ===== BLOCK 14: STYLES =====
+const styles = {
+  profileBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    background: "#fff",
+    padding: "6px 10px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+  },
+};
