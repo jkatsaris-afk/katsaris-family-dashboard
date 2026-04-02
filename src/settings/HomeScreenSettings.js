@@ -32,7 +32,6 @@ export default function HomeScreenSettings() {
       try {
         const p = getProfile();
 
-        // 🔥 WAIT FOR PROFILE (fixes loading hang)
         if (!p) {
           setTimeout(load, 300);
           return;
@@ -46,7 +45,6 @@ export default function HomeScreenSettings() {
           .eq("profile_id", p.id)
           .maybeSingle();
 
-        // ✅ CREATE SETTINGS IF MISSING
         if (!data) {
           const { data: newSettings, error } = await supabase
             .from("profile_settings")
@@ -56,6 +54,7 @@ export default function HomeScreenSettings() {
               visible_tiles: defaultTiles,
               background_url: null,
               logo_url: null,
+              home_show_household_name: true, // ✅ ADDED
             })
             .select()
             .single();
@@ -68,11 +67,11 @@ export default function HomeScreenSettings() {
           data = newSettings;
         }
 
-      setSettings({
-  ...data,
-  visible_tiles: data.visible_tiles || defaultTiles,
-  visible_widgets: data.visible_widgets || {},
-});
+        setSettings({
+          ...data,
+          visible_tiles: data.visible_tiles || defaultTiles,
+          visible_widgets: data.visible_widgets || {},
+        });
 
       } catch (err) {
         console.error("LOAD ERROR:", err);
@@ -180,6 +179,8 @@ export default function HomeScreenSettings() {
 
     updateSettings({ visible_tiles: updated });
   };
+
+
 // ===== BLOCK 9B: WIDGET TOGGLE =====
 const toggleWidget = (key) => {
   const updated = {
@@ -189,6 +190,7 @@ const toggleWidget = (key) => {
 
   updateSettings({ visible_widgets: updated });
 };
+
 
   // ===== BLOCK 10: LOADING =====
   if (!settings) return <div>Loading settings...</div>;
@@ -225,6 +227,30 @@ const toggleWidget = (key) => {
           </label>
         </div>
 
+        {/* ✅ NEW TOGGLE */}
+        <div style={styles.row}>
+          <span>Show Household Name</span>
+
+          <div
+            onClick={() =>
+              updateSettings({
+                home_show_household_name: !settings.home_show_household_name,
+              })
+            }
+            style={{
+              ...styles.toggle,
+              background: settings.home_show_household_name ? PRIMARY : "#e5e7eb",
+            }}
+          >
+            <div
+              style={{
+                ...styles.knob,
+                left: settings.home_show_household_name ? "22px" : "2px",
+              }}
+            />
+          </div>
+        </div>
+
         {settings.background_url && (
           <>
             <img src={settings.background_url} style={styles.previewLarge} />
@@ -238,104 +264,105 @@ const toggleWidget = (key) => {
         )}
       </div>
 
-  
+
       {/* BEHAVIOR */}
-<div style={styles.cardBlock}>
-  <div style={styles.cardHeader}>
-    <Settings2 size={20} />
-    <span>Behavior</span>
-  </div>
+      <div style={styles.cardBlock}>
+        <div style={styles.cardHeader}>
+          <Settings2 size={20} />
+          <span>Behavior</span>
+        </div>
 
-  {/* NIGHT MODE */}
-  <div style={styles.row}>
-    <span>Enable automatic night mode</span>
+        <div style={styles.row}>
+          <span>Enable automatic night mode</span>
 
-    <div
-      onClick={() =>
-        updateSettings({
-          auto_night_mode: !settings.auto_night_mode,
-        })
-      }
-      style={{
-        ...styles.toggle,
-        background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          ...styles.knob,
-          left: settings.auto_night_mode ? "22px" : "2px",
-        }}
-      />
-    </div>
-  </div>
+          <div
+            onClick={() =>
+              updateSettings({
+                auto_night_mode: !settings.auto_night_mode,
+              })
+            }
+            style={{
+              ...styles.toggle,
+              background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
+            }}
+          >
+            <div
+              style={{
+                ...styles.knob,
+                left: settings.auto_night_mode ? "22px" : "2px",
+              }}
+            />
+          </div>
+        </div>
 
-  {/* INACTIVITY TIMEOUT (NOW CLEAN) */}
-  <div style={styles.row}>
-    <span>Return to Home after inactivity</span>
+        <div style={styles.row}>
+          <span>Return to Home after inactivity</span>
 
-    <div
-      onClick={() =>
-        updateSettings({
-          inactivity_enabled: !settings.inactivity_enabled,
-        })
-      }
-      style={{
-        ...styles.toggle,
-        background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          ...styles.knob,
-          left: settings.inactivity_enabled ? "22px" : "2px",
-        }}
-      />
-    </div>
-  </div>
+          <div
+            onClick={() =>
+              updateSettings({
+                inactivity_enabled: !settings.inactivity_enabled,
+              })
+            }
+            style={{
+              ...styles.toggle,
+              background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
+            }}
+          >
+            <div
+              style={{
+                ...styles.knob,
+                left: settings.inactivity_enabled ? "22px" : "2px",
+              }}
+            />
+          </div>
+        </div>
 
-  <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-    Returns to Home after 10 minutes of inactivity
-  </div>
-</div>
-
-{/* WIDGETS */}
-<div style={styles.cardBlock}>
-  <div style={styles.cardHeader}>
-    <LayoutGrid size={20} />
-    <span>Widgets</span>
-  </div>
-
-  {[
-    ["clock", "Clock"],
-     ["date", "Date"],
-    ["weather", "Weather"],
-    ["events", "Today's Events"],
-    ["countdown", "Countdown"],
-    ["bible", "Daily Bible Verse"],
-  ].map(([key, label]) => (
-    <div key={key} style={styles.row}>
-      <span>{label}</span>
-
-      <div
-        onClick={() => toggleWidget(key)}
-        style={{
-          ...styles.toggle,
-          background: settings.visible_widgets?.[key]
-            ? PRIMARY
-            : "#e5e7eb",
-        }}
-      >
-        <div
-          style={{
-            ...styles.knob,
-            left: settings.visible_widgets?.[key] ? "22px" : "2px",
-          }}
-        />
+        <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+          Returns to Home after 10 minutes of inactivity
+        </div>
       </div>
-    </div>
-  ))}
-</div>
+
+
+      {/* WIDGETS */}
+      <div style={styles.cardBlock}>
+        <div style={styles.cardHeader}>
+          <LayoutGrid size={20} />
+          <span>Widgets</span>
+        </div>
+
+        {[
+          ["clock", "Clock"],
+          ["date", "Date"],
+          ["weather", "Weather"],
+          ["events", "Today's Events"],
+          ["countdown", "Countdown"],
+          ["bible", "Daily Bible Verse"],
+        ].map(([key, label]) => (
+          <div key={key} style={styles.row}>
+            <span>{label}</span>
+
+            <div
+              onClick={() => toggleWidget(key)}
+              style={{
+                ...styles.toggle,
+                background: settings.visible_widgets?.[key]
+                  ? PRIMARY
+                  : "#e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  ...styles.knob,
+                  left: settings.visible_widgets?.[key] ? "22px" : "2px",
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+
       {/* LAYOUT */}
       <div style={styles.cardBlock}>
         <div style={styles.cardHeader}>
@@ -429,14 +456,15 @@ const styles = {
   },
   previewLarge: {
     width: "100%",
-    maxWidth: "400px",
-    height: "200px",
+    maxWidth: "300px",
+    height: "140px",
     objectFit: "cover",
     borderRadius: "12px",
     marginTop: "10px",
     display: "block",
     marginLeft: "auto",
     marginRight: "auto",
+    border: "1px solid #e5e7eb",
   },
   toggle: {
     width: "40px",
