@@ -254,13 +254,7 @@ const isVisible = (pageName) => {
       </div>
 
       {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
-      <div
-  style={{
-    padding: "10px 20px",
-    height: "calc(100vh - 100px)", // 👈 THIS is the fix
-    overflow: "hidden",
-  }}
->
+   <div style={{ padding: "10px 20px 120px" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
         {page === "chores" && isVisible("chores") && <ChoresPage />}
