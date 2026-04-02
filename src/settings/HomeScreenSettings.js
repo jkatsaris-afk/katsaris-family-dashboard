@@ -238,8 +238,7 @@ const toggleWidget = (key) => {
               Remove Background
             </button>
 
-            {/* ✅ NOW DIRECTLY BELOW BUTTON */}
-            <div style={{ ...styles.row, marginTop: "12px" }}>
+            <div style={{ ...styles.row, ...styles.rowDivider }}>
               <span>Show Household Name</span>
 
               <div
@@ -277,9 +276,8 @@ const toggleWidget = (key) => {
           <span>Behavior</span>
         </div>
 
-        <div style={styles.row}>
+        <div style={{ ...styles.row, ...styles.rowDivider }}>
           <span>Enable automatic night mode</span>
-
           <div
             onClick={() =>
               updateSettings({
@@ -291,18 +289,12 @@ const toggleWidget = (key) => {
               background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
             }}
           >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.auto_night_mode ? "22px" : "2px",
-              }}
-            />
+            <div style={{ ...styles.knob, left: settings.auto_night_mode ? "22px" : "2px" }} />
           </div>
         </div>
 
-        <div style={styles.row}>
+        <div style={{ ...styles.row, ...styles.rowDivider }}>
           <span>Return to Home after inactivity</span>
-
           <div
             onClick={() =>
               updateSettings({
@@ -314,12 +306,7 @@ const toggleWidget = (key) => {
               background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
             }}
           >
-            <div
-              style={{
-                ...styles.knob,
-                left: settings.inactivity_enabled ? "22px" : "2px",
-              }}
-            />
+            <div style={{ ...styles.knob, left: settings.inactivity_enabled ? "22px" : "2px" }} />
           </div>
         </div>
 
@@ -343,9 +330,8 @@ const toggleWidget = (key) => {
           ["countdown", "Countdown"],
           ["bible", "Daily Bible Verse"],
         ].map(([key, label]) => (
-          <div key={key} style={styles.row}>
+          <div key={key} style={{ ...styles.row, ...styles.rowDivider }}>
             <span>{label}</span>
-
             <div
               onClick={() => toggleWidget(key)}
               style={{
@@ -355,12 +341,7 @@ const toggleWidget = (key) => {
                   : "#e5e7eb",
               }}
             >
-              <div
-                style={{
-                  ...styles.knob,
-                  left: settings.visible_widgets?.[key] ? "22px" : "2px",
-                }}
-              />
+              <div style={{ ...styles.knob, left: settings.visible_widgets?.[key] ? "22px" : "2px" }} />
             </div>
           </div>
         ))}
@@ -374,9 +355,8 @@ const toggleWidget = (key) => {
         </div>
 
         {Object.entries(defaultTiles).map(([key]) => (
-          <div key={key} style={styles.row}>
+          <div key={key} style={{ ...styles.row, ...styles.rowDivider }}>
             <span>{key}</span>
-
             <div
               onClick={() => toggleTile(key)}
               style={{
@@ -386,12 +366,7 @@ const toggleWidget = (key) => {
                   : "#e5e7eb",
               }}
             >
-              <div
-                style={{
-                  ...styles.knob,
-                  left: settings.visible_tiles[key] ? "22px" : "2px",
-                }}
-              />
+              <div style={{ ...styles.knob, left: settings.visible_tiles[key] ? "22px" : "2px" }} />
             </div>
           </div>
         ))}
@@ -422,6 +397,11 @@ const styles = {
     justifyContent: "space-between",
     marginTop: "10px",
     alignItems: "center",
+  },
+  rowDivider: {
+    borderTop: "1px solid rgba(0,0,0,0.05)",
+    paddingTop: "10px",
+    marginTop: "10px",
   },
   uploadRow: {
     display: "flex",
