@@ -210,32 +210,35 @@ export default function HomeScreenSettings() {
           </>
         )}
       </div>
-{/* ===== BLOCK 11A: BRANDING ===== */}
-<div style={styles.row}>
-  <span>Show Logo on Home Screen</span>
-
-  <div
-    onClick={() =>
-      updateSettings({
-        show_logo: !settings.show_logo,
-      })
-    }
-    style={{
-      ...styles.toggle,
-      background: settings.show_logo ? PRIMARY : "#e5e7eb",
-    }}
-  >
-    <div
-      style={{
-        ...styles.knob,
-        left: settings.show_logo ? "22px" : "2px",
-      }}
-    />
-  </div>
-</div>
+/* ===== BLOCK 11B: BRANDING ===== */
 <div style={styles.cardBlock}>
   <h3>Branding</h3>
 
+  {/* TOGGLE */}
+  <div style={styles.row}>
+    <span>Show Logo on Home Screen</span>
+
+    <div
+      onClick={() =>
+        updateSettings({
+          show_logo: !settings.show_logo,
+        })
+      }
+      style={{
+        ...styles.toggle,
+        background: settings.show_logo ? PRIMARY : "#e5e7eb",
+      }}
+    >
+      <div
+        style={{
+          ...styles.knob,
+          left: settings.show_logo ? "22px" : "2px",
+        }}
+      />
+    </div>
+  </div>
+
+  {/* UPLOAD */}
   <div style={styles.uploadRow}>
     <div>
       <div style={styles.label}>Center Screen Logo</div>
@@ -255,6 +258,7 @@ export default function HomeScreenSettings() {
     </label>
   </div>
 
+  {/* PREVIEW */}
   {settings.logo_url && (
     <>
       <img src={settings.logo_url} style={styles.previewLogo} />
