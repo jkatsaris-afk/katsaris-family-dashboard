@@ -5,6 +5,7 @@ import { supabase } from "./lib/supabase";
 export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
+  const [isSleeping, setIsSleeping] = useState(false);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -23,6 +24,33 @@ export default function HomePage() {
       setNow(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // 💤 INACTIVITY → SLEEP MODE
+  useEffect(() => {
+    let timeout;
+
+    const resetTimer = () => {
+      setIsSleeping(false);
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        setIsSleeping(true);
+      }, 900000); // 15 minutes
+    };
+
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("touchstart", resetTimer);
+    window.addEventListener("click", resetTimer);
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("touchstart", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
   }, []);
 
   // 🔥 LOAD LOGO (Supabase)
@@ -127,107 +155,124 @@ export default function HomePage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        paddingTop: "80px",
         overflow: "hidden",
-        backgroundImage: `url("/background.jpg")`, // optional
+        backgroundImage: `url("/background.jpg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      {/* 🌙 NIGHT MODE OVERLAY */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background: "rgba(0, 0, 0, 0.6)", // adjust 0.4–0.8
-          backdropFilter: "blur(6px)",
-          zIndex: 1,
-        }}
-      />
-
-      {/* 🔲 CONTENT */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        {/* 🔥 GLASS TILE */}
+      {/* 🌙 SLEEP MODE OVERLAY (ONLY WHEN SLEEPING) */}
+      {isSleeping && (
         <div
           style={{
-            padding: "40px 60px",
-            borderRadius: "24px",
-            background: "rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
-            textAlign: "center",
-          }}
-        >
-          {/* 🕒 TIME */}
-          <div
-            style={{
-              fontSize: "110px",
-              fontWeight: "700",
-              color: "#ffffff",
-              lineHeight: "1",
-            }}
-          >
-            {formattedTime}
-          </div>
-
-          {/* 📅 DATE */}
-          <div
-            style={{
-              fontSize: "24px",
-              color: "rgba(255,255,255,0.85)",
-              marginBottom: "20px",
-            }}
-          >
-            {formattedDate}
-          </div>
-
-          {/* 🌤️ WEATHER */}
-          <div style={{ color: "rgba(255,255,255,0.85)" }}>
-            <div style={{ fontSize: "28px", fontWeight: "600" }}>
-              {weather.temp}° • {weather.condition}
-            </div>
-
-            <div style={{ fontSize: "16px", opacity: 0.8 }}>
-              Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
-            </div>
-
-            <div
-              style={{
-                marginTop: "12px",
-                fontSize: "15px",
-                opacity: 0.8,
-              }}
-            >
-              Tomorrow: {weather.tomorrowHigh}° /{" "}
-              {weather.tomorrowLow}° • {weather.tomorrowCondition}
-            </div>
-          </div>
-        </div>
-
-        {/* 🏠 LOGO */}
-        <img
-          src={logo}
-          alt="Oikos Brand"
-          style={{
-            width: "200px",
-            marginTop: "25px",
-            opacity: 0.9,
-            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(6px)",
+            zIndex: 1,
           }}
         />
-      </div>
+      )}
+
+      {/* 💤 SLEEP MODE CLOCK ONLY */}
+      {isSleeping ? (
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            color: "#ffffff",
+            fontSize: "100px",
+            fontWeight: "600",
+          }}
+        >
+          {formattedTime}
+        </div>
+      ) : (
+        /* 🏠 NORMAL UI */
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingTop: "80px",
+          }}
+        >
+          {/* 🔥 GLASS TILE */}
+          <div
+            style={{
+              padding: "40px 60px",
+              borderRadius: "24px",
+              background: "rgba(255,255,255,0.15)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+              textAlign: "center",
+            }}
+          >
+            {/* 🕒 TIME */}
+            <div
+              style={{
+                fontSize: "110px",
+                fontWeight: "700",
+                color: "#111827",
+                lineHeight: "1",
+              }}
+            >
+              {formattedTime}
+            </div>
+
+            {/* 📅 DATE */}
+            <div
+              style={{
+                fontSize: "24px",
+                color: "#374151",
+                marginBottom: "20px",
+              }}
+            >
+              {formattedDate}
+            </div>
+
+            {/* 🌤️ WEATHER */}
+            <div style={{ color: "#374151" }}>
+              <div style={{ fontSize: "28px", fontWeight: "600" }}>
+                {weather.temp}° • {weather.condition}
+              </div>
+
+              <div style={{ fontSize: "16px", color: "#6b7280" }}>
+                Feels like {weather.feels}° • H {weather.high}° / L{" "}
+                {weather.low}°
+              </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  fontSize: "15px",
+                  color: "#6b7280",
+                }}
+              >
+                Tomorrow: {weather.tomorrowHigh}° /{" "}
+                {weather.tomorrowLow}° • {weather.tomorrowCondition}
+              </div>
+            </div>
+          </div>
+
+          {/* 🏠 LOGO */}
+          <img
+            src={logo}
+            alt="Oikos Brand"
+            style={{
+              width: "200px",
+              marginTop: "25px",
+              filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
