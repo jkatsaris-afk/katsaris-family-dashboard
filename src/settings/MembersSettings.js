@@ -1,7 +1,7 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Users, Plus, Pencil } from "lucide-react";
+import { Users, Plus, Pencil, X } from "lucide-react";
 
 const PRIMARY = "#2f6ea6";
 
@@ -14,8 +14,15 @@ export default function MembersSettings() {
   const [profiles, setProfiles] = useState([]);
 
   const [showAdd, setShowAdd] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    avatar_url: "",
+  });
+
+  const [editForm, setEditForm] = useState({
     first_name: "",
     last_name: "",
     avatar_url: "",
@@ -25,26 +32,30 @@ export default function MembersSettings() {
   // ===== BLOCK 4: LOAD DATA =====
   useEffect(() => {
     const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("household_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("household_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (!member) return;
+        if (!member) return;
 
-      setHouseholdId(member.household_id);
+        setHouseholdId(member.household_id);
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("household_id", member.household_id);
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("household_id", member.household_id);
 
-      setProfiles(data || []);
+        setProfiles(data || []);
+      } catch (err) {
+        console.error("LOAD ERROR:", err);
+      }
     };
 
     load();
@@ -52,23 +63,33 @@ export default function MembersSettings() {
 
 
   // ===== BLOCK 5: UPLOAD AVATAR =====
-  const uploadAvatar = async (file) => {
+  const uploadAvatar = async (file, isEdit = false) => {
     const path = `${householdId}/avatar-${Date.now()}`;
 
     const { error } = await supabase.storage
       .from("oikos-assets")
       .upload(path, file, { upsert: true });
 
-    if (error) return;
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     const { data } = supabase.storage
       .from("oikos-assets")
       .getPublicUrl(path);
 
-    setForm((prev) => ({
-      ...prev,
-      avatar_url: data.publicUrl,
-    }));
+    if (isEdit) {
+      setEditForm((prev) => ({
+        ...prev,
+        avatar_url: data.publicUrl,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        avatar_url: data.publicUrl,
+      }));
+    }
   };
 
 
@@ -76,7 +97,7 @@ export default function MembersSettings() {
   const addProfile = async () => {
     if (!form.first_name) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .insert({
         household_id: householdId,
@@ -84,6 +105,11 @@ export default function MembersSettings() {
       })
       .select()
       .single();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     setProfiles((prev) => [...prev, data]);
 
@@ -97,26 +123,58 @@ export default function MembersSettings() {
   };
 
 
-  // ===== BLOCK 7: UI =====
+  // ===== BLOCK 7: UPDATE PROFILE =====
+  const updateProfile = async () => {
+    const { error } = await supabase
+      .from("profiles")
+      .update(editForm)
+      .eq("id", editingId);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setProfiles((prev) =>
+      prev.map((p) =>
+        String(p.id) === String(editingId)
+          ? { ...p, ...editForm }
+          : p
+      )
+    );
+
+    setEditingId(null);
+  };
+
+
+  // ===== BLOCK 7.5: START EDIT (FIXED) =====
+  const startEdit = (profile) => {
+    setEditingId(profile.id);
+
+    setEditForm({
+      first_name: profile.first_name || "",
+      last_name: profile.last_name || "",
+      avatar_url: profile.avatar_url || "",
+    });
+  };
+
+
+  // ===== BLOCK 8: MAIN UI =====
   return (
     <div>
       <h2>Profiles</h2>
 
       <div style={styles.cardBlock}>
 
-        {/* ===== BLOCK 7A: ADD TILE ===== */}
-        <div
-          style={styles.addTile}
-          onClick={() => setShowAdd(!showAdd)}
-        >
+        {/* ===== BLOCK 8A: ADD TILE ===== */}
+        <div style={styles.addTile} onClick={() => setShowAdd(!showAdd)}>
           <Plus size={18} />
           <span>Add Profile</span>
         </div>
 
-        {/* ===== BLOCK 7B: ADD FORM ===== */}
+        {/* ===== BLOCK 8B: ADD FORM ===== */}
         {showAdd && (
           <div style={styles.formBlock}>
-
             <input
               placeholder="First Name"
               value={form.first_name}
@@ -152,30 +210,91 @@ export default function MembersSettings() {
             <button onClick={addProfile} style={styles.saveBtn}>
               Create Profile
             </button>
-
           </div>
         )}
 
-        {/* ===== BLOCK 7C: PROFILE GRID ===== */}
+        {/* ===== BLOCK 8C: PROFILE GRID ===== */}
         <div style={styles.grid}>
-          {profiles.map((p) => (
-            <div key={p.id} style={styles.profileTile}>
+          {profiles.map((p) => {
+            const isEditing = String(editingId) === String(p.id);
 
-              <img
-                src={p.avatar_url || "/default-avatar.png"}
-                style={styles.avatar}
-              />
+            return (
+              <div key={p.id} style={styles.profileTile}>
 
-              <div style={styles.name}>
-                {p.first_name} {p.last_name}
+                {isEditing ? (
+                  <>
+                    <input
+                      value={editForm.first_name}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          first_name: e.target.value,
+                        })
+                      }
+                      style={styles.input}
+                    />
+
+                    <input
+                      value={editForm.last_name}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          last_name: e.target.value,
+                        })
+                      }
+                      style={styles.input}
+                    />
+
+                    <label style={styles.uploadBtn}>
+                      Change Picture
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          uploadAvatar(e.target.files[0], true)
+                        }
+                        style={{ display: "none" }}
+                      />
+                    </label>
+
+                    {editForm.avatar_url && (
+                      <img src={editForm.avatar_url} style={styles.preview} />
+                    )}
+
+                    <button onClick={updateProfile} style={styles.saveBtn}>
+                      Save
+                    </button>
+
+                    <button
+                      onClick={() => setEditingId(null)}
+                      style={styles.cancelBtn}
+                    >
+                      <X size={14} /> Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src={p.avatar_url || "/default-avatar.png"}
+                      style={styles.avatar}
+                    />
+
+                    <div style={styles.name}>
+                      {p.first_name} {p.last_name}
+                    </div>
+
+                    <button
+                      style={styles.editBtn}
+                      onClick={() => startEdit(p)}
+                    >
+                      <Pencil size={14} /> Edit
+                    </button>
+                  </>
+                )}
+
               </div>
-
-              <button style={styles.editBtn}>
-                <Pencil size={14} /> Edit
-              </button>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>
@@ -184,7 +303,7 @@ export default function MembersSettings() {
 }
 
 
-// ===== BLOCK 8: STYLES =====
+// ===== BLOCK 9: STYLES =====
 const styles = {
   cardBlock: {
     background: "#fff",
@@ -212,40 +331,9 @@ const styles = {
     gap: "10px",
   },
 
-  input: {
-    padding: "8px",
-    borderRadius: "8px",
-    border: "1px solid #e5e7eb",
-  },
-
-  uploadBtn: {
-    background: PRIMARY,
-    color: "#fff",
-    padding: "8px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    textAlign: "center",
-  },
-
-  preview: {
-    width: "80px",
-    height: "80px",
-    borderRadius: "50%",
-    objectFit: "cover",
-  },
-
-  saveBtn: {
-    background: "#22c55e",
-    color: "#fff",
-    border: "none",
-    padding: "8px",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
     gap: "15px",
   },
 
@@ -264,9 +352,32 @@ const styles = {
     marginBottom: "10px",
   },
 
+  preview: {
+    width: "70px",
+    height: "70px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    margin: "auto",
+  },
+
   name: {
     fontWeight: "600",
     marginBottom: "8px",
+  },
+
+  input: {
+    padding: "8px",
+    borderRadius: "8px",
+    border: "1px solid #e5e7eb",
+  },
+
+  uploadBtn: {
+    background: PRIMARY,
+    color: "#fff",
+    padding: "6px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "12px",
   },
 
   editBtn: {
@@ -276,5 +387,22 @@ const styles = {
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+  },
+
+  saveBtn: {
+    background: "#22c55e",
+    color: "#fff",
+    border: "none",
+    padding: "6px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+
+  cancelBtn: {
+    background: "#e5e7eb",
+    border: "none",
+    padding: "6px",
+    borderRadius: "6px",
+    cursor: "pointer",
   },
 };
