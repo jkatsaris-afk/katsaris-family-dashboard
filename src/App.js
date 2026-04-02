@@ -253,7 +253,8 @@ const isVisible = (pageName) => {
         </div>
       </div>
 
-  // ===== BLOCK 12C: PAGE CONTENT =====
+  {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
+      
 <div
   style={{
     padding: "10px 20px 120px",
