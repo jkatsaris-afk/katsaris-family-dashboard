@@ -238,7 +238,33 @@ export default function HomeScreenSettings() {
 
         <div style={styles.row}>
           <span>Enable automatic night mode</span>
+        {/* ===== INACTIVITY TIMEOUT ===== */}
+<div style={styles.row}>
+  <span>Return to Home after inactivity</span>
 
+  <div
+    onClick={() =>
+      updateSettings({
+        inactivity_enabled: !settings.inactivity_enabled,
+      })
+    }
+    style={{
+      ...styles.toggle,
+      background: settings.inactivity_enabled ? PRIMARY : "#e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        ...styles.knob,
+        left: settings.inactivity_enabled ? "22px" : "2px",
+      }}
+    />
+  </div>
+</div>
+
+<div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+  Returns to Home after 10 minutes of inactivity
+</div>
           <div
             onClick={() =>
               updateSettings({
