@@ -105,115 +105,38 @@ export default function HouseholdSettings() {
   if (!householdId) return <div>Loading...</div>;
 
 
- // ===== BLOCK 8: MAIN UI =====
-return (
-  <div>
-    <h2 style={styles.pageTitle}>Household Settings</h2>
+  // ===== BLOCK 8: MAIN UI =====
+  return (
+    <div style={styles.pageWrap}>
+      <h2 style={styles.pageTitle}>Household Settings</h2>
 
-    <div style={styles.cardBlock}>
+      <div style={styles.cardBlock}>
 
-      {/* ===== BLOCK 8A: HEADER ===== */}
-      <div style={styles.cardHeader}>
-        <Home size={20} />
-        <span>Household Information</span>
-      </div>
-
-      {/* ===== BLOCK 8B: HOUSEHOLD ID ===== */}
-      <div style={styles.settingRow}>
-        <div>
-          <div style={styles.label}>Household ID</div>
-          <div style={styles.sub}>Unique ID for this household</div>
+        {/* ===== BLOCK 8A: HEADER ===== */}
+        <div style={styles.cardHeader}>
+          <Home size={20} />
+          <span>Household Information</span>
         </div>
 
-        <div style={styles.readonly}>
-          {householdId}
-        </div>
-      </div>
-
-      <div style={styles.divider} />
-
-      {/* ===== BLOCK 8C: NAME ===== */}
-      <div style={styles.settingRow}>
-        <div>
-          <div style={styles.label}>Household Name</div>
-          <div style={styles.sub}>Displayed across the app</div>
-        </div>
-
-        <input
-          value={form.name}
-          onChange={(e) => updateField("name", e.target.value)}
-          style={styles.input}
-          placeholder="Katsaris Family"
-        />
-      </div>
-
-      <div style={styles.divider} />
-
-      {/* ===== BLOCK 8D: STREET ===== */}
-      <div style={styles.settingRow}>
-        <div>
-          <div style={styles.label}>Street Address</div>
-        </div>
-
-        <input
-          value={form.street}
-          onChange={(e) => updateField("street", e.target.value)}
-          style={styles.input}
-        />
-      </div>
-
-      <div style={styles.divider} />
-
-      {/* ===== BLOCK 8E: CITY ===== */}
-      <div style={styles.settingRow}>
-        <div>
-          <div style={styles.label}>City</div>
-        </div>
-
-        <input
-          value={form.city}
-          onChange={(e) => updateField("city", e.target.value)}
-          style={styles.input}
-        />
-      </div>
-
-      <div style={styles.divider} />
-
-      {/* ===== BLOCK 8F: STATE ===== */}
-      <div style={styles.settingRow}>
-        <div>
-          <div style={styles.label}>State</div>
-        </div>
-
-        <input
-          value={form.state}
-          onChange={(e) => updateField("state", e.target.value)}
-          style={styles.input}
-          placeholder="NV"
-        />
-      </div>
-
-      {/* ===== BLOCK 8G: SAVE ===== */}
-      <div style={styles.saveRow}>
-        <button onClick={save} style={styles.saveBtn}>
-          Save Changes
-        </button>
-      </div>
-
-    </div>
-  </div>
-);
         {/* ===== BLOCK 8B: HOUSEHOLD ID ===== */}
-        <div style={styles.row}>
-          <span>Household ID</span>
-          <span style={styles.readonly}>
+        <div style={styles.gridRow}>
+          <div>
+            <div style={styles.label}>Household ID</div>
+            <div style={styles.sub}>Unique system identifier</div>
+          </div>
+          <div style={styles.valueBox}>
             {householdId}
-          </span>
+          </div>
         </div>
+
+        <div style={styles.divider} />
 
         {/* ===== BLOCK 8C: NAME ===== */}
-        <div style={styles.inputGroup}>
-          <label>Household Name</label>
+        <div style={styles.gridRow}>
+          <div>
+            <div style={styles.label}>Household Name</div>
+            <div style={styles.sub}>Used across the app</div>
+          </div>
           <input
             value={form.name}
             onChange={(e) => updateField("name", e.target.value)}
@@ -222,9 +145,13 @@ return (
           />
         </div>
 
+        <div style={styles.divider} />
+
         {/* ===== BLOCK 8D: STREET ===== */}
-        <div style={styles.inputGroup}>
-          <label>Street Address</label>
+        <div style={styles.gridRow}>
+          <div>
+            <div style={styles.label}>Street Address</div>
+          </div>
           <input
             value={form.street}
             onChange={(e) => updateField("street", e.target.value)}
@@ -232,9 +159,13 @@ return (
           />
         </div>
 
+        <div style={styles.divider} />
+
         {/* ===== BLOCK 8E: CITY ===== */}
-        <div style={styles.inputGroup}>
-          <label>City</label>
+        <div style={styles.gridRow}>
+          <div>
+            <div style={styles.label}>City</div>
+          </div>
           <input
             value={form.city}
             onChange={(e) => updateField("city", e.target.value)}
@@ -242,20 +173,27 @@ return (
           />
         </div>
 
+        <div style={styles.divider} />
+
         {/* ===== BLOCK 8F: STATE ===== */}
-        <div style={styles.inputGroup}>
-          <label>State</label>
+        <div style={styles.gridRow}>
+          <div>
+            <div style={styles.label}>State</div>
+          </div>
           <input
             value={form.state}
             onChange={(e) => updateField("state", e.target.value)}
             style={styles.input}
+            placeholder="NV"
           />
         </div>
 
         {/* ===== BLOCK 8G: SAVE BUTTON ===== */}
-        <button onClick={save} style={styles.saveBtn}>
-          Save Changes
-        </button>
+        <div style={styles.saveRow}>
+          <button onClick={save} style={styles.saveBtn}>
+            Save Changes
+          </button>
+        </div>
 
       </div>
     </div>
@@ -265,6 +203,10 @@ return (
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
+  pageWrap: {
+    maxWidth: "700px",
+  },
+
   pageTitle: {
     fontSize: "22px",
     fontWeight: "700",
@@ -273,10 +215,9 @@ const styles = {
 
   cardBlock: {
     background: "#fff",
-    padding: "20px",
     borderRadius: "16px",
-    marginTop: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    padding: "20px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
   },
 
   cardHeader: {
@@ -285,14 +226,15 @@ const styles = {
     gap: "10px",
     fontSize: "18px",
     fontWeight: "600",
-    marginBottom: "10px",
+    marginBottom: "15px",
   },
 
-  settingRow: {
-    display: "flex",
-    justifyContent: "space-between",
+  gridRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 260px",
     alignItems: "center",
-    padding: "12px 0",
+    padding: "14px 0",
+    gap: "20px",
   },
 
   divider: {
@@ -308,23 +250,25 @@ const styles = {
   sub: {
     fontSize: "12px",
     color: "#6b7280",
+    marginTop: "2px",
   },
 
-  readonly: {
-    fontSize: "12px",
-    color: "#6b7280",
+  valueBox: {
     background: "#f8fafc",
-    padding: "6px 10px",
-    borderRadius: "6px",
+    padding: "8px 10px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    color: "#64748b",
+    textAlign: "right",
   },
 
   input: {
-    width: "220px",
+    width: "100%",
     padding: "8px 10px",
     borderRadius: "8px",
     border: "1px solid #e5e7eb",
-    background: "#fff",
     fontSize: "14px",
+    background: "#fff",
   },
 
   saveRow: {
@@ -334,7 +278,7 @@ const styles = {
   },
 
   saveBtn: {
-    background: "#2f6ea6",
+    background: PRIMARY,
     color: "#fff",
     border: "none",
     padding: "10px 16px",
