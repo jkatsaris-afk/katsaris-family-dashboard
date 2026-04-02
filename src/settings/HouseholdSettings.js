@@ -105,19 +105,104 @@ export default function HouseholdSettings() {
   if (!householdId) return <div>Loading...</div>;
 
 
-  // ===== BLOCK 8: MAIN UI =====
-  return (
-    <div>
-      <h2>Household Settings</h2>
+ // ===== BLOCK 8: MAIN UI =====
+return (
+  <div>
+    <h2 style={styles.pageTitle}>Household Settings</h2>
 
-      <div style={styles.cardBlock}>
+    <div style={styles.cardBlock}>
 
-        {/* ===== BLOCK 8A: HEADER ===== */}
-        <div style={styles.cardHeader}>
-          <Home size={20} />
-          <span>Household Information</span>
+      {/* ===== BLOCK 8A: HEADER ===== */}
+      <div style={styles.cardHeader}>
+        <Home size={20} />
+        <span>Household Information</span>
+      </div>
+
+      {/* ===== BLOCK 8B: HOUSEHOLD ID ===== */}
+      <div style={styles.settingRow}>
+        <div>
+          <div style={styles.label}>Household ID</div>
+          <div style={styles.sub}>Unique ID for this household</div>
         </div>
 
+        <div style={styles.readonly}>
+          {householdId}
+        </div>
+      </div>
+
+      <div style={styles.divider} />
+
+      {/* ===== BLOCK 8C: NAME ===== */}
+      <div style={styles.settingRow}>
+        <div>
+          <div style={styles.label}>Household Name</div>
+          <div style={styles.sub}>Displayed across the app</div>
+        </div>
+
+        <input
+          value={form.name}
+          onChange={(e) => updateField("name", e.target.value)}
+          style={styles.input}
+          placeholder="Katsaris Family"
+        />
+      </div>
+
+      <div style={styles.divider} />
+
+      {/* ===== BLOCK 8D: STREET ===== */}
+      <div style={styles.settingRow}>
+        <div>
+          <div style={styles.label}>Street Address</div>
+        </div>
+
+        <input
+          value={form.street}
+          onChange={(e) => updateField("street", e.target.value)}
+          style={styles.input}
+        />
+      </div>
+
+      <div style={styles.divider} />
+
+      {/* ===== BLOCK 8E: CITY ===== */}
+      <div style={styles.settingRow}>
+        <div>
+          <div style={styles.label}>City</div>
+        </div>
+
+        <input
+          value={form.city}
+          onChange={(e) => updateField("city", e.target.value)}
+          style={styles.input}
+        />
+      </div>
+
+      <div style={styles.divider} />
+
+      {/* ===== BLOCK 8F: STATE ===== */}
+      <div style={styles.settingRow}>
+        <div>
+          <div style={styles.label}>State</div>
+        </div>
+
+        <input
+          value={form.state}
+          onChange={(e) => updateField("state", e.target.value)}
+          style={styles.input}
+          placeholder="NV"
+        />
+      </div>
+
+      {/* ===== BLOCK 8G: SAVE ===== */}
+      <div style={styles.saveRow}>
+        <button onClick={save} style={styles.saveBtn}>
+          Save Changes
+        </button>
+      </div>
+
+    </div>
+  </div>
+);
         {/* ===== BLOCK 8B: HOUSEHOLD ID ===== */}
         <div style={styles.row}>
           <span>Household ID</span>
