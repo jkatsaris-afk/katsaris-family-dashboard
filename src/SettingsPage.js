@@ -145,7 +145,7 @@ export default function SettingsPage() {
 const styles = {
   container: {
     display: "flex",
-    height: "calc(100vh - 140px)",
+    height: "100%",
     background: "#f8fafc",
     borderRadius: "20px",
     overflow: "hidden",
@@ -172,11 +172,10 @@ const styles = {
     cursor: "pointer",
   },
   content: {
-  flex: 1,
-  padding: "25px",
-  paddingBottom: "140px", // 👈 match dock space
-  overflowY: "auto",
-},
+    flex: 1,
+    padding: "25px",
+    paddingBottom: "140px", // 👈 keeps content above dock
+    overflowY: "auto",
   },
   logout: {
     padding: "12px",
