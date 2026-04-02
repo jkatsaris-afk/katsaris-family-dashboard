@@ -52,7 +52,6 @@ export default function HomeScreenSettings() {
         if (data) {
           setSettings({
             ...data,
-            show_logo: data.show_logo ?? true,
             visible_tiles: data.visible_tiles || defaultTiles,
           });
         } else {
@@ -61,7 +60,6 @@ export default function HomeScreenSettings() {
             .insert({
               household_id: member.household_id,
               auto_night_mode: false,
-              show_logo: true,
               visible_tiles: defaultTiles,
             })
             .select()
@@ -70,7 +68,6 @@ export default function HomeScreenSettings() {
           if (newSettings) {
             setSettings({
               ...newSettings,
-              show_logo: newSettings.show_logo ?? true,
               visible_tiles: newSettings.visible_tiles || defaultTiles,
             });
           }
@@ -86,33 +83,63 @@ export default function HomeScreenSettings() {
 
 
   // ===== BLOCK 6: UPDATE SETTINGS =====
-const updateSettings = async (updates) => {
-  if (!settings) return;
+  const updateSettings = async (updates) => {
+    if (!settings) return;
 
-  try {
-    const { error } = await supabase
-      .from("settings")
-      .update(updates)
-      .eq("id", settings.id);
+    try {
+      const { error } = await supabase
+        .from("settings")
+        .update(updates)
+        .eq("id", settings.id);
+
+      if (error) {
+        console.error("UPDATE ERROR:", error);
+        return;
+      }
+
+      setSettings((prev) => ({
+        ...prev,
+        ...updates,
+      }));
+
+      window.dispatchEvent(new Event("settingsUpdated"));
+
+    } catch (err) {
+      console.error("UPDATE ERROR:", err);
+    }
+  };
+
+
+  // ===== BLOCK 7: FILE UPLOAD =====
+  const handleUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file || !settings) return;
+
+    const filePath = `${settings.household_id}/${type}-${Date.now()}`;
+
+    const { error } = await supabase.storage
+      .from("oikos-assets")
+      .upload(filePath, file, { upsert: true });
 
     if (error) {
-      console.error("UPDATE ERROR:", error);
+      console.error("UPLOAD ERROR:", error);
       return;
     }
 
-    // 🔥 update local UI immediately
-    setSettings((prev) => ({
-      ...prev,
-      ...updates,
-    }));
+    const { data } = supabase.storage
+      .from("oikos-assets")
+      .getPublicUrl(filePath);
 
-    // 🔥 FORCE HOME PAGE TO REFRESH
-    window.dispatchEvent(new Event("settingsUpdated"));
+    const url = data.publicUrl;
 
-  } catch (err) {
-    console.error("UPDATE ERROR:", err);
-  }
-};
+    if (type === "background") {
+      updateSettings({ background_url: url });
+    } else {
+      updateSettings({ logo_url: url });
+    }
+  };
+
+
   // ===== BLOCK 8: REMOVE IMAGE =====
   const handleRemove = async (type) => {
     if (!settings) return;
@@ -208,33 +235,6 @@ const updateSettings = async (updates) => {
         <div style={styles.cardHeader}>
           <Palette size={20} />
           <span>Branding</span>
-        </div>
-
-        <div style={styles.row}>
-          <span>Show Logo on Home Screen</span>
-
-          <div
-            onClick={() =>
-              updateSettings({
-                show_logo: !(settings.show_logo ?? true),
-              })
-            }
-            style={{
-              ...styles.toggle,
-              background: (settings.show_logo ?? true)
-                ? PRIMARY
-                : "#e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                ...styles.knob,
-                left: (settings.show_logo ?? true)
-                  ? "22px"
-                  : "2px",
-              }}
-            />
-          </div>
         </div>
 
         <div style={styles.uploadRow}>
