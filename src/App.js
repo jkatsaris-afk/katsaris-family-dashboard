@@ -123,36 +123,29 @@ function AppContent() {
   }, [autoNightEnabled]);
 
 
-  // ===== BLOCK 8: SAFE APP FILTER (DOCK CONTROL) =====
-  const apps = [
-    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
-    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
-    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
-    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
-    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-  ].filter(app => {
-    const tiles = displaySettings?.visible_tiles;
+  // ===== BLOCK 8: APP FILTER (OBJECT-BASED) =====
+const apps = [
+  { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
+  { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
+  { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
+  { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
+  { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+  { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
+  { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
+].filter(app => {
+  const tiles = displaySettings?.visible_tiles;
 
-    if (!tiles) return true;
+  // show everything until settings load
+  if (!tiles) return true;
 
-    if (typeof tiles === "string") {
-      try {
-        const parsed = JSON.parse(tiles);
-        return Array.isArray(parsed) ? parsed.includes(app.page) : true;
-      } catch {
-        return true;
-      }
-    }
+  // ✅ HANDLE OBJECT FORMAT (YOUR CASE)
+  if (typeof tiles === "object") {
+    return tiles[app.page] !== false; 
+  }
 
-    if (Array.isArray(tiles)) {
-      return tiles.includes(app.page);
-    }
-
-    return true;
-  });
-
+  // fallback safety
+  return true;
+});
 
   // ===== BLOCK 9: PAGE VISIBILITY GUARD =====
   const isVisible = (pageName) => {
