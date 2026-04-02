@@ -107,10 +107,10 @@ export default function HouseholdSettings() {
 
   // ===== BLOCK 8: MAIN UI =====
   return (
-    <div style={styles.pageWrap}>
+    <div>
       <h2 style={styles.pageTitle}>Household Settings</h2>
 
-      <div style={styles.cardBlock}>
+      <div style={styles.fullBlock}>
 
         {/* ===== BLOCK 8A: HEADER ===== */}
         <div style={styles.cardHeader}>
@@ -203,21 +203,18 @@ export default function HouseholdSettings() {
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
-  pageWrap: {
-    maxWidth: "700px",
-  },
-
   pageTitle: {
     fontSize: "22px",
     fontWeight: "700",
     marginBottom: "10px",
   },
 
-  cardBlock: {
+  fullBlock: {
     background: "#fff",
     borderRadius: "16px",
     padding: "20px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
+    width: "100%",              // 👈 FULL WIDTH
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   },
 
   cardHeader: {
@@ -231,7 +228,7 @@ const styles = {
 
   gridRow: {
     display: "grid",
-    gridTemplateColumns: "1fr 260px",
+    gridTemplateColumns: "1fr 300px", // 👈 gives more breathing room
     alignItems: "center",
     padding: "14px 0",
     gap: "20px",
@@ -268,7 +265,6 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid #e5e7eb",
     fontSize: "14px",
-    background: "#fff",
   },
 
   saveRow: {
