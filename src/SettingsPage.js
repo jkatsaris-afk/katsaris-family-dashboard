@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import {
   Home,
   Users,
-  Moon,
+  LayoutDashboard,
+  SunMoon,
   Bell,
   Shield,
   ClipboardList,
@@ -40,8 +41,8 @@ export default function SettingsPage() {
 const menu = [
   { name: "Household", icon: <Home />, key: "household" },
   { name: "Members", icon: <Users />, key: "members" },
-  { name: "Home Screen", icon: <Moon />, key: "display" },
-  { name: "Mode", icon: <Moon />, key: "mode" },
+  { name: "Home Screen", icon: <LayoutDashboard />, key: "display" },
+  { name: "Mode", icon: <SunMoon />, key: "mode" },
   { name: "Notifications", icon: <Bell />, key: "notifications" },
   { name: "Security", icon: <Shield />, key: "security" },
   { name: "Integrations", icon: <Plug />, key: "integrations" },
