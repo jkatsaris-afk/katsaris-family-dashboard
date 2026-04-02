@@ -86,34 +86,33 @@ export default function HomeScreenSettings() {
 
 
   // ===== BLOCK 6: UPDATE SETTINGS =====
-  const updateSettings = async (updates) => {
-    if (!settings) return;
+const updateSettings = async (updates) => {
+  if (!settings) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("settings")
-        .update(updates)
-        .eq("id", settings.id)
-        .select()
-        .single();
+  try {
+    const { data, error } = await supabase
+      .from("settings")
+      .update(updates)
+      .eq("id", settings.id)
+      .select()
+      .single();
 
-      if (error) {
-        console.error("UPDATE ERROR:", error);
-        return;
-      }
-
-      setSettings((prev) => ({
-        ...prev,
-        ...data,
-        show_logo: data.show_logo ?? prev.show_logo ?? true,
-        visible_tiles: data.visible_tiles || prev.visible_tiles,
-      }));
-
-    } catch (err) {
-      console.error("UPDATE ERROR:", err);
+    if (error) {
+      console.error("UPDATE ERROR:", error);
+      return;
     }
-  };
 
+    // ✅ FIX: do NOT override show_logo
+    setSettings((prev) => ({
+      ...prev,
+      ...data,
+      visible_tiles: data.visible_tiles || prev.visible_tiles,
+    }));
+
+  } catch (err) {
+    console.error("UPDATE ERROR:", err);
+  }
+};
 
   // ===== BLOCK 7: FILE UPLOAD =====
   const handleUpload = async (e, type) => {
