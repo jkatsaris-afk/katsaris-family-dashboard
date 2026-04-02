@@ -21,6 +21,9 @@ export default function HomePage({ displaySettings }) {
     tomorrowCondition: "",
   });
 
+  // 🔥 NEW: BIBLE VERSE STATE
+  const [verse, setVerse] = useState(null);
+
 
   // ===== BLOCK 4: CLOCK =====
   useEffect(() => {
@@ -158,6 +161,43 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
+  // 🔥 ===== BLOCK 6B: BIBLE VERSE (CACHED DAILY) =====
+  useEffect(() => {
+    const fetchVerse = async () => {
+      try {
+        const today = new Date().toDateString();
+        const cached = JSON.parse(localStorage.getItem("dailyVerse"));
+
+        // ✅ use cached verse if same day
+        if (cached && cached.date === today) {
+          setVerse(cached);
+          return;
+        }
+
+        const res = await fetch("https://bible-api.com/?random=verse");
+        const data = await res.json();
+
+        const verseData = {
+          text: data.text,
+          reference: data.reference,
+          date: today,
+        };
+
+        localStorage.setItem("dailyVerse", JSON.stringify(verseData));
+        setVerse(verseData);
+
+      } catch {
+        setVerse({
+          text: "Unable to load verse",
+          reference: "",
+        });
+      }
+    };
+
+    fetchVerse();
+  }, []);
+
+
   // ===== BLOCK 7: FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
@@ -223,10 +263,15 @@ export default function HomePage({ displaySettings }) {
           </div>
         )}
 
-        {/* BIBLE */}
-        {displaySettings?.visible_widgets?.bible && (
-          <div style={{ marginTop: "10px", color: "#6b7280" }}>
-            📖 Daily verse coming soon
+        {/* 🔥 BIBLE (NOW REAL) */}
+        {displaySettings?.visible_widgets?.bible && verse && (
+          <div style={{ marginTop: "15px", color: "#374151" }}>
+            <div style={{ fontStyle: "italic" }}>
+              "{verse.text}"
+            </div>
+            <div style={{ marginTop: "5px", fontWeight: "600" }}>
+              {verse.reference}
+            </div>
           </div>
         )}
 
