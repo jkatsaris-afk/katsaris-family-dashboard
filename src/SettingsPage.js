@@ -151,3 +151,4 @@ const styles = {
     borderRadius: "20px",
     overflow: "hidden",         // ✅ keeps it clean
   },
+}
