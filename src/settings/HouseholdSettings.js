@@ -80,12 +80,7 @@ export default function HouseholdSettings() {
     try {
       const { error } = await supabase
         .from("households")
-        .update({
-          name: form.name,
-          street: form.street,
-          city: form.city,
-          state: form.state,
-        })
+        .update(form)
         .eq("id", householdId);
 
       if (error) {
@@ -108,9 +103,9 @@ export default function HouseholdSettings() {
   // ===== BLOCK 8: MAIN UI =====
   return (
     <div>
-      <h2 style={styles.pageTitle}>Household Settings</h2>
+      <h2>Household Settings</h2>
 
-      <div style={styles.fullBlock}>
+      <div style={styles.cardBlock}>
 
         {/* ===== BLOCK 8A: HEADER ===== */}
         <div style={styles.cardHeader}>
@@ -119,24 +114,20 @@ export default function HouseholdSettings() {
         </div>
 
         {/* ===== BLOCK 8B: HOUSEHOLD ID ===== */}
-        <div style={styles.gridRow}>
+        <div style={styles.row}>
           <div>
             <div style={styles.label}>Household ID</div>
-            <div style={styles.sub}>Unique system identifier</div>
+            <div style={styles.sub}>Read-only</div>
           </div>
-          <div style={styles.valueBox}>
+
+          <div style={styles.value}>
             {householdId}
           </div>
         </div>
 
-        <div style={styles.divider} />
-
         {/* ===== BLOCK 8C: NAME ===== */}
-        <div style={styles.gridRow}>
-          <div>
-            <div style={styles.label}>Household Name</div>
-            <div style={styles.sub}>Used across the app</div>
-          </div>
+        <div style={styles.field}>
+          <div style={styles.label}>Household Name</div>
           <input
             value={form.name}
             onChange={(e) => updateField("name", e.target.value)}
@@ -145,13 +136,9 @@ export default function HouseholdSettings() {
           />
         </div>
 
-        <div style={styles.divider} />
-
         {/* ===== BLOCK 8D: STREET ===== */}
-        <div style={styles.gridRow}>
-          <div>
-            <div style={styles.label}>Street Address</div>
-          </div>
+        <div style={styles.field}>
+          <div style={styles.label}>Street Address</div>
           <input
             value={form.street}
             onChange={(e) => updateField("street", e.target.value)}
@@ -159,13 +146,9 @@ export default function HouseholdSettings() {
           />
         </div>
 
-        <div style={styles.divider} />
-
         {/* ===== BLOCK 8E: CITY ===== */}
-        <div style={styles.gridRow}>
-          <div>
-            <div style={styles.label}>City</div>
-          </div>
+        <div style={styles.field}>
+          <div style={styles.label}>City</div>
           <input
             value={form.city}
             onChange={(e) => updateField("city", e.target.value)}
@@ -173,13 +156,9 @@ export default function HouseholdSettings() {
           />
         </div>
 
-        <div style={styles.divider} />
-
         {/* ===== BLOCK 8F: STATE ===== */}
-        <div style={styles.gridRow}>
-          <div>
-            <div style={styles.label}>State</div>
-          </div>
+        <div style={styles.field}>
+          <div style={styles.label}>State</div>
           <input
             value={form.state}
             onChange={(e) => updateField("state", e.target.value)}
@@ -189,11 +168,9 @@ export default function HouseholdSettings() {
         </div>
 
         {/* ===== BLOCK 8G: SAVE BUTTON ===== */}
-        <div style={styles.saveRow}>
-          <button onClick={save} style={styles.saveBtn}>
-            Save Changes
-          </button>
-        </div>
+        <button onClick={save} style={styles.saveBtn}>
+          Save Changes
+        </button>
 
       </div>
     </div>
@@ -203,18 +180,11 @@ export default function HouseholdSettings() {
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
-  pageTitle: {
-    fontSize: "22px",
-    fontWeight: "700",
-    marginBottom: "10px",
-  },
-
-  fullBlock: {
+  cardBlock: {
     background: "#fff",
-    borderRadius: "16px",
     padding: "20px",
-    width: "100%",              // 👈 FULL WIDTH
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    borderRadius: "12px",
+    marginTop: "15px",
   },
 
   cardHeader: {
@@ -226,17 +196,11 @@ const styles = {
     marginBottom: "15px",
   },
 
-  gridRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 300px", // 👈 gives more breathing room
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: "14px 0",
-    gap: "20px",
-  },
-
-  divider: {
-    height: "1px",
-    background: "#f1f5f9",
+    marginBottom: "15px",
   },
 
   label: {
@@ -247,37 +211,35 @@ const styles = {
   sub: {
     fontSize: "12px",
     color: "#6b7280",
-    marginTop: "2px",
   },
 
-  valueBox: {
-    background: "#f8fafc",
-    padding: "8px 10px",
-    borderRadius: "8px",
+  value: {
     fontSize: "12px",
     color: "#64748b",
-    textAlign: "right",
+    background: "#f8fafc",
+    padding: "6px 10px",
+    borderRadius: "6px",
+  },
+
+  field: {
+    marginBottom: "15px",
   },
 
   input: {
-    width: "100%",
+    width: "85%",          // 👈 THIS is the sweet spot
+    maxWidth: "500px",     // 👈 keeps it clean
     padding: "8px 10px",
+    marginTop: "5px",
     borderRadius: "8px",
     border: "1px solid #e5e7eb",
-    fontSize: "14px",
-  },
-
-  saveRow: {
-    marginTop: "20px",
-    display: "flex",
-    justifyContent: "flex-end",
   },
 
   saveBtn: {
+    marginTop: "10px",
     background: PRIMARY,
     color: "#fff",
     border: "none",
-    padding: "10px 16px",
+    padding: "10px 14px",
     borderRadius: "8px",
     cursor: "pointer",
     fontWeight: "600",
