@@ -32,7 +32,7 @@ export default function HomePage() {
   }, []);
 
 
- // ===== BLOCK 5: LOAD LOGO + BRANDING =====
+// ===== BLOCK 5: LOAD LOGO + BRANDING =====
 useEffect(() => {
   const loadLogo = async () => {
     try {
@@ -73,17 +73,15 @@ useEffect(() => {
     }
   };
 
-  // run once
   loadLogo();
 
-  // keep UI in sync
   const interval = setInterval(loadLogo, 2000);
 
   return () => {
     clearInterval(interval);
   };
-
 }, []);
+
   
   // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
