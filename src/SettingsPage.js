@@ -23,6 +23,7 @@ import SecuritySettings from "./settings/SecuritySettings";
 import IntegrationsSettings from "./settings/IntegrationsSettings";
 import ChoreSettings from "./settings/ChoreSettings";
 import AboutSettings from "./settings/AboutSettings";
+import ModeSettings from "./settings/ModeSettings";
 
 const PRIMARY = "#2f6ea6";
 
@@ -39,6 +40,7 @@ export default function SettingsPage() {
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
     { name: "Display", icon: <Moon />, key: "display" },
+    { name: "Mode", icon: <Moon />, key: "mode" },
     { name: "Notifications", icon: <Bell />, key: "notifications" },
     { name: "Security", icon: <Shield />, key: "security" },
     { name: "Integrations", icon: <Plug />, key: "integrations" },
@@ -59,6 +61,9 @@ export default function SettingsPage() {
 
       case "display":
         return <DisplaySettings />;
+
+      case "mode":
+        return <ModeSettings />;
 
       case "notifications":
         return <NotificationsSettings />;
