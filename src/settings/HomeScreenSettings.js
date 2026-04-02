@@ -90,7 +90,6 @@ const updateSettings = async (updates) => {
   if (!settings) return;
 
   try {
-    // 🔥 update DB
     const { error } = await supabase
       .from("settings")
       .update(updates)
@@ -101,11 +100,14 @@ const updateSettings = async (updates) => {
       return;
     }
 
-    // 🔥 IMMEDIATE UI UPDATE (THIS FIXES YOUR TOGGLE)
+    // 🔥 update local UI immediately
     setSettings((prev) => ({
       ...prev,
       ...updates,
     }));
+
+    // 🔥 FORCE HOME PAGE TO REFRESH
+    window.dispatchEvent(new Event("settingsUpdated"));
 
   } catch (err) {
     console.error("UPDATE ERROR:", err);
