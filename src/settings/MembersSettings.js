@@ -1,7 +1,7 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Users, Plus, Pencil, Trash } from "lucide-react";
+import { Users, Plus, Pencil } from "lucide-react";
 
 const PRIMARY = "#2f6ea6";
 
@@ -11,226 +11,171 @@ export default function MembersSettings() {
 
   // ===== BLOCK 3: STATE =====
   const [householdId, setHouseholdId] = useState(null);
-  const [members, setMembers] = useState([]);
+  const [profiles, setProfiles] = useState([]);
 
-  const [editingId, setEditingId] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
 
-  const [editForm, setEditForm] = useState({
-    name: "",
-    email: "",
-    role: "Member",
-  });
-
-  const [newMember, setNewMember] = useState({
-    name: "",
-    email: "",
-    role: "Member",
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    avatar_url: "",
   });
 
 
   // ===== BLOCK 4: LOAD DATA =====
   useEffect(() => {
     const load = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        if (!user) return;
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("household_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-        const { data: member } = await supabase
-          .from("household_members")
-          .select("household_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      if (!member) return;
 
-        if (!member) return;
+      setHouseholdId(member.household_id);
 
-        setHouseholdId(member.household_id);
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("household_id", member.household_id);
 
-        const { data } = await supabase
-          .from("household_members")
-          .select("*")
-          .eq("household_id", member.household_id);
-
-        if (data) setMembers(data);
-
-      } catch (err) {
-        console.error("LOAD ERROR:", err);
-      }
+      setProfiles(data || []);
     };
 
     load();
   }, []);
 
 
-  // ===== BLOCK 5: ADD MEMBER =====
-  const addMember = async () => {
-    if (!newMember.name) return;
+  // ===== BLOCK 5: UPLOAD AVATAR =====
+  const uploadAvatar = async (file) => {
+    const path = `${householdId}/avatar-${Date.now()}`;
 
-    const { data, error } = await supabase
-      .from("household_members")
+    const { error } = await supabase.storage
+      .from("oikos-assets")
+      .upload(path, file, { upsert: true });
+
+    if (error) return;
+
+    const { data } = supabase.storage
+      .from("oikos-assets")
+      .getPublicUrl(path);
+
+    setForm((prev) => ({
+      ...prev,
+      avatar_url: data.publicUrl,
+    }));
+  };
+
+
+  // ===== BLOCK 6: ADD PROFILE =====
+  const addProfile = async () => {
+    if (!form.first_name) return;
+
+    const { data } = await supabase
+      .from("profiles")
       .insert({
         household_id: householdId,
-        ...newMember,
+        ...form,
       })
       .select()
       .single();
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+    setProfiles((prev) => [...prev, data]);
 
-    setMembers((prev) => [...prev, data]);
-
-    setNewMember({
-      name: "",
-      email: "",
-      role: "Member",
+    setForm({
+      first_name: "",
+      last_name: "",
+      avatar_url: "",
     });
+
+    setShowAdd(false);
   };
 
 
-  // ===== BLOCK 6: UPDATE MEMBER =====
-  const updateMember = async () => {
-    const { error } = await supabase
-      .from("household_members")
-      .update(editForm)
-      .eq("id", editingId);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === editingId ? { ...m, ...editForm } : m
-      )
-    );
-
-    setEditingId(null);
-  };
-
-
-  // ===== BLOCK 7: REMOVE MEMBER =====
-  const removeMember = async (id) => {
-    await supabase.from("household_members").delete().eq("id", id);
-    setMembers((prev) => prev.filter((m) => m.id !== id));
-  };
-
-
-  // ===== BLOCK 8: LOADING =====
-  if (!householdId) return <div>Loading...</div>;
-
-
-  // ===== BLOCK 9: MAIN UI =====
+  // ===== BLOCK 7: UI =====
   return (
     <div>
-      <h2>Members</h2>
+      <h2>Profiles</h2>
 
       <div style={styles.cardBlock}>
 
-        {/* ===== BLOCK 9A: HEADER ===== */}
-        <div style={styles.cardHeader}>
-          <Users size={20} />
-          <span>Household Members</span>
+        {/* ===== BLOCK 7A: ADD TILE ===== */}
+        <div
+          style={styles.addTile}
+          onClick={() => setShowAdd(!showAdd)}
+        >
+          <Plus size={18} />
+          <span>Add Profile</span>
         </div>
 
-        {/* ===== BLOCK 9B: MEMBER CARDS ===== */}
-        {members.map((m) => {
-          const isEditing = editingId === m.id;
+        {/* ===== BLOCK 7B: ADD FORM ===== */}
+        {showAdd && (
+          <div style={styles.formBlock}>
 
-          return (
-            <div key={m.id} style={styles.memberCard}>
+            <input
+              placeholder="First Name"
+              value={form.first_name}
+              onChange={(e) =>
+                setForm({ ...form, first_name: e.target.value })
+              }
+              style={styles.input}
+            />
 
-              {isEditing ? (
-                <>
-                  <input
-                    value={editForm.name}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, name: e.target.value })
-                    }
-                    style={styles.input}
-                  />
+            <input
+              placeholder="Last Name"
+              value={form.last_name}
+              onChange={(e) =>
+                setForm({ ...form, last_name: e.target.value })
+              }
+              style={styles.input}
+            />
 
-                  <input
-                    value={editForm.email}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, email: e.target.value })
-                    }
-                    style={styles.input}
-                  />
+            <label style={styles.uploadBtn}>
+              Upload Picture
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => uploadAvatar(e.target.files[0])}
+                style={{ display: "none" }}
+              />
+            </label>
 
-                  <div style={styles.actions}>
-                    <button onClick={updateMember} style={styles.saveBtn}>
-                      Save
-                    </button>
-                    <button onClick={() => setEditingId(null)} style={styles.cancelBtn}>
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <div style={styles.name}>{m.name}</div>
-                    <div style={styles.sub}>{m.email}</div>
-                  </div>
+            {form.avatar_url && (
+              <img src={form.avatar_url} style={styles.preview} />
+            )}
 
-                  <div style={styles.actions}>
-                    <span style={styles.role}>{m.role}</span>
+            <button onClick={addProfile} style={styles.saveBtn}>
+              Create Profile
+            </button>
 
-                    <Pencil
-                      size={16}
-                      style={styles.iconBtn}
-                      onClick={() => {
-                        setEditingId(m.id);
-                        setEditForm({
-                          name: m.name,
-                          email: m.email,
-                          role: m.role,
-                        });
-                      }}
-                    />
+          </div>
+        )}
 
-                    <Trash
-                      size={16}
-                      style={styles.delete}
-                      onClick={() => removeMember(m.id)}
-                    />
-                  </div>
-                </>
-              )}
+        {/* ===== BLOCK 7C: PROFILE GRID ===== */}
+        <div style={styles.grid}>
+          {profiles.map((p) => (
+            <div key={p.id} style={styles.profileTile}>
+
+              <img
+                src={p.avatar_url || "/default-avatar.png"}
+                style={styles.avatar}
+              />
+
+              <div style={styles.name}>
+                {p.first_name} {p.last_name}
+              </div>
+
+              <button style={styles.editBtn}>
+                <Pencil size={14} /> Edit
+              </button>
 
             </div>
-          );
-        })}
-
-        {/* ===== BLOCK 9C: ADD MEMBER ===== */}
-        <div style={styles.addSection}>
-          <input
-            placeholder="Name"
-            value={newMember.name}
-            onChange={(e) =>
-              setNewMember({ ...newMember, name: e.target.value })
-            }
-            style={styles.input}
-          />
-
-          <input
-            placeholder="Email"
-            value={newMember.email}
-            onChange={(e) =>
-              setNewMember({ ...newMember, email: e.target.value })
-            }
-            style={styles.input}
-          />
-
-          <button onClick={addMember} style={styles.addBtn}>
-            <Plus size={16} /> Add Member
-          </button>
+          ))}
         </div>
 
       </div>
@@ -239,7 +184,7 @@ export default function MembersSettings() {
 }
 
 
-// ===== BLOCK 10: STYLES =====
+// ===== BLOCK 8: STYLES =====
 const styles = {
   cardBlock: {
     background: "#fff",
@@ -248,59 +193,22 @@ const styles = {
     marginTop: "15px",
   },
 
-  cardHeader: {
+  addTile: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    fontSize: "18px",
-    fontWeight: "600",
-    marginBottom: "15px",
-  },
-
-  memberCard: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+    gap: "8px",
+    background: "#f1f5f9",
     padding: "12px",
     borderRadius: "10px",
-    background: "#f8fafc",
-    marginBottom: "10px",
-  },
-
-  name: {
+    cursor: "pointer",
+    marginBottom: "15px",
     fontWeight: "600",
   },
 
-  sub: {
-    fontSize: "12px",
-    color: "#6b7280",
-  },
-
-  actions: {
+  formBlock: {
+    marginBottom: "20px",
     display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-
-  role: {
-    fontSize: "12px",
-    background: "#e5e7eb",
-    padding: "4px 8px",
-    borderRadius: "6px",
-  },
-
-  iconBtn: {
-    cursor: "pointer",
-  },
-
-  delete: {
-    color: "#ef4444",
-    cursor: "pointer",
-  },
-
-  addSection: {
-    marginTop: "15px",
-    display: "flex",
+    flexDirection: "column",
     gap: "10px",
   },
 
@@ -310,32 +218,63 @@ const styles = {
     border: "1px solid #e5e7eb",
   },
 
-  addBtn: {
+  uploadBtn: {
     background: PRIMARY,
     color: "#fff",
-    border: "none",
-    padding: "8px 12px",
+    padding: "8px",
     borderRadius: "8px",
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
+    textAlign: "center",
+  },
+
+  preview: {
+    width: "80px",
+    height: "80px",
+    borderRadius: "50%",
+    objectFit: "cover",
   },
 
   saveBtn: {
     background: "#22c55e",
     color: "#fff",
     border: "none",
-    padding: "6px 10px",
-    borderRadius: "6px",
+    padding: "8px",
+    borderRadius: "8px",
     cursor: "pointer",
   },
 
-  cancelBtn: {
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+    gap: "15px",
+  },
+
+  profileTile: {
+    background: "#f8fafc",
+    padding: "15px",
+    borderRadius: "12px",
+    textAlign: "center",
+  },
+
+  avatar: {
+    width: "70px",
+    height: "70px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    marginBottom: "10px",
+  },
+
+  name: {
+    fontWeight: "600",
+    marginBottom: "8px",
+  },
+
+  editBtn: {
     background: "#e5e7eb",
     border: "none",
     padding: "6px 10px",
     borderRadius: "6px",
     cursor: "pointer",
+    fontSize: "12px",
   },
 };
