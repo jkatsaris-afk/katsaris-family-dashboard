@@ -195,9 +195,7 @@ const isVisible = (pageName) => {
       {/* ===== BLOCK 12A: NIGHT MODE ===== */}
       {nightMode && (
         <div
-          onClick={() => {
-            if (!autoNightEnabled) setNightMode(false);
-          }}
+          onClick={() => setNightMode(false)}
           style={{
             position: "fixed",
             inset: 0,
