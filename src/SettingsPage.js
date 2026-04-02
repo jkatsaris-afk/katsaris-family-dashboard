@@ -38,7 +38,11 @@ export default function SettingsPage() {
   const menu = [
     { name: "Household", icon: <Home />, key: "household" },
     { name: "Members", icon: <Users />, key: "members" },
+
+    // DISPLAY + MODES
     { name: "Display", icon: <Moon />, key: "display" },
+    { name: "Modes", icon: <Moon />, key: "modes", indent: true },
+
     { name: "Notifications", icon: <Bell />, key: "notifications" },
     { name: "Security", icon: <Shield />, key: "security" },
     { name: "Integrations", icon: <Plug />, key: "integrations" },
@@ -59,6 +63,9 @@ export default function SettingsPage() {
 
       case "display":
         return <DisplaySettings />;
+
+      case "modes":
+        return <div>Modes Settings Coming Soon</div>;
 
       case "notifications":
         return <NotificationsSettings />;
@@ -89,12 +96,12 @@ export default function SettingsPage() {
       <div style={styles.sidebar}>
         <div>
 
-          {/* ===== BLOCK 7A-1: LOGO ===== */}
+          {/* LOGO */}
           <div style={styles.brandBox}>
             <img src={brand} alt="logo" style={styles.brand} />
           </div>
 
-          {/* ===== BLOCK 7A-2: MENU ITEMS ===== */}
+          {/* MENU */}
           {menu.map((item, i) => {
             const active = section === item.key;
 
@@ -106,18 +113,18 @@ export default function SettingsPage() {
                   ...styles.menuItem,
                   background: active ? PRIMARY : "transparent",
                   color: active ? "#fff" : "#333",
+                  marginLeft: item.indent ? "20px" : "0px", // 👈 indent for Modes
+                  fontSize: item.indent ? "14px" : "16px",
                 }}
               >
                 {item.icon}
-                <span style={{ marginLeft: "10px" }}>
-                  {item.name}
-                </span>
+                <span style={{ marginLeft: "10px" }}>{item.name}</span>
               </motion.div>
             );
           })}
         </div>
 
-        {/* ===== BLOCK 7A-3: LOGOUT ===== */}
+        {/* LOGOUT */}
         <div
           onClick={async () => {
             const { supabase } = await import("./lib/supabase");
@@ -131,7 +138,7 @@ export default function SettingsPage() {
       </div>
 
 
-      {/* ===== BLOCK 7B: RIGHT CONTENT PANEL ===== */}
+      {/* ===== BLOCK 7B: CONTENT PANEL ===== */}
       <div style={styles.content}>
         {renderContent()}
       </div>
@@ -145,10 +152,46 @@ export default function SettingsPage() {
 const styles = {
   container: {
     display: "flex",
-    height: "100%",              // ✅ FIXED (was calc)
-    maxHeight: "100%",          // ✅ prevents overflow
+    height: "100%",            // ✅ FIXED (no more calc)
+    maxHeight: "100%",
     background: "#f8fafc",
     borderRadius: "20px",
-    overflow: "hidden",         // ✅ keeps it clean
+    overflow: "hidden",        // ✅ prevents page scroll
+  },
+  sidebar: {
+    width: "260px",
+    background: "#fff",
+    padding: "15px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  brandBox: {
+    padding: "10px",
+  },
+  brand: {
+    width: "100%",
+  },
+  menuItem: {
+    display: "flex",
+    alignItems: "center",
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+  },
+  content: {
+    flex: 1,
+    padding: "25px",
+    overflowY: "auto",   // ✅ only this scrolls
+    height: "100%",
+  },
+  logout: {
+    padding: "12px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    color: "#ef4444",
+    fontWeight: "600",
+    textAlign: "center",
+    borderTop: "1px solid #e5e7eb",
   },
 };
