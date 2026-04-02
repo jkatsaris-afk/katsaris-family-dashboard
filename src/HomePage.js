@@ -28,7 +28,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌙 AUTO NIGHT MODE (only if enabled from DB)
+  // 🌙 AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightMode) return;
 
@@ -46,7 +46,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [autoNightMode]);
 
-  // 🔥 LOAD SETTINGS + LOGO FROM SUPABASE
+  // 🔥 LOAD SETTINGS
   useEffect(() => {
     const loadData = async () => {
       const {
@@ -143,39 +143,43 @@ export default function HomePage() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        position: "fixed", // 🔥 forces full screen
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: nightMode ? "center" : "flex-start",
+
         paddingTop: nightMode ? "0px" : "120px",
-        background: nightMode ? "#000" : undefined,
+
+        backgroundColor: nightMode ? "#000" : undefined, // 🔥 hard black
         backgroundImage: nightMode ? "none" : `url("/background.jpg")`,
+
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      {/* MAIN CONTENT */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+      {/* CONTENT */}
+      <div style={{ textAlign: "center" }}>
         {/* TILE */}
         <div
           style={{
             padding: "40px 60px",
             borderRadius: "24px",
+
             background: nightMode
               ? "transparent"
               : "rgba(255,255,255,0.15)",
+
             backdropFilter: nightMode ? "none" : "blur(12px)",
+
             boxShadow: nightMode
               ? "none"
               : "0 10px 30px rgba(0,0,0,0.4)",
-            textAlign: "center",
           }}
         >
           {/* TIME */}
@@ -183,7 +187,7 @@ export default function HomePage() {
             style={{
               fontSize: "110px",
               fontWeight: "700",
-              color: nightMode ? "#ffffff" : "#111827",
+              color: nightMode ? "#fff" : "#111827",
             }}
           >
             {formattedTime}
@@ -202,7 +206,7 @@ export default function HomePage() {
             {formattedDate}
           </div>
 
-          {/* WEATHER (hidden in night mode) */}
+          {/* WEATHER */}
           {!nightMode && (
             <div style={{ color: "#374151" }}>
               <div style={{ fontSize: "28px", fontWeight: "600" }}>
@@ -213,22 +217,11 @@ export default function HomePage() {
                 Feels like {weather.feels}° • H {weather.high}° / L{" "}
                 {weather.low}°
               </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  fontSize: "15px",
-                  opacity: 0.8,
-                }}
-              >
-                Tomorrow: {weather.tomorrowHigh}° /{" "}
-                {weather.tomorrowLow}° • {weather.tomorrowCondition}
-              </div>
             </div>
           )}
         </div>
 
-        {/* LOGO (hidden in night mode) */}
+        {/* LOGO */}
         {!nightMode && (
           <img
             src={logo}
