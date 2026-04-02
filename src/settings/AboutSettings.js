@@ -4,7 +4,9 @@ import { supabase } from "../lib/supabase";
 const APP_VERSION = "1.0.0";
 
 export default function AboutSettings() {
+
   const [dbStatus, setDbStatus] = useState("Checking...");
+  const [householdId, setHouseholdId] = useState("Loading...");
 
   const [info, setInfo] = useState({
     ip: "Loading...",
@@ -67,7 +69,37 @@ export default function AboutSettings() {
     );
   };
 
-  // 🔌 DB CHECK
+  // 🔑 GET HOUSEHOLD ID
+  const getHousehold = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setHouseholdId("No User");
+        return;
+      }
+
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("household_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (member?.household_id) {
+        setHouseholdId(member.household_id);
+      } else {
+        setHouseholdId("Not Found");
+      }
+
+    } catch (err) {
+      console.error("HOUSEHOLD ERROR:", err);
+      setHouseholdId("Error");
+    }
+  };
+
+  // 🔌 DB CHECK + INIT
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -85,6 +117,8 @@ export default function AboutSettings() {
     checkConnection();
     getLocalIP().then((ip) => setInfo((p) => ({ ...p, ip })));
     getLocation();
+    getHousehold(); // ✅ NEW
+
   }, []);
 
   return (
@@ -92,6 +126,7 @@ export default function AboutSettings() {
       <h2>About This Device</h2>
 
       <div style={styles.cardBlock}>
+
         <div style={styles.infoRow}>
           <strong>App Version:</strong> {APP_VERSION}
         </div>
@@ -108,6 +143,11 @@ export default function AboutSettings() {
           </span>
         </div>
 
+        {/* 🔥 NEW */}
+        <div style={styles.infoRow}>
+          <strong>Household ID:</strong> {householdId}
+        </div>
+
         <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
         <div style={styles.infoRow}><strong>Status:</strong> {info.online ? "Online" : "Offline"}</div>
         <div style={styles.infoRow}><strong>Connection:</strong> {info.connection}</div>
@@ -117,11 +157,14 @@ export default function AboutSettings() {
         <div style={styles.infoRow}><strong>Timezone:</strong> {info.timezone}</div>
         <div style={styles.infoRow}><strong>Location:</strong> {info.location}</div>
         <div style={styles.infoRow}><strong>Device Info:</strong> {info.userAgent}</div>
+
       </div>
     </div>
   );
 }
 
+
+// ===== STYLES =====
 const styles = {
   cardBlock: {
     background: "#fff",
