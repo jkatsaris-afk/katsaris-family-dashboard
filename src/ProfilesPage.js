@@ -76,7 +76,7 @@ export default function ProfilesPage({ onClose }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
-        <h2 style={styles.title}>Who’s watching?</h2>
+        <h2 style={styles.title}>Select Profile?</h2>
 
         {loading && <div style={styles.message}>Loading profiles...</div>}
 
