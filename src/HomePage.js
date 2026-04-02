@@ -28,7 +28,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🌙 AUTO NIGHT MODE
+  // 🌙 AUTO NIGHT MODE (only if enabled)
   useEffect(() => {
     if (!autoNightMode) return;
 
@@ -46,7 +46,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [autoNightMode]);
 
-  // 🔥 LOAD SETTINGS
+  // 🔥 LOAD SETTINGS + LOGO
   useEffect(() => {
     const loadData = async () => {
       const {
@@ -143,40 +143,40 @@ export default function HomePage() {
   return (
     <div
       style={{
-        position: "fixed", // 🔥 forces full screen
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
+        position: "relative",
+        minHeight: "100vh",
+        width: "100%",
 
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: nightMode ? "center" : "flex-start",
-
         paddingTop: nightMode ? "0px" : "120px",
 
-        backgroundColor: nightMode ? "#000" : undefined, // 🔥 hard black
+        backgroundColor: nightMode ? "#000" : undefined,
         backgroundImage: nightMode ? "none" : `url("/background.jpg")`,
-
         backgroundSize: "cover",
         backgroundPosition: "center",
+
+        pointerEvents: "none", // 🔥 allow clicks to pass through
       }}
     >
-      {/* CONTENT */}
-      <div style={{ textAlign: "center" }}>
+      {/* CONTENT (clickable again) */}
+      <div
+        style={{
+          textAlign: "center",
+          pointerEvents: "auto", // ✅ re-enable clicks here
+        }}
+      >
         {/* TILE */}
         <div
           style={{
             padding: "40px 60px",
             borderRadius: "24px",
-
             background: nightMode
               ? "transparent"
               : "rgba(255,255,255,0.15)",
-
             backdropFilter: nightMode ? "none" : "blur(12px)",
-
             boxShadow: nightMode
               ? "none"
               : "0 10px 30px rgba(0,0,0,0.4)",
@@ -187,7 +187,7 @@ export default function HomePage() {
             style={{
               fontSize: "110px",
               fontWeight: "700",
-              color: nightMode ? "#fff" : "#111827",
+              color: nightMode ? "#ffffff" : "#111827",
             }}
           >
             {formattedTime}
@@ -216,6 +216,11 @@ export default function HomePage() {
               <div style={{ fontSize: "16px", opacity: 0.8 }}>
                 Feels like {weather.feels}° • H {weather.high}° / L{" "}
                 {weather.low}°
+              </div>
+
+              <div style={{ marginTop: "12px", fontSize: "15px", opacity: 0.8 }}>
+                Tomorrow: {weather.tomorrowHigh}° /{" "}
+                {weather.tomorrowLow}° • {weather.tomorrowCondition}
               </div>
             </div>
           )}
