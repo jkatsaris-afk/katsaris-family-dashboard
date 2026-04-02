@@ -1,40 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { motion } from "framer-motion";
-
-import OnboardingPage from "./OnboardingPage";
-import LoadingPage from "./LoadingPage";
-
-import {
-  Home,
-  Calendar,
-  ClipboardList,
-  SlidersHorizontal,
-  CloudSun,
-  Settings,
-  List,
-  Users,
-  Moon
-} from "lucide-react";
-
-import { supabase } from "./lib/supabase";
-
-import LoginPage from "./LoginPage";
-
-import HomePage from "./HomePage";
-import ChoresPage from "./ChoresPage";
-import UpcomingEvents from "./UpcomingEvents";
-import ShoppingPage from "./ShoppingPage";
-import WeatherPage from "./WeatherPage";
-import SettingsPage from "./SettingsPage";
-
-import FamilyPage from "./FamilyPage";
-import HomeControlsPage from "./HomeControlsPage";
-
-import brand from "./assets/oikos-brand.png";
-
-const PRIMARY = "#2f6ea6";
-
 function AppContent() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -127,7 +90,7 @@ function AppContent() {
     };
   }, [user, settings]);
 
-  // NIGHT MODE
+  // 🌙 AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -167,38 +130,43 @@ function AppContent() {
         display: "flex",
         flexDirection: "column",
 
-        // ✅ CLEAN BACKGROUND
-        background: displaySettings?.background_url
+        // 🔥 BACKGROUND CONTROL
+        background: nightMode
+          ? "#000"
+          : displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
       }}
     >
-
-      {/* ✅ CLEAN OVERLAY (NO GHOSTING) */}
-      {displaySettings?.background_url && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: nightMode
-              ? "rgba(0,0,0,0.45)"
-              : "transparent",
-            zIndex: 0,
-          }}
-        />
-      )}
-
       {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1 }}>
+      <div
+        style={{
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          zIndex: 10,
+        }}
+      >
         <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <div onClick={() => setNightMode(!nightMode)} style={{ cursor: "pointer", padding: "8px", borderRadius: "10px", background: nightMode ? "#111" : "#fff" }}>
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+            }}
+          >
             <Moon size={18} />
           </div>
 
           <div
-            onClick={() => setPage((prev) => (prev === "settings" ? "home" : "settings"))}
+            onClick={() =>
+              setPage((prev) => (prev === "settings" ? "home" : "settings"))
+            }
             style={{
               cursor: "pointer",
               padding: "8px",
@@ -213,7 +181,20 @@ function AppContent() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "10px 20px 120px", zIndex: 1 }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+
+          padding: nightMode ? "0px" : "10px 20px 120px",
+
+          display: nightMode ? "flex" : "block",
+          alignItems: nightMode ? "center" : "unset",
+          justifyContent: nightMode ? "center" : "unset",
+
+          zIndex: 5,
+        }}
+      >
         {page === "home" && <HomePage />}
         {page === "calendar" && <UpcomingEvents />}
         {page === "chores" && <ChoresPage />}
@@ -225,49 +206,66 @@ function AppContent() {
       </div>
 
       {/* DOCK */}
-      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center", zIndex: 1000 }}>
-        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px", boxShadow: "0 -5px 15px rgba(0,0,0,0.1)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
-            {apps.map((app, i) => {
-              const isActive = page === app.page;
+      {!nightMode && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: "95%",
+              maxWidth: "1400px",
+              background: "#eef1f5",
+              padding: "12px",
+              marginBottom: "10px",
+              borderRadius: "20px",
+              boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+                gap: "12px",
+              }}
+            >
+              {apps.map((app, i) => {
+                const isActive = page === app.page;
 
-              return (
-                <motion.div
-                  key={i}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setPage(app.page)}
-                  style={{
-                    background: app.color,
-                    color: "white",
-                    padding: "14px",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    opacity: isActive ? 1 : 0.85,
-                  }}
-                >
-                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>{app.icon}</div>
-                  <div style={{ fontSize: "12px", fontWeight: "600" }}>{app.name}</div>
-                </motion.div>
-              );
-            })}
+                return (
+                  <motion.div
+                    key={i}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setPage(app.page)}
+                    style={{
+                      background: app.color,
+                      color: "white",
+                      padding: "14px",
+                      borderRadius: "14px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      opacity: isActive ? 1 : 0.85,
+                    }}
+                  >
+                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                      {app.icon}
+                    </div>
+                    <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                      {app.name}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
-
+      )}
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/loading" element={<LoadingPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/app" element={<AppContent />} />
-      </Routes>
-    </BrowserRouter>
   );
 }
