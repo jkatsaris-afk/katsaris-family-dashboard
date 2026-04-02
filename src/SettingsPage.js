@@ -37,17 +37,17 @@ export default function SettingsPage() {
 
 
   // ===== BLOCK 5: MENU CONFIG =====
-  const menu = [
-    { name: "Household", icon: <Home />, key: "household" },
-    { name: "Members", icon: <Users />, key: "members" },
-    { name: "Display", icon: <Moon />, key: "display" },
-    { name: "Mode", icon: <Moon />, key: "mode" },
-    { name: "Notifications", icon: <Bell />, key: "notifications" },
-    { name: "Security", icon: <Shield />, key: "security" },
-    { name: "Integrations", icon: <Plug />, key: "integrations" },
-    { name: "Chores", icon: <ClipboardList />, key: "chores" },
-    { name: "About", icon: <Info />, key: "about" },
-  ];
+const menu = [
+  { name: "Household", icon: <Home />, key: "household" },
+  { name: "Members", icon: <Users />, key: "members" },
+  { name: "Home Screen", icon: <Moon />, key: "display" },
+  { name: "Mode", icon: <Moon />, key: "mode" },
+  { name: "Notifications", icon: <Bell />, key: "notifications" },
+  { name: "Security", icon: <Shield />, key: "security" },
+  { name: "Integrations", icon: <Plug />, key: "integrations" },
+  { name: "Tile Apps", icon: <ClipboardList />, key: "tiles" },
+  { name: "About", icon: <Info />, key: "about" },
+];
 
 
   // ===== BLOCK 6: CONTENT SWITCHER =====
