@@ -145,44 +145,9 @@ export default function SettingsPage() {
 const styles = {
   container: {
     display: "flex",
-    height: "calc(100vh - 140px)",
+    height: "100%",              // ✅ FIXED (was calc)
+    maxHeight: "100%",          // ✅ prevents overflow
     background: "#f8fafc",
     borderRadius: "20px",
-    overflow: "hidden",
+    overflow: "hidden",         // ✅ keeps it clean
   },
-  sidebar: {
-    width: "260px",
-    background: "#fff",
-    padding: "15px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  brandBox: {
-    padding: "10px",
-  },
-  brand: {
-    width: "100%",
-  },
-  menuItem: {
-    display: "flex",
-    alignItems: "center",
-    padding: "12px",
-    borderRadius: "10px",
-    cursor: "pointer",
-  },
-  content: {
-    flex: 1,
-    padding: "25px",
-    overflowY: "auto",
-  },
-  logout: {
-    padding: "12px",
-    borderRadius: "10px",
-    cursor: "pointer",
-    color: "#ef4444",
-    fontWeight: "600",
-    textAlign: "center",
-    borderTop: "1px solid #e5e7eb",
-  },
-};
