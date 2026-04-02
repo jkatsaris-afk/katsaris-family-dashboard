@@ -83,24 +83,34 @@ useEffect(() => {
   load();
 }, []);
   // ===== BLOCK 6: UPDATE SETTINGS =====
-  const updateSettings = async (updates) => {
-    if (!settings) return;
+const updateSettings = async (updates) => {
+  if (!settings) return;
 
+  try {
     const { data, error } = await supabase
       .from("settings")
       .update(updates)
       .eq("id", settings.id)
-      .select();
+      .select()
+      .single();
 
-    if (!error && data) {
-      setSettings({
-        ...data[0],
-        visible_tiles: data[0].visible_tiles || defaultTiles,
-      });
+    if (error) {
+      console.error("UPDATE ERROR:", error);
+      return;
     }
-  };
 
+    // ✅ Update local state immediately (fixes toggle UI)
+    setSettings((prev) => ({
+      ...prev,
+      ...data,
+      show_logo: data.show_logo ?? prev.show_logo ?? true,
+      visible_tiles: data.visible_tiles || prev.visible_tiles,
+    }));
 
+  } catch (err) {
+    console.error("UPDATE ERROR:", err);
+  }
+};
   // ===== BLOCK 7: FILE UPLOAD =====
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
