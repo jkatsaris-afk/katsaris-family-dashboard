@@ -11,6 +11,7 @@ export default function HomePage() {
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
   const [showLogo, setShowLogo] = useState(true);
+
   const [weather, setWeather] = useState({
     temp: "--",
     feels: "--",
@@ -28,61 +29,63 @@ export default function HomePage() {
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
 
-// ===== BLOCK 5: LOAD LOGO + BRANDING =====
-useEffect(() => {
-  const loadLogo = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  // ===== BLOCK 5: LOAD LOGO + BRANDING =====
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) return;
+        if (!user) return;
 
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (!member) return;
+        if (!member) return;
 
-      const { data } = await supabase
-        .from("settings")
-        .select("*")
-        .eq("household_id", member.household_id)
-        .maybeSingle();
+        const { data } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("household_id", member.household_id)
+          .maybeSingle();
 
-      if (data) {
-        setShowLogo(data.show_logo ?? true);
+        if (data) {
+          setShowLogo(data.show_logo ?? true);
 
-        if (data.logo_url) {
-          setLogo(data.logo_url);
-        } else {
-          setLogo(defaultLogo);
+          if (data.logo_url) {
+            setLogo(data.logo_url);
+          } else {
+            setLogo(defaultLogo);
+          }
         }
+
+      } catch (err) {
+        console.error("LOAD LOGO ERROR:", err);
+        setLogo(defaultLogo);
+        setShowLogo(true);
       }
+    };
 
-    } catch (err) {
-      console.error("LOAD LOGO ERROR:", err);
-      setLogo(defaultLogo);
-      setShowLogo(true);
-    }
-  };
+    loadLogo();
 
-  loadLogo();
+    // 🔥 TEMP: keep UI synced
+    const interval = setInterval(loadLogo, 2000);
 
-  const interval = setInterval(loadLogo, 2000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
-  return () => {
-    clearInterval(interval);
-  };
-}, []);
 
-  
   // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
@@ -129,7 +132,9 @@ useEffect(() => {
     };
 
     fetchWeather();
+
     const interval = setInterval(fetchWeather, 600000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -154,17 +159,14 @@ useEffect(() => {
       {/* ===== BLOCK 8A: GLASS TILE ===== */}
       <div style={styles.glassTile}>
 
-        {/* TIME */}
         <div style={styles.time}>
           {formattedTime}
         </div>
 
-        {/* DATE */}
         <div style={styles.date}>
           {formattedDate}
         </div>
 
-        {/* WEATHER */}
         <div style={styles.weather}>
           <div style={styles.weatherMain}>
             {weather.temp}° • {weather.condition}
@@ -181,14 +183,19 @@ useEffect(() => {
 
       </div>
 
-{/* ===== BLOCK 8B: LOGO ===== */}
-{showLogo && (
-  <img
-    src={logo}
-    alt="Oikos Brand"
-    style={styles.logo}
-  />
-)}
+      {/* ===== BLOCK 8B: LOGO ===== */}
+      {showLogo && (
+        <img
+          src={logo}
+          alt="Oikos Brand"
+          style={styles.logo}
+        />
+      )}
+
+    </div>
+  );
+}
+
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
