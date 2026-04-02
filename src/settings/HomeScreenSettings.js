@@ -1,8 +1,11 @@
+// ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 const PRIMARY = "#2f6ea6";
 
+
+// ===== BLOCK 2: DEFAULTS =====
 const defaultTiles = {
   home: true,
   calendar: true,
@@ -13,17 +16,19 @@ const defaultTiles = {
   homeControls: true,
 };
 
-export default function DisplaySettings() {
+
+// ===== BLOCK 3: MAIN COMPONENT =====
+export default function HomeScreenSettings() {
+
+  // ===== BLOCK 4: STATE =====
   const [settings, setSettings] = useState(null);
 
-  // 🔥 LOAD SETTINGS
+
+  // ===== BLOCK 5: LOAD SETTINGS =====
   useEffect(() => {
     const load = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data: member } = await supabase
@@ -66,7 +71,8 @@ export default function DisplaySettings() {
     load();
   }, []);
 
-  // 🔥 UPDATE
+
+  // ===== BLOCK 6: UPDATE SETTINGS =====
   const updateSettings = async (updates) => {
     if (!settings) return;
 
@@ -84,7 +90,8 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 UPLOAD
+
+  // ===== BLOCK 7: FILE UPLOAD =====
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file || !settings) return;
@@ -113,7 +120,8 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 REMOVE IMAGE
+
+  // ===== BLOCK 8: REMOVE IMAGE =====
   const handleRemove = async (type) => {
     if (!settings) return;
 
@@ -143,7 +151,8 @@ export default function DisplaySettings() {
     }
   };
 
-  // 🔥 TILE TOGGLE
+
+  // ===== BLOCK 9: TILE TOGGLE =====
   const toggleTile = (key) => {
     const updated = {
       ...settings.visible_tiles,
@@ -153,15 +162,19 @@ export default function DisplaySettings() {
     updateSettings({ visible_tiles: updated });
   };
 
+
+  // ===== BLOCK 10: LOADING =====
   if (!settings) return <div>Loading settings...</div>;
 
+
+  // ===== BLOCK 11: UI =====
   return (
     <div>
-      <h2>Display Settings</h2>
+      <h2>Home Screen Settings</h2>
 
-      {/* 🎨 BACKGROUND + LOGO */}
+      {/* ===== BLOCK 11A: BACKGROUND + LOGO ===== */}
       <div style={styles.cardBlock}>
-        <h3>Background</h3>
+        <h3>Branding & Background</h3>
 
         {/* BACKGROUND */}
         <div style={styles.uploadRow}>
@@ -228,7 +241,7 @@ export default function DisplaySettings() {
         )}
       </div>
 
-      {/* 🌙 AUTO NIGHT MODE */}
+      {/* ===== BLOCK 11B: AUTO NIGHT MODE ===== */}
       <div style={styles.cardBlock}>
         <h3>Auto Night Mode</h3>
 
@@ -243,9 +256,7 @@ export default function DisplaySettings() {
             }
             style={{
               ...styles.toggle,
-              background: settings.auto_night_mode
-                ? PRIMARY
-                : "#e5e7eb",
+              background: settings.auto_night_mode ? PRIMARY : "#e5e7eb",
             }}
           >
             <div
@@ -258,7 +269,7 @@ export default function DisplaySettings() {
         </div>
       </div>
 
-      {/* 🧱 TILE VISIBILITY */}
+      {/* ===== BLOCK 11C: TILE VISIBILITY ===== */}
       <div style={styles.cardBlock}>
         <h3>Show Tiles</h3>
 
@@ -289,6 +300,8 @@ export default function DisplaySettings() {
   );
 }
 
+
+// ===== BLOCK 12: STYLES =====
 const styles = {
   cardBlock: {
     background: "#fff",
@@ -296,31 +309,26 @@ const styles = {
     borderRadius: "12px",
     marginTop: "15px",
   },
-
   row: {
     display: "flex",
     justifyContent: "space-between",
     marginTop: "10px",
     alignItems: "center",
   },
-
   uploadRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: "15px",
   },
-
   label: {
     fontWeight: "600",
     fontSize: "15px",
   },
-
   sub: {
     fontSize: "13px",
     color: "#6b7280",
   },
-
   uploadBtn: {
     background: PRIMARY,
     color: "#fff",
@@ -330,7 +338,6 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-
   removeBtn: {
     marginTop: "10px",
     background: "#ef4444",
@@ -342,18 +349,15 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-
   previewLarge: {
     width: "100%",
     borderRadius: "10px",
     marginTop: "10px",
   },
-
   previewLogo: {
     height: "60px",
     marginTop: "10px",
   },
-
   toggle: {
     width: "40px",
     height: "20px",
@@ -361,7 +365,6 @@ const styles = {
     position: "relative",
     cursor: "pointer",
   },
-
   knob: {
     width: "16px",
     height: "16px",
