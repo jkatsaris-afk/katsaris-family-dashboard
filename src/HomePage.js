@@ -57,7 +57,7 @@ useEffect(() => {
         .maybeSingle();
 
       if (data) {
-        // ✅ Show logo toggle
+        // ✅ Toggle
         setShowLogo(data.show_logo ?? true);
 
         // ✅ Logo with fallback
@@ -77,10 +77,18 @@ useEffect(() => {
     }
   };
 
+  // initial load
   loadLogo();
+
+  // 🔥 TEMP SYNC: keep UI updated when settings change
+  const interval = setInterval(() => {
+    loadLogo();
+  }, 2000);
+
+  return () => clearInterval(interval);
+
 }, []);
-
-
+  
   // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
@@ -179,17 +187,14 @@ useEffect(() => {
 
       </div>
 
-      {/* ===== BLOCK 8B: LOGO ===== */}
-      <img
-        src={logo}
-        alt="Oikos Brand"
-        style={styles.logo}
-      />
-
-    </div>
-  );
-}
-
+{/* ===== BLOCK 8B: LOGO ===== */}
+{showLogo && (
+  <img
+    src={logo}
+    alt="Oikos Brand"
+    style={styles.logo}
+  />
+)}
 
 // ===== BLOCK 9: STYLES =====
 const styles = {
