@@ -137,6 +137,32 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
+  // ===== 🔥 LIVE SETTINGS UPDATE (ADDED) =====
+  useEffect(() => {
+    const handleUpdate = async () => {
+      if (!profile) return;
+
+      console.log("🔄 Refreshing settings live...");
+
+      const { data } = await supabase
+        .from("profile_settings")
+        .select("*")
+        .eq("profile_id", profile.id)
+        .maybeSingle();
+
+      if (data) {
+        setAutoNightEnabled(data.auto_night_mode ?? false);
+        setDisplaySettings(data);
+      }
+    };
+
+    window.addEventListener("settingsUpdated", handleUpdate);
+
+    return () => {
+      window.removeEventListener("settingsUpdated", handleUpdate);
+    };
+  }, [profile]);
+
   // ===== AUTO NIGHT =====
   useEffect(() => {
     if (!autoNightEnabled) return;
@@ -151,7 +177,7 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // ===== APP FILTER (FIXED) =====
+  // ===== APP FILTER =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -163,40 +189,25 @@ function AppContent() {
   ].filter(app => {
     const tiles = displaySettings?.visible_tiles;
     if (!tiles) return true;
-
     if (typeof tiles === "object") {
       return tiles[app.page] === undefined ? true : tiles[app.page];
     }
-
     return true;
   });
 
-  // ===== VISIBILITY (FIXED) =====
+  // ===== VISIBILITY =====
   const isVisible = (pageName) => {
     const tiles = displaySettings?.visible_tiles;
     if (!tiles) return true;
-
     if (typeof tiles === "object") {
       return tiles[pageName] === undefined ? true : tiles[pageName];
     }
-
     return true;
   };
 
   // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
-
-  const formattedDate = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  const formattedTime = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
 
   return (
     <div
@@ -217,7 +228,6 @@ function AppContent() {
 
         <div style={{ display: "flex", gap: "10px" }}>
 
-          {/* 🔥 PROFILE BUTTON (UPDATED) */}
           <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
             <img
               src={profile?.avatar_url || "/default-avatar.png"}
@@ -324,7 +334,6 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
   },
-
   profileAvatar: {
     width: "26px",
     height: "26px",
