@@ -1,7 +1,7 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Users, Plus, Pencil, X } from "lucide-react";
+import { Plus, Pencil, X } from "lucide-react";
 
 const PRIMARY = "#2f6ea6";
 
@@ -29,13 +29,15 @@ export default function MembersSettings() {
   });
 
 
-  // ===== BLOCK 4: LOAD DATA =====
+  // ===== BLOCK 4: LOAD DATA (AUTO PROFILE FIX) =====
   useEffect(() => {
     const load = async () => {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+
+        if (!user) return;
 
         const { data: member } = await supabase
           .from("household_members")
@@ -47,12 +49,29 @@ export default function MembersSettings() {
 
         setHouseholdId(member.household_id);
 
-        const { data } = await supabase
+        // 🔥 LOAD PROFILES
+        let { data: profilesData } = await supabase
           .from("profiles")
           .select("*")
           .eq("household_id", member.household_id);
 
-        setProfiles(data || []);
+        // 🔥 AUTO CREATE PROFILE IF NONE EXIST
+        if (!profilesData || profilesData.length === 0) {
+          const { data: newProfile } = await supabase
+            .from("profiles")
+            .insert({
+              household_id: member.household_id,
+              first_name: user.email?.split("@")[0] || "Owner",
+              last_name: "",
+            })
+            .select()
+            .single();
+
+          profilesData = [newProfile];
+        }
+
+        setProfiles(profilesData);
+
       } catch (err) {
         console.error("LOAD ERROR:", err);
       }
@@ -147,7 +166,7 @@ export default function MembersSettings() {
   };
 
 
-  // ===== BLOCK 7.5: START EDIT (FIXED) =====
+  // ===== BLOCK 7.5: START EDIT =====
   const startEdit = (profile) => {
     setEditingId(profile.id);
 
