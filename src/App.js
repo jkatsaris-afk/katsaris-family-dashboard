@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+mport React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -92,7 +92,7 @@ function AppContent() {
     loadSettings();
   }, [user]);
 
-  // 🌙 AUTO NIGHT MODE (SAFE)
+  // 🌙 AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -104,7 +104,6 @@ function AppContent() {
     };
 
     checkTime();
-
     const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
@@ -128,14 +127,19 @@ function AppContent() {
 
   return (
     <div
+      onClick={() => {
+        if (nightMode && !autoNightEnabled) {
+          setNightMode(false);
+        }
+      }}
       style={{
         height: "100vh",
         display: "flex",
         flexDirection: "column",
 
-        // 🌙 BACKGROUND CONTROL
+        // 🌙 90% TINT NIGHT MODE
         background: nightMode
-          ? "#000"
+          ? "rgba(0,0,0,0.9)"
           : displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
@@ -157,8 +161,9 @@ function AppContent() {
         <div style={{ display: "flex", gap: "10px" }}>
           {/* 🌙 TOGGLE */}
           <div
-            onClick={() => {
-              setAutoNightEnabled(false); // 🔥 disables auto
+            onClick={(e) => {
+              e.stopPropagation();
+              setAutoNightEnabled(false);
               setNightMode(!nightMode);
             }}
             style={{
@@ -173,9 +178,12 @@ function AppContent() {
 
           {/* ⚙ SETTINGS */}
           <div
-            onClick={() =>
-              setPage((prev) => (prev === "settings" ? "home" : "settings"))
-            }
+            onClick={(e) => {
+              e.stopPropagation();
+              setPage((prev) =>
+                prev === "settings" ? "home" : "settings"
+              );
+            }}
             style={{
               cursor: "pointer",
               padding: "8px",
@@ -248,7 +256,10 @@ function AppContent() {
                   <motion.div
                     key={i}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setPage(app.page)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPage(app.page);
+                    }}
                     style={{
                       background: app.color,
                       color: "white",
