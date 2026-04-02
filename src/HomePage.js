@@ -4,7 +4,7 @@ import { supabase } from "./lib/supabase";
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
-export default function HomePage() {
+export default function HomePage({ displaySettings }) {
 
   // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
@@ -62,7 +62,6 @@ export default function HomePage() {
           .maybeSingle();
 
         if (data) {
-          // ✅ ONLY show logo if it exists
           if (data.logo_url) {
             setLogo(data.logo_url);
           } else {
@@ -77,7 +76,6 @@ export default function HomePage() {
 
     loadSettings();
 
-    // 🔥 REALTIME SUBSCRIPTION
     const channel = supabase
       .channel("settings-changes")
       .on(
@@ -90,7 +88,6 @@ export default function HomePage() {
         (payload) => {
           const updated = payload.new;
 
-          // only react to THIS household
           if (updated?.household_id === householdId) {
             if (updated.logo_url) {
               setLogo(updated.logo_url);
@@ -181,27 +178,57 @@ export default function HomePage() {
       {/* ===== BLOCK 8A: GLASS TILE ===== */}
       <div style={styles.glassTile}>
 
-        <div style={styles.time}>
-          {formattedTime}
-        </div>
-
-        <div style={styles.date}>
-          {formattedDate}
-        </div>
-
-        <div style={styles.weather}>
-          <div style={styles.weatherMain}>
-            {weather.temp}° • {weather.condition}
+        {/* CLOCK */}
+        {displaySettings?.visible_widgets?.clock !== false && (
+          <div style={styles.time}>
+            {formattedTime}
           </div>
+        )}
 
-          <div style={styles.weatherSub}>
-            Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+        {/* DATE */}
+        {displaySettings?.visible_widgets?.date !== false && (
+          <div style={styles.date}>
+            {formattedDate}
           </div>
+        )}
 
-          <div style={styles.weatherTomorrow}>
-            Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+        {/* WEATHER */}
+        {displaySettings?.visible_widgets?.weather !== false && (
+          <div style={styles.weather}>
+            <div style={styles.weatherMain}>
+              {weather.temp}° • {weather.condition}
+            </div>
+
+            <div style={styles.weatherSub}>
+              Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+            </div>
+
+            <div style={styles.weatherTomorrow}>
+              Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* EVENTS */}
+        {displaySettings?.visible_widgets?.events && (
+          <div style={{ marginTop: "15px", color: "#6b7280" }}>
+            📅 No events today
+          </div>
+        )}
+
+        {/* COUNTDOWN */}
+        {displaySettings?.visible_widgets?.countdown && (
+          <div style={{ marginTop: "10px", color: "#6b7280" }}>
+            ⏳ Countdown not set
+          </div>
+        )}
+
+        {/* BIBLE */}
+        {displaySettings?.visible_widgets?.bible && (
+          <div style={{ marginTop: "10px", color: "#6b7280" }}>
+            📖 Daily verse coming soon
+          </div>
+        )}
 
       </div>
 
