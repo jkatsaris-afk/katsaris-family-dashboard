@@ -44,13 +44,13 @@ function AppContent() {
   const [displaySettings, setDisplaySettings] = useState(null);
   const [now, setNow] = useState(new Date());
 
-  // 🧠 CLOCK (for night mode)
+  // 🧠 CLOCK
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // AUTH
+  // 🔐 AUTH
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -70,7 +70,7 @@ function AppContent() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // SETTINGS LOAD
+  // ⚙️ LOAD SETTINGS
   useEffect(() => {
     if (!user) return;
 
@@ -112,15 +112,19 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
+  // 📱 APP LIST (WITH SHOW/HIDE FILTER)
   const apps = [
-    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
-    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
-    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
-    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
-    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-  ];
+    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6", key: "show_home" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981", key: "show_calendar" },
+    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316", key: "show_chores" },
+    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9", key: "show_weather" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6", key: "show_lists" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1", key: "show_family" },
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e", key: "show_home_controls" },
+  ].filter(app => {
+    if (!displaySettings) return true;
+    return displaySettings[app.key] !== false;
+  });
 
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
@@ -143,14 +147,13 @@ function AppContent() {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-
         background: displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
       }}
     >
 
-      {/* 🌙 NIGHT MODE OVERLAY (FULL SCREEN) */}
+      {/* 🌙 NIGHT MODE */}
       {nightMode && (
         <div
           onClick={() => {
@@ -161,7 +164,6 @@ function AppContent() {
             inset: 0,
             background: "rgba(0,0,0,0.9)",
             zIndex: 9999,
-
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -193,7 +195,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* NORMAL APP */}
+      {/* APP */}
       <div style={{ zIndex: 1 }}>
         {/* HEADER */}
         <div
@@ -226,9 +228,7 @@ function AppContent() {
             <div
               onClick={(e) => {
                 e.stopPropagation();
-                setPage((prev) =>
-                  prev === "settings" ? "home" : "settings"
-                );
+                setPage(prev => (prev === "settings" ? "home" : "settings"));
               }}
               style={{
                 cursor: "pointer",
@@ -244,7 +244,7 @@ function AppContent() {
 
         {/* CONTENT */}
         <div style={{ padding: "10px 20px 120px" }}>
-          {page === "home" && <HomePage />}
+          {page === "home" && <HomePage displaySettings={displaySettings} />}
           {page === "calendar" && <UpcomingEvents />}
           {page === "chores" && <ChoresPage />}
           {page === "weather" && <WeatherPage />}
