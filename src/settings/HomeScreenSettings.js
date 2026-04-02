@@ -349,11 +349,18 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-  previewLarge: {
-    width: "100%",
-    borderRadius: "10px",
-    marginTop: "10px",
-  },
+previewLarge: {
+  width: "100%",
+  maxWidth: "400px",
+  height: "200px",
+  objectFit: "cover",
+  borderRadius: "12px",
+  marginTop: "10px",
+  display: "block",
+  marginLeft: "auto",
+  marginRight: "auto",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+},
   previewLogo: {
     height: "60px",
     marginTop: "10px",
