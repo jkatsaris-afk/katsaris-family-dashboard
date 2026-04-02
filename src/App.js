@@ -30,11 +30,10 @@ import SettingsPage from "./SettingsPage";
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
-// ✅ ADDED
 import ProfilesPage from "./ProfilesPage";
 
 import { User } from "lucide-react";
-import { getProfile, subscribeProfile } from "./profileStore";
+import { getProfile, subscribeProfile, setProfile } from "./profileStore"; // ✅ added setProfile
 
 import brand from "./assets/oikos-brand.png";
 
@@ -49,7 +48,6 @@ function AppContent() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
 
-  // ✅ ADDED
   const [showProfiles, setShowProfiles] = useState(false);
 
   const [nightMode, setNightMode] = useState(false);
@@ -65,11 +63,23 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // ===== BLOCK 4B: LOAD + LISTEN PROFILE =====
+  // ===== BLOCK 4A: RESTORE PROFILE =====
   useEffect(() => {
-    const p = getProfile();
-    setProfileState(p);
+    const saved = localStorage.getItem("activeProfile");
 
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setProfileState(parsed);
+        setProfile(parsed); // 🔥 push into global store
+      } catch (err) {
+        console.error("PROFILE RESTORE ERROR:", err);
+      }
+    }
+  }, []);
+
+  // ===== BLOCK 4B: LISTEN FOR PROFILE CHANGES =====
+  useEffect(() => {
     const unsub = subscribeProfile((newProfile) => {
       setProfileState(newProfile);
     });
@@ -102,16 +112,30 @@ function AppContent() {
     if (!profile) return;
 
     const loadSettings = async () => {
-      const { data } = await supabase
+      let { data } = await supabase
         .from("profile_settings")
         .select("*")
         .eq("profile_id", profile.id)
         .maybeSingle();
 
-      if (data) {
-        setAutoNightEnabled(data.auto_night_mode);
-        setDisplaySettings(data);
+      // ✅ CREATE SETTINGS IF MISSING
+      if (!data) {
+        const { data: newData } = await supabase
+          .from("profile_settings")
+          .insert({
+            profile_id: profile.id,
+            auto_night_mode: false,
+            visible_tiles: {},
+            background_url: null,
+          })
+          .select()
+          .single();
+
+        data = newData;
       }
+
+      setAutoNightEnabled(data.auto_night_mode ?? false);
+      setDisplaySettings(data || {});
     };
 
     loadSettings();
@@ -185,32 +209,6 @@ function AppContent() {
       }}
     >
 
-      {/* ===== NIGHT MODE ===== */}
-      {nightMode && (
-        <div
-          onClick={() => setNightMode(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            cursor: "pointer",
-          }}
-        >
-          <div style={{ fontSize: "120px", color: "#fff" }}>
-            {formattedTime}
-          </div>
-          <div style={{ fontSize: "28px", color: "#ccc" }}>
-            {formattedDate}
-          </div>
-        </div>
-      )}
-
       {/* ===== HEADER ===== */}
       <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} style={{ height: "38px" }} />
@@ -218,10 +216,7 @@ function AppContent() {
         <div style={{ display: "flex", gap: "10px" }}>
 
           {/* 👤 PROFILE BUTTON */}
-          <div
-            onClick={() => setShowProfiles(true)} // ✅ FIXED
-            style={styles.profileBtn}
-          >
+          <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
             <User size={16} />
             <span>{profile?.first_name || "Profile"}</span>
           </div>
@@ -287,7 +282,7 @@ function AppContent() {
         </div>
       </div>
 
-      {/* ✅ PROFILE OVERLAY */}
+      {/* PROFILE OVERLAY */}
       {showProfiles && (
         <ProfilesPage onClose={() => setShowProfiles(false)} />
       )}
