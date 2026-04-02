@@ -30,6 +30,9 @@ import SettingsPage from "./SettingsPage";
 import FamilyPage from "./FamilyPage";
 import HomeControlsPage from "./HomeControlsPage";
 
+// ✅ NEW
+import ProfilesPage from "./ProfilesPage";
+
 import { User } from "lucide-react";
 import { getProfile, subscribeProfile } from "./profileStore";
 
@@ -59,7 +62,7 @@ function AppContent() {
     return () => clearInterval(timer);
   }, []);
 
-  // ===== BLOCK 4B: LOAD + LISTEN PROFILE =====
+  // ===== BLOCK 4B: PROFILE LOAD + SUBSCRIBE =====
   useEffect(() => {
     const p = getProfile();
     setProfileState(p);
@@ -129,7 +132,7 @@ function AppContent() {
   }, [autoNightEnabled]);
 
 
-  // ===== BLOCK 8: APP FILTER =====
+  // ===== BLOCK 8: APPS =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
     { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
@@ -175,90 +178,28 @@ function AppContent() {
 
   // ===== BLOCK 12: MAIN UI =====
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        background: displaySettings?.background_url
-          ? `url(${displaySettings.background_url}) center/cover no-repeat`
-          : "#eef1f5",
-      }}
-    >
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* ===== BLOCK 12A: NIGHT MODE ===== */}
-      {nightMode && (
-        <div
-          onClick={() => setNightMode(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            cursor: "pointer",
-          }}
-        >
-          <div style={{ fontSize: "120px", color: "#fff" }}>
-            {formattedTime}
-          </div>
-          <div style={{ fontSize: "28px", color: "#ccc" }}>
-            {formattedDate}
-          </div>
-        </div>
-      )}
-
-      {/* ===== BLOCK 12B: HEADER ===== */}
-      <div
-        style={{
-          padding: "15px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      {/* ===== HEADER ===== */}
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
         <img src={brand} style={{ height: "38px" }} />
 
         <div style={{ display: "flex", gap: "10px" }}>
 
           {/* 👤 PROFILE BUTTON */}
-          <div
-            onClick={() => setPage("profiles")}
-            style={styles.profileBtn}
-          >
+          <div onClick={() => setPage("profiles")} style={styles.profileBtn}>
             <User size={16} />
             <span>{profile?.first_name || "Profile"}</span>
           </div>
 
-          <div
-            onClick={() => {
-              setAutoNightEnabled(false);
-              setNightMode(true);
-            }}
-            style={{ background: "#fff", padding: 8, borderRadius: 10 }}
-          >
-            <Moon size={18} />
-          </div>
-
-          <div
-            onClick={() => setPage(p => p === "settings" ? "home" : "settings")}
-            style={{
-              background: page === "settings" ? PRIMARY : "#fff",
-              padding: 8,
-              borderRadius: 10
-            }}
-          >
+          <div onClick={() => setPage("settings")} style={{ background: "#fff", padding: 8, borderRadius: 10 }}>
             <Settings size={20} />
           </div>
+
         </div>
       </div>
 
-      {/* ===== BLOCK 12C: CONTENT ===== */}
+      {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
       <div style={{ padding: "10px 20px 120px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
@@ -268,32 +209,9 @@ function AppContent() {
         {page === "settings" && <SettingsPage />}
         {page === "family" && isVisible("family") && <FamilyPage />}
         {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-        {page === "profiles" && <FamilyPage />} {/* TEMP until you make ProfilesPage */}
-      </div>
 
-      {/* ===== BLOCK 12D: DOCK ===== */}
-      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
-        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
-            {apps.map((app, i) => (
-              <motion.div
-                key={i}
-                onClick={() => setPage(app.page)}
-                style={{
-                  background: app.color,
-                  color: "white",
-                  padding: "14px",
-                  borderRadius: "14px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-              >
-                {app.icon}
-                <div>{app.name}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        {/* ✅ THIS IS THE KEY CHANGE */}
+        {page === "profiles" && <ProfilesPage />}
       </div>
 
     </div>
@@ -326,6 +244,5 @@ const styles = {
     padding: "6px 10px",
     borderRadius: "8px",
     cursor: "pointer",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
   },
 };
