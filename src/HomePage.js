@@ -1,8 +1,13 @@
+// ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
 import defaultLogo from "./assets/oikos-brand.png";
 import { supabase } from "./lib/supabase";
 
+
+// ===== BLOCK 2: MAIN COMPONENT =====
 export default function HomePage() {
+
+  // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(defaultLogo);
 
@@ -17,7 +22,8 @@ export default function HomePage() {
     tomorrowCondition: "",
   });
 
-  // 🕒 CLOCK
+
+  // ===== BLOCK 4: CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
@@ -25,7 +31,8 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD LOGO
+
+  // ===== BLOCK 5: LOAD LOGO =====
   useEffect(() => {
     const loadLogo = async () => {
       const {
@@ -56,7 +63,8 @@ export default function HomePage() {
     loadLogo();
   }, []);
 
-  // 🌤️ WEATHER
+
+  // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -106,6 +114,8 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
+
+  // ===== BLOCK 7: FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -117,81 +127,109 @@ export default function HomePage() {
     minute: "2-digit",
   });
 
+
+  // ===== BLOCK 8: MAIN UI =====
   return (
-    <div
-      style={{
-        minHeight: "70vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        paddingTop: "80px",
-      }}
-    >
+    <div style={styles.container}>
 
-      {/* 🔥 GLASS TILE */}
-      <div
-        style={{
-          padding: "40px 60px",
-          borderRadius: "24px",
-          background: "rgba(255,255,255,0.15)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-          textAlign: "center",
-        }}
-      >
+      {/* ===== BLOCK 8A: GLASS TILE ===== */}
+      <div style={styles.glassTile}>
 
-        {/* 🕒 TIME */}
-        <div style={{
-          fontSize: "110px",
-          fontWeight: "700",
-          color: "#111827",
-          lineHeight: "1",
-        }}>
+        {/* TIME */}
+        <div style={styles.time}>
           {formattedTime}
         </div>
 
-        {/* 📅 DATE */}
-        <div style={{
-          fontSize: "24px",
-          color: "#374151",
-          marginBottom: "20px",
-        }}>
+        {/* DATE */}
+        <div style={styles.date}>
           {formattedDate}
         </div>
 
-        {/* 🌤️ WEATHER */}
-        <div style={{ color: "#374151" }}>
-          <div style={{ fontSize: "28px", fontWeight: "600" }}>
+        {/* WEATHER */}
+        <div style={styles.weather}>
+          <div style={styles.weatherMain}>
             {weather.temp}° • {weather.condition}
           </div>
 
-          <div style={{ fontSize: "16px", color: "#6b7280" }}>
+          <div style={styles.weatherSub}>
             Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
           </div>
 
-          <div style={{
-            marginTop: "12px",
-            fontSize: "15px",
-            color: "#6b7280",
-          }}>
+          <div style={styles.weatherTomorrow}>
             Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
           </div>
         </div>
 
       </div>
 
-      {/* ✅ LOGO BELOW TILE */}
+      {/* ===== BLOCK 8B: LOGO ===== */}
       <img
         src={logo}
         alt="Oikos Brand"
-        style={{
-          width: "200px",
-          marginTop: "25px",
-          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
-        }}
+        style={styles.logo}
       />
 
     </div>
   );
 }
+
+
+// ===== BLOCK 9: STYLES =====
+const styles = {
+  container: {
+    minHeight: "70vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: "80px",
+  },
+
+  glassTile: {
+    padding: "40px 60px",
+    borderRadius: "24px",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    textAlign: "center",
+  },
+
+  time: {
+    fontSize: "110px",
+    fontWeight: "700",
+    color: "#111827",
+    lineHeight: "1",
+  },
+
+  date: {
+    fontSize: "24px",
+    color: "#374151",
+    marginBottom: "20px",
+  },
+
+  weather: {
+    color: "#374151",
+  },
+
+  weatherMain: {
+    fontSize: "28px",
+    fontWeight: "600",
+  },
+
+  weatherSub: {
+    fontSize: "16px",
+    color: "#6b7280",
+  },
+
+  weatherTomorrow: {
+    marginTop: "12px",
+    fontSize: "15px",
+    color: "#6b7280",
+  },
+
+  logo: {
+    width: "200px",
+    marginTop: "25px",
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
+  },
+};
