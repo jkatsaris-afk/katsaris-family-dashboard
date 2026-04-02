@@ -34,58 +34,52 @@ export default function HomePage() {
   }, []);
 
 
-  // ===== BLOCK 5: LOAD LOGO + BRANDING =====
-  useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+// ===== BLOCK 5: LOAD LOGO + BRANDING =====
+useEffect(() => {
+  const loadLogo = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        if (!user) return;
+      if (!user) return;
 
-        const { data: member } = await supabase
-          .from("household_members")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      const { data: member } = await supabase
+        .from("household_members")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-        if (!member) return;
+      if (!member) return;
 
-        const { data } = await supabase
-          .from("settings")
-          .select("*")
-          .eq("household_id", member.household_id)
-          .maybeSingle();
+      const { data } = await supabase
+        .from("settings")
+        .select("*")
+        .eq("household_id", member.household_id)
+        .maybeSingle();
 
-        if (data) {
-          setShowLogo(data.show_logo ?? true);
+      if (data) {
+        setShowLogo(data.show_logo ?? true);
 
-          if (data.logo_url) {
-            setLogo(data.logo_url);
-          } else {
-            setLogo(defaultLogo);
-          }
+        if (data.logo_url) {
+          setLogo(data.logo_url);
+        } else {
+          setLogo(defaultLogo);
         }
-
-      } catch (err) {
-        console.error("LOAD LOGO ERROR:", err);
-        setLogo(defaultLogo);
-        setShowLogo(true);
       }
-    };
 
-    loadLogo();
+    } catch (err) {
+      console.error("LOAD LOGO ERROR:", err);
+    }
+  };
 
-    // 🔥 TEMP: keep UI synced
-    const interval = setInterval(loadLogo, 2000);
+  loadLogo();
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  const interval = setInterval(loadLogo, 2000); // 🔥 live update
 
+  return () => clearInterval(interval);
 
+}, []);
   // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
