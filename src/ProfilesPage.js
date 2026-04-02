@@ -1,23 +1,15 @@
-// ===== BLOCK 1: IMPORTS =====
 import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { setProfile } from "./profileStore";
-import { User, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const PRIMARY = "#2f6ea6";
 
-
-// ===== BLOCK 2: MAIN COMPONENT =====
 export default function ProfilesPage({ onClose }) {
-
-  // ===== BLOCK 3: STATE =====
   const [profiles, setProfiles] = useState([]);
   const [householdId, setHouseholdId] = useState(null);
-
   const [newName, setNewName] = useState("");
 
-
-  // ===== BLOCK 4: LOAD =====
   useEffect(() => {
     const load = async () => {
       const {
@@ -26,7 +18,6 @@ export default function ProfilesPage({ onClose }) {
 
       if (!user) return;
 
-      // GET HOUSEHOLD
       const { data: member } = await supabase
         .from("household_members")
         .select("household_id")
@@ -43,22 +34,25 @@ export default function ProfilesPage({ onClose }) {
         .eq("household_id", member.household_id);
 
       setProfiles(data || []);
+
+      // ✅ AUTO LOAD FIRST PROFILE IF NONE
+      const saved = localStorage.getItem("activeProfile");
+      if (!saved && data?.length > 0) {
+        setProfile(data[0]);
+      }
     };
 
     load();
   }, []);
 
-
-  // ===== BLOCK 5: SELECT PROFILE =====
   const selectProfile = (profile) => {
     setProfile(profile);
+    localStorage.setItem("activeProfile", JSON.stringify(profile)); // ✅ persist
     onClose && onClose();
   };
 
-
-  // ===== BLOCK 6: ADD PROFILE =====
   const addProfile = async () => {
-    if (!newName) return;
+    if (!newName || !householdId) return;
 
     const { data } = await supabase
       .from("profiles")
@@ -73,37 +67,34 @@ export default function ProfilesPage({ onClose }) {
     setNewName("");
   };
 
-
-  // ===== BLOCK 7: UI =====
   return (
     <div style={styles.overlay} onClick={onClose}>
-
-      {/* STOP CLICK PROPAGATION */}
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
         <h2 style={styles.title}>Select Profile</h2>
 
-        {/* ===== PROFILE GRID ===== */}
+        {profiles.length === 0 && (
+          <div style={{ marginBottom: 20 }}>No profiles yet</div>
+        )}
+
         <div style={styles.grid}>
           {profiles.map((p) => (
             <div
               key={p.id}
               style={styles.tile}
               onClick={() => selectProfile(p)}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <img
                 src={p.avatar_url || "/default-avatar.png"}
                 style={styles.avatar}
               />
-
-              <div style={styles.name}>
-                {p.first_name}
-              </div>
+              <div>{p.first_name}</div>
             </div>
           ))}
         </div>
 
-        {/* ===== ADD PROFILE ===== */}
         <div style={styles.addRow}>
           <input
             placeholder="New profile"
@@ -122,74 +113,62 @@ export default function ProfilesPage({ onClose }) {
   );
 }
 
-
-// ===== BLOCK 8: STYLES =====
 const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.9)", // 🔥 90% glass
+    background: "rgba(0,0,0,0.85)",
+    backdropFilter: "blur(20px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
   },
-
   modal: {
-    background: "transparent",
+    width: "100%",
+    maxWidth: "700px",
+    padding: "30px",
     textAlign: "center",
     color: "#fff",
   },
-
   title: {
-    marginBottom: "20px",
+    marginBottom: "25px",
+    fontSize: "24px",
   },
-
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, 140px)",
+    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
     gap: "20px",
-    justifyContent: "center",
-    marginBottom: "20px",
+    marginBottom: "25px",
   },
-
   tile: {
-    background: "rgba(255,255,255,0.1)",
-    backdropFilter: "blur(8px)",
+    background: "rgba(255,255,255,0.12)",
     padding: "20px",
     borderRadius: "16px",
     cursor: "pointer",
     transition: "0.2s",
   },
-
   avatar: {
-    width: "80px",
-    height: "80px",
+    width: "70px",
+    height: "70px",
     borderRadius: "50%",
-    objectFit: "cover",
     marginBottom: "10px",
+    objectFit: "cover",
   },
-
-  name: {
-    fontWeight: "600",
-  },
-
   addRow: {
     display: "flex",
     justifyContent: "center",
     gap: "10px",
   },
-
   input: {
-    padding: "8px",
+    padding: "10px",
     borderRadius: "8px",
     border: "none",
   },
-
   addBtn: {
     background: PRIMARY,
     border: "none",
-    padding: "8px 12px",
+    padding: "10px 12px",
     borderRadius: "8px",
     cursor: "pointer",
     color: "#fff",
