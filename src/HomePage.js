@@ -10,9 +10,6 @@ export default function HomePage({ displaySettings }) {
   const [now, setNow] = useState(new Date());
   const [logo, setLogo] = useState(null);
 
-  const [settings, setSettings] = useState(null); // ✅ ADDED
-  const [householdName, setHouseholdName] = useState(""); // ✅ ADDED
-
   const [weather, setWeather] = useState({
     temp: "--",
     feels: "--",
@@ -24,6 +21,7 @@ export default function HomePage({ displaySettings }) {
     tomorrowCondition: "",
   });
 
+  // 🔥 NEW: BIBLE VERSE STATE
   const [verse, setVerse] = useState(null);
 
 
@@ -60,29 +58,6 @@ export default function HomePage({ displaySettings }) {
 
         householdId = member.household_id;
 
-        // ✅ GET HOUSEHOLD NAME
-        const { data: household } = await supabase
-          .from("households")
-          .select("name")
-          .eq("id", householdId)
-          .maybeSingle();
-
-        if (household?.name) {
-          setHouseholdName(household.name);
-        }
-
-        // ✅ GET PROFILE SETTINGS (THIS IS YOUR TOGGLE)
-        const { data: profileSettings } = await supabase
-          .from("profile_settings")
-          .select("home_show_household_name")
-          .eq("profile_id", user.id)
-          .maybeSingle();
-
-        if (profileSettings) {
-          setSettings(profileSettings);
-        }
-
-        // EXISTING LOGO LOAD
         const { data } = await supabase
           .from("settings")
           .select("*")
@@ -134,6 +109,95 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
+  // ===== BLOCK 6: WEATHER =====
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const apiKey = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
+
+        const currentRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
+        );
+        const current = await currentRes.json();
+
+        const forecastRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
+        );
+        const forecast = await forecastRes.json();
+
+        const tomorrow = forecast.list.find(item =>
+          item.dt_txt.includes("12:00:00")
+        );
+
+        setWeather({
+          temp: Math.round(current.main.temp),
+          feels: Math.round(current.main.feels_like),
+          high: Math.round(current.main.temp_max),
+          low: Math.round(current.main.temp_min),
+          condition: current.weather[0].description,
+          tomorrowHigh: tomorrow ? Math.round(tomorrow.main.temp_max) : "--",
+          tomorrowLow: tomorrow ? Math.round(tomorrow.main.temp_min) : "--",
+          tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
+        });
+
+      } catch {
+        setWeather({
+          temp: "--",
+          feels: "--",
+          high: "--",
+          low: "--",
+          condition: "Unavailable",
+          tomorrowHigh: "--",
+          tomorrowLow: "--",
+          tomorrowCondition: "",
+        });
+      }
+    };
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 600000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  // 🔥 ===== BLOCK 6B: BIBLE VERSE (CACHED DAILY) =====
+  useEffect(() => {
+    const fetchVerse = async () => {
+      try {
+        const today = new Date().toDateString();
+        const cached = JSON.parse(localStorage.getItem("dailyVerse"));
+
+        // ✅ use cached verse if same day
+        if (cached && cached.date === today) {
+          setVerse(cached);
+          return;
+        }
+
+        const res = await fetch("https://bible-api.com/?random=verse");
+        const data = await res.json();
+
+        const verseData = {
+          text: data.text,
+          reference: data.reference,
+          date: today,
+        };
+
+        localStorage.setItem("dailyVerse", JSON.stringify(verseData));
+        setVerse(verseData);
+
+      } catch {
+        setVerse({
+          text: "Unable to load verse",
+          reference: "",
+        });
+      }
+    };
+
+    fetchVerse();
+  }, []);
+
+
   // ===== BLOCK 7: FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
@@ -151,12 +215,138 @@ export default function HomePage({ displaySettings }) {
   return (
     <div style={styles.container}>
 
-      {/* ✅ HOUSEHOLD NAME (NEW — ABOVE TILE) */}
-      {settings?.home_show_household_name && (
-        <div style={styles.householdName}>
-          {householdName}
-        </div>
-      )}
-
       {/* ===== BLOCK 8A: GLASS TILE ===== */}
       <div style={styles.glassTile}>
+
+        {/* CLOCK */}
+        {displaySettings?.visible_widgets?.clock !== false && (
+          <div style={styles.time}>
+            {formattedTime}
+          </div>
+        )}
+
+        {/* DATE */}
+        {displaySettings?.visible_widgets?.date !== false && (
+          <div style={styles.date}>
+            {formattedDate}
+          </div>
+        )}
+
+        {/* WEATHER */}
+        {displaySettings?.visible_widgets?.weather !== false && (
+          <div style={styles.weather}>
+            <div style={styles.weatherMain}>
+              {weather.temp}° • {weather.condition}
+            </div>
+
+            <div style={styles.weatherSub}>
+              Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+            </div>
+
+            <div style={styles.weatherTomorrow}>
+              Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+            </div>
+          </div>
+        )}
+
+        {/* EVENTS */}
+        {displaySettings?.visible_widgets?.events && (
+          <div style={{ marginTop: "15px", color: "#6b7280" }}>
+            📅 No events today
+          </div>
+        )}
+
+        {/* COUNTDOWN */}
+        {displaySettings?.visible_widgets?.countdown && (
+          <div style={{ marginTop: "10px", color: "#6b7280" }}>
+            ⏳ Countdown not set
+          </div>
+        )}
+
+        {/* 🔥 BIBLE (NOW REAL) */}
+        {displaySettings?.visible_widgets?.bible && verse && (
+          <div style={{ marginTop: "15px", color: "#374151" }}>
+            <div style={{ fontStyle: "italic" }}>
+              "{verse.text}"
+            </div>
+            <div style={{ marginTop: "5px", fontWeight: "600" }}>
+              {verse.reference}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* ===== BLOCK 8B: LOGO ===== */}
+      {logo && (
+        <img
+          src={logo}
+          alt="Oikos Brand"
+          style={styles.logo}
+        />
+      )}
+
+    </div>
+  );
+}
+
+
+// ===== BLOCK 9: STYLES =====
+const styles = {
+  container: {
+    minHeight: "70vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: "80px",
+  },
+
+  glassTile: {
+    padding: "40px 60px",
+    borderRadius: "24px",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    textAlign: "center",
+  },
+
+  time: {
+    fontSize: "110px",
+    fontWeight: "700",
+    color: "#111827",
+    lineHeight: "1",
+  },
+
+  date: {
+    fontSize: "24px",
+    color: "#374151",
+    marginBottom: "20px",
+  },
+
+  weather: {
+    color: "#374151",
+  },
+
+  weatherMain: {
+    fontSize: "28px",
+    fontWeight: "600",
+  },
+
+  weatherSub: {
+    fontSize: "16px",
+    color: "#6b7280",
+  },
+
+  weatherTomorrow: {
+    marginTop: "12px",
+    fontSize: "15px",
+    color: "#6b7280",
+  },
+
+  logo: {
+    width: "200px",
+    marginTop: "25px",
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
+  },
+};
