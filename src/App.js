@@ -92,7 +92,7 @@ function AppContent() {
     loadSettings();
   }, [user]);
 
-  // 🌙 AUTO NIGHT MODE
+  // AUTO NIGHT MODE
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -136,22 +136,22 @@ function AppContent() {
         flexDirection: "column",
         position: "relative",
 
-        // Background always visible
         background: displaySettings?.background_url
           ? `url(${displaySettings.background_url}) center/cover no-repeat`
           : "#eef1f5",
       }}
     >
-      {/* 🌙 GLASS OVERLAY */}
+      {/* GLASS OVERLAY */}
       {nightMode && (
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0,0,0,0.8)", // 80% dim
+            background: "rgba(0,0,0,0.8)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             zIndex: 1,
+            pointerEvents: "none", // 🔥 FIX CLICK
           }}
         />
       )}
@@ -258,36 +258,31 @@ function AppContent() {
                 gap: "12px",
               }}
             >
-              {apps.map((app, i) => {
-                const isActive = page === app.page;
-
-                return (
-                  <motion.div
-                    key={i}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPage(app.page);
-                    }}
-                    style={{
-                      background: app.color,
-                      color: "white",
-                      padding: "14px",
-                      borderRadius: "14px",
-                      textAlign: "center",
-                      cursor: "pointer",
-                      opacity: isActive ? 1 : 0.85,
-                    }}
-                  >
-                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>
-                      {app.icon}
-                    </div>
-                    <div style={{ fontSize: "12px", fontWeight: "600" }}>
-                      {app.name}
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {apps.map((app, i) => (
+                <motion.div
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPage(app.page);
+                  }}
+                  style={{
+                    background: app.color,
+                    color: "white",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                    {app.name}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
@@ -296,7 +291,6 @@ function AppContent() {
   );
 }
 
-// REQUIRED DEFAULT EXPORT
 export default function App() {
   return (
     <BrowserRouter>
