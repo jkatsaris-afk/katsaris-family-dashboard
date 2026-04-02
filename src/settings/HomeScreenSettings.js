@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Image, Palette, Settings2, LayoutGrid } from "lucide-react";
-import { getProfile } from "../profileStore"; // ✅ NEW
+import { getProfile } from "../profileStore";
 
 const PRIMARY = "#2f6ea6";
 
@@ -23,15 +23,20 @@ const defaultTiles = {
 export default function HomeScreenSettings() {
 
   const [settings, setSettings] = useState(null);
-  const [profile, setProfile] = useState(null); // ✅ NEW
+  const [profile, setProfile] = useState(null);
 
 
   // ===== BLOCK 5: LOAD SETTINGS =====
   useEffect(() => {
     const load = async () => {
       try {
-        const p = getProfile(); // ✅ get selected profile
-        if (!p) return;
+        const p = getProfile();
+
+        // 🔥 WAIT FOR PROFILE (fixes loading hang)
+        if (!p) {
+          setTimeout(load, 300);
+          return;
+        }
 
         setProfile(p);
 
@@ -41,9 +46,9 @@ export default function HomeScreenSettings() {
           .eq("profile_id", p.id)
           .maybeSingle();
 
-        // ✅ CREATE SETTINGS IF NONE EXIST
+        // ✅ CREATE SETTINGS IF MISSING
         if (!data) {
-          const { data: newSettings } = await supabase
+          const { data: newSettings, error } = await supabase
             .from("profile_settings")
             .insert({
               profile_id: p.id,
@@ -54,6 +59,11 @@ export default function HomeScreenSettings() {
             })
             .select()
             .single();
+
+          if (error) {
+            console.error("CREATE SETTINGS ERROR:", error);
+            return;
+          }
 
           data = newSettings;
         }
@@ -103,9 +113,9 @@ export default function HomeScreenSettings() {
   // ===== BLOCK 7: FILE UPLOAD =====
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
-    if (!file || !settings) return;
+    if (!file || !settings || !profile) return;
 
-    const filePath = `${profile.id}/${type}-${Date.now()}`; // ✅ FIXED
+    const filePath = `${profile.id}/${type}-${Date.now()}`;
 
     const { error } = await supabase.storage
       .from("oikos-assets")
@@ -283,3 +293,89 @@ export default function HomeScreenSettings() {
     </div>
   );
 }
+
+
+// ===== STYLES =====
+const styles = {
+  cardBlock: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "15px",
+  },
+  cardHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "18px",
+    fontWeight: "600",
+    marginBottom: "10px",
+  },
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "10px",
+    alignItems: "center",
+  },
+  uploadRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "15px",
+  },
+  label: {
+    fontWeight: "600",
+    fontSize: "15px",
+  },
+  sub: {
+    fontSize: "13px",
+    color: "#6b7280",
+  },
+  uploadBtn: {
+    background: PRIMARY,
+    color: "#fff",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600",
+  },
+  removeBtn: {
+    marginTop: "10px",
+    background: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600",
+  },
+  previewLarge: {
+    width: "100%",
+    maxWidth: "400px",
+    height: "200px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    marginTop: "10px",
+    display: "block",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+  toggle: {
+    width: "40px",
+    height: "20px",
+    borderRadius: "999px",
+    position: "relative",
+    cursor: "pointer",
+  },
+  knob: {
+    width: "16px",
+    height: "16px",
+    borderRadius: "50%",
+    background: "#fff",
+    position: "absolute",
+    top: "2px",
+    transition: "all 0.2s ease",
+  },
+};
