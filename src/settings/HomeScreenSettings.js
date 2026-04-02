@@ -218,7 +218,7 @@ useEffect(() => {
           </>
         )}
       </div>
-/* ===== BLOCK 11B: BRANDING ===== */
+{/* ===== BLOCK 11B: BRANDING ===== */}
 <div style={styles.cardBlock}>
   <h3>Branding</h3>
 
