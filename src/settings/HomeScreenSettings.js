@@ -24,93 +24,96 @@ export default function HomeScreenSettings() {
   const [settings, setSettings] = useState(null);
 
 
-// ===== BLOCK 5: LOAD SETTINGS =====
-useEffect(() => {
-  const load = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  // ===== BLOCK 5: LOAD SETTINGS =====
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) return;
+        if (!user) return;
 
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (!member) return;
+        if (!member) return;
 
-      const { data } = await supabase
-        .from("settings")
-        .select("*")
-        .eq("household_id", member.household_id)
-        .maybeSingle();
-
-      if (data) {
-        setSettings({
-          ...data,
-          show_logo: data.show_logo ?? true, // ✅ ensure exists
-          visible_tiles: data.visible_tiles || defaultTiles,
-        });
-      } else {
-        const { data: newSettings } = await supabase
+        const { data } = await supabase
           .from("settings")
-          .insert({
-            household_id: member.household_id,
-            auto_night_mode: false,
-            show_logo: true, // ✅ default
-            visible_tiles: defaultTiles,
-          })
-          .select()
-          .single();
+          .select("*")
+          .eq("household_id", member.household_id)
+          .maybeSingle();
 
-        if (newSettings) {
+        if (data) {
           setSettings({
-            ...newSettings,
-            show_logo: newSettings.show_logo ?? true,
-            visible_tiles: newSettings.visible_tiles || defaultTiles,
+            ...data,
+            show_logo: data.show_logo ?? true,
+            visible_tiles: data.visible_tiles || defaultTiles,
           });
+        } else {
+          const { data: newSettings } = await supabase
+            .from("settings")
+            .insert({
+              household_id: member.household_id,
+              auto_night_mode: false,
+              show_logo: true,
+              visible_tiles: defaultTiles,
+            })
+            .select()
+            .single();
+
+          if (newSettings) {
+            setSettings({
+              ...newSettings,
+              show_logo: newSettings.show_logo ?? true,
+              visible_tiles: newSettings.visible_tiles || defaultTiles,
+            });
+          }
         }
+
+      } catch (err) {
+        console.error("LOAD ERROR:", err);
+      }
+    };
+
+    load();
+  }, []);
+
+
+  // ===== BLOCK 6: UPDATE SETTINGS =====
+  const updateSettings = async (updates) => {
+    if (!settings) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("settings")
+        .update(updates)
+        .eq("id", settings.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("UPDATE ERROR:", error);
+        return;
       }
 
+      setSettings((prev) => ({
+        ...prev,
+        ...data,
+        show_logo: data.show_logo ?? prev.show_logo ?? true,
+        visible_tiles: data.visible_tiles || prev.visible_tiles,
+      }));
+
     } catch (err) {
-      console.error("LOAD ERROR:", err);
+      console.error("UPDATE ERROR:", err);
     }
   };
 
-  load();
-}, []);
-  // ===== BLOCK 6: UPDATE SETTINGS =====
-const updateSettings = async (updates) => {
-  if (!settings) return;
 
-  try {
-    const { data, error } = await supabase
-      .from("settings")
-      .update(updates)
-      .eq("id", settings.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("UPDATE ERROR:", error);
-      return;
-    }
-
-    // ✅ Update local state immediately (fixes toggle UI)
-    setSettings((prev) => ({
-      ...prev,
-      ...data,
-      show_logo: data.show_logo ?? prev.show_logo ?? true,
-      visible_tiles: data.visible_tiles || prev.visible_tiles,
-    }));
-
-  } catch (err) {
-    console.error("UPDATE ERROR:", err);
-  }
-};
   // ===== BLOCK 7: FILE UPLOAD =====
   const handleUpload = async (e, type) => {
     const file = e.target.files[0];
@@ -192,11 +195,10 @@ const updateSettings = async (updates) => {
     <div>
       <h2>Home Screen Settings</h2>
 
-      {/* ===== BLOCK 11A: BACKGROUND + LOGO ===== */}
+      {/* ===== BLOCK 11A: BACKGROUND ===== */}
       <div style={styles.cardBlock}>
         <h3>Background Settings</h3>
 
-        {/* BACKGROUND */}
         <div style={styles.uploadRow}>
           <div>
             <div style={styles.label}>Background Image</div>
@@ -228,129 +230,71 @@ const updateSettings = async (updates) => {
           </>
         )}
       </div>
-{/* ===== BLOCK 11B: BRANDING ===== */}
-<div style={styles.cardBlock}>
-  <h3>Branding</h3>
 
-  {/* TOGGLE */}
-  <div style={styles.row}>
-    <span>Show Logo on Home Screen</span>
+      {/* ===== BLOCK 11B: BRANDING ===== */}
+      <div style={styles.cardBlock}>
+        <h3>Branding</h3>
 
-    <div
-      onClick={() =>
-        updateSettings({
-          show_logo: !(settings.show_logo ?? true),
-        })
-      }
-      style={{
-        ...styles.toggle,
-        background: (settings.show_logo ?? true)
-          ? PRIMARY
-          : "#e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          ...styles.knob,
-          left: (settings.show_logo ?? true)
-            ? "22px"
-            : "2px",
-        }}
-      />
-    </div>
-  </div>
+        <div style={styles.row}>
+          <span>Show Logo on Home Screen</span>
 
-  {/* UPLOAD */}
-  <div style={styles.uploadRow}>
-    <div>
-      <div style={styles.label}>Center Screen Logo</div>
-      <div style={styles.sub}>
-        Displays centered on the home screen
+          <div
+            onClick={() =>
+              updateSettings({
+                show_logo: !(settings.show_logo ?? true),
+              })
+            }
+            style={{
+              ...styles.toggle,
+              background: (settings.show_logo ?? true)
+                ? PRIMARY
+                : "#e5e7eb",
+            }}
+          >
+            <div
+              style={{
+                ...styles.knob,
+                left: (settings.show_logo ?? true)
+                  ? "22px"
+                  : "2px",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={styles.uploadRow}>
+          <div>
+            <div style={styles.label}>Center Screen Logo</div>
+            <div style={styles.sub}>
+              Displays centered on the home screen
+            </div>
+          </div>
+
+          <label style={styles.uploadBtn}>
+            Upload
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleUpload(e, "logo")}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
+
+        {settings.logo_url && (
+          <>
+            <img src={settings.logo_url} style={styles.previewLogo} />
+            <button
+              onClick={() => handleRemove("logo")}
+              style={styles.removeBtn}
+            >
+              Remove Logo
+            </button>
+          </>
+        )}
       </div>
-    </div>
 
-    <label style={styles.uploadBtn}>
-      Upload
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleUpload(e, "logo")}
-        style={{ display: "none" }}
-      />
-    </label>
-  </div>
-
-  {/* PREVIEW */}
-  {settings.logo_url && (
-    <>
-      <img src={settings.logo_url} style={styles.previewLogo} />
-      <button
-        onClick={() => handleRemove("logo")}
-        style={styles.removeBtn}
-      >
-        Remove Logo
-      </button>
-    </>
-  )}
-</div>
-  {/* TOGGLE */}
-  <div style={styles.row}>
-    <span>Show Logo on Home Screen</span>
-
-    <div
-      onClick={() =>
-        updateSettings({
-          show_logo: !settings.show_logo,
-        })
-      }
-      style={{
-        ...styles.toggle,
-        background: settings.show_logo ? PRIMARY : "#e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          ...styles.knob,
-          left: settings.show_logo ? "22px" : "2px",
-        }}
-      />
-    </div>
-  </div>
-
-  {/* UPLOAD */}
-  <div style={styles.uploadRow}>
-    <div>
-      <div style={styles.label}>Center Screen Logo</div>
-      <div style={styles.sub}>
-        Displays centered on the home screen
-      </div>
-    </div>
-
-    <label style={styles.uploadBtn}>
-      Upload
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleUpload(e, "logo")}
-        style={{ display: "none" }}
-      />
-    </label>
-  </div>
-
-  {/* PREVIEW */}
-  {settings.logo_url && (
-    <>
-      <img src={settings.logo_url} style={styles.previewLogo} />
-      <button
-        onClick={() => handleRemove("logo")}
-        style={styles.removeBtn}
-      >
-        Remove Logo
-      </button>
-    </>
-  )}
-</div>
-      {/* ===== BLOCK 11B: AUTO NIGHT MODE ===== */}
+      {/* ===== BLOCK 11C: AUTO NIGHT MODE ===== */}
       <div style={styles.cardBlock}>
         <h3>Auto Night Mode</h3>
 
@@ -378,7 +322,7 @@ const updateSettings = async (updates) => {
         </div>
       </div>
 
-      {/* ===== BLOCK 11C: TILE VISIBILITY ===== */}
+      {/* ===== BLOCK 11D: TILE VISIBILITY ===== */}
       <div style={styles.cardBlock}>
         <h3>Show Tiles</h3>
 
@@ -458,18 +402,18 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-previewLarge: {
-  width: "100%",
-  maxWidth: "400px",
-  height: "200px",
-  objectFit: "cover",
-  borderRadius: "12px",
-  marginTop: "10px",
-  display: "block",
-  marginLeft: "auto",
-  marginRight: "auto",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-},
+  previewLarge: {
+    width: "100%",
+    maxWidth: "400px",
+    height: "200px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    marginTop: "10px",
+    display: "block",
+    marginLeft: "auto",
+    marginRight: "auto",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+  },
   previewLogo: {
     height: "60px",
     marginTop: "10px",
