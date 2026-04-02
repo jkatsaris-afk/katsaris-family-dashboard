@@ -20,48 +20,37 @@ export default function ProfilesPage({ onClose }) {
 
         if (!user) return;
 
-        // GET HOUSEHOLD
         const { data: member, error: memberError } = await supabase
           .from("household_members")
           .select("household_id")
           .eq("user_id", user.id)
           .single();
 
-        if (memberError || !member) {
-          console.error("No household found");
-          return;
-        }
+        if (memberError || !member) return;
 
         const hid = member.household_id;
         setHouseholdId(hid);
 
-        // GET PROFILES
         const { data: profileData, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("household_id", hid);
 
-        if (error) {
-          console.error("Profile load error:", error);
-          return;
-        }
+        if (error) return;
 
         const list = profileData || [];
         setProfiles(list);
 
-        // 🔥 AUTO-SELECT FIRST PROFILE IF NONE SAVED
         const saved = localStorage.getItem("activeProfile");
 
         if (!saved && list.length > 0) {
           const first = list[0];
-          console.log("AUTO SELECT PROFILE:", first);
-
           setProfile(first);
           localStorage.setItem("activeProfile", JSON.stringify(first));
         }
 
       } catch (err) {
-        console.error("Load error:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -74,15 +63,9 @@ export default function ProfilesPage({ onClose }) {
   const selectProfile = (profile) => {
     if (!profile) return;
 
-    console.log("SETTING PROFILE:", profile);
-
-    // ✅ set globally
     setProfile(profile);
-
-    // ✅ persist
     localStorage.setItem("activeProfile", JSON.stringify(profile));
 
-    // ✅ small delay ensures subscribers update
     setTimeout(() => {
       onClose && onClose();
     }, 50);
@@ -93,29 +76,21 @@ export default function ProfilesPage({ onClose }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
-        <h2 style={styles.title}>Select Profile</h2>
+        <h2 style={styles.title}>Who’s watching?</h2>
 
-        {/* LOADING */}
         {loading && <div style={styles.message}>Loading profiles...</div>}
 
-        {/* EMPTY */}
         {!loading && profiles.length === 0 && (
           <div style={styles.message}>No profiles found</div>
         )}
 
-        {/* ===== VERTICAL LIST ===== */}
-        <div style={styles.list}>
+        {/* ===== NETFLIX STYLE GRID ===== */}
+        <div style={styles.grid}>
           {profiles.map((p) => (
             <div
               key={p.id}
-              style={styles.row}
+              style={styles.card}
               onClick={() => selectProfile(p)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
-              }
             >
               <img
                 src={p.avatar_url || "/default-avatar.png"}
@@ -138,8 +113,8 @@ const styles = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.85)",
-    backdropFilter: "blur(20px)",
+    background: "rgba(0,0,0,0.9)",
+    backdropFilter: "blur(25px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -148,45 +123,47 @@ const styles = {
 
   modal: {
     width: "100%",
-    maxWidth: "500px",
-    padding: "30px",
+    maxWidth: "900px",
+    padding: "40px",
     textAlign: "center",
     color: "#fff",
   },
 
   title: {
-    marginBottom: "25px",
-    fontSize: "26px",
+    marginBottom: "40px",
+    fontSize: "32px",
     fontWeight: "600",
   },
 
-  list: {
+  grid: {
     display: "flex",
-    flexDirection: "column",
-    gap: "12px",
+    justifyContent: "center",
+    gap: "40px",
+    flexWrap: "wrap",
   },
 
-  row: {
+  card: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: "15px",
-    padding: "14px 16px",
-    borderRadius: "14px",
-    background: "rgba(255,255,255,0.1)",
     cursor: "pointer",
-    transition: "0.2s",
+    transition: "0.25s",
   },
 
   avatar: {
-    width: "55px",
-    height: "55px",
+    width: "120px",
+    height: "120px",
     borderRadius: "50%",
     objectFit: "cover",
+    marginBottom: "12px",
+    border: "3px solid transparent",
+    transition: "0.25s",
   },
 
   name: {
     fontSize: "18px",
     fontWeight: "500",
+    color: "#ddd",
   },
 
   message: {
