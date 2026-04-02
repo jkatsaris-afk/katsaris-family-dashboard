@@ -6,6 +6,7 @@ import {
   Users,
   LayoutDashboard,
   ToggleLeft,
+  SunMoon,
   Bell,
   Shield,
   ClipboardList,
@@ -23,6 +24,7 @@ import MembersSettings from "./settings/MembersSettings";
 import NotificationsSettings from "./settings/NotificationsSettings";
 import SecuritySettings from "./settings/SecuritySettings";
 import IntegrationsSettings from "./settings/IntegrationsSettings";
+import ChoreSettings from "./settings/ChoreSettings";
 import AboutSettings from "./settings/AboutSettings";
 import ModeSettings from "./settings/ModeSettings";
 
@@ -37,32 +39,52 @@ export default function SettingsPage() {
 
 
   // ===== BLOCK 5: MENU CONFIG =====
-  const menu = [
-    { name: "Household", icon: <Home />, key: "household" },
-    { name: "Members", icon: <Users />, key: "members" },
-    { name: "Home Screen", icon: <LayoutDashboard />, key: "display" },
-    { name: "Mode", icon: <ToggleLeft />, key: "mode" },
-    { name: "Notifications", icon: <Bell />, key: "notifications" },
-    { name: "Security", icon: <Shield />, key: "security" },
-    { name: "Integrations", icon: <Plug />, key: "integrations" },
-    { name: "Tile Apps", icon: <ClipboardList />, key: "tiles" },
-    { name: "About", icon: <Info />, key: "about" },
-  ];
+const menu = [
+  { name: "Household", icon: <Home />, key: "household" },
+  { name: "Members", icon: <Users />, key: "members" },
+  { name: "Home Screen", icon: <LayoutDashboard />, key: "display" },
+  { name: "Mode", icon: <ToggleLeft />, key: "mode" },
+  { name: "Notifications", icon: <Bell />, key: "notifications" },
+  { name: "Security", icon: <Shield />, key: "security" },
+  { name: "Integrations", icon: <Plug />, key: "integrations" },
+  { name: "Tile Apps", icon: <ClipboardList />, key: "tiles" },
+  { name: "About", icon: <Info />, key: "about" },
+];
 
 
   // ===== BLOCK 6: CONTENT SWITCHER =====
   const renderContent = () => {
     switch (section) {
-      case "household": return <HouseholdSettings />;
-      case "members": return <MembersSettings />;
-      case "display": return <HomeScreenSettings />;
-      case "mode": return <ModeSettings />;
-      case "notifications": return <NotificationsSettings />;
-      case "security": return <SecuritySettings />;
-      case "integrations": return <IntegrationsSettings />;
-      case "tiles": return <TileAppSettings />;
-      case "about": return <AboutSettings />;
-      default: return <div>Select a setting</div>;
+
+      case "household":
+        return <HouseholdSettings />;
+
+      case "members":
+        return <MembersSettings />;
+
+      case "display":
+        return <HomeScreenSettings />;
+
+      case "mode":
+        return <ModeSettings />;
+
+      case "notifications":
+        return <NotificationsSettings />;
+
+      case "security":
+        return <SecuritySettings />;
+
+      case "integrations":
+        return <IntegrationsSettings />;
+
+     case "tiles":
+        return <TileAppSettings />;
+
+      case "about":
+        return <AboutSettings />;
+
+      default:
+        return <div>Select a setting</div>;
     }
   };
 
@@ -75,10 +97,12 @@ export default function SettingsPage() {
       <div style={styles.sidebar}>
         <div>
 
+          {/* ===== BLOCK 7A-1: LOGO ===== */}
           <div style={styles.brandBox}>
             <img src={brand} alt="logo" style={styles.brand} />
           </div>
 
+          {/* ===== BLOCK 7A-2: MENU ITEMS ===== */}
           {menu.map((item, i) => {
             const active = section === item.key;
 
@@ -101,6 +125,7 @@ export default function SettingsPage() {
           })}
         </div>
 
+        {/* ===== BLOCK 7A-3: LOGOUT ===== */}
         <div
           onClick={async () => {
             const { supabase } = await import("./lib/supabase");
@@ -112,6 +137,7 @@ export default function SettingsPage() {
           Logout
         </div>
       </div>
+
 
       {/* ===== BLOCK 7B: RIGHT CONTENT PANEL ===== */}
       <div style={styles.content}>
@@ -126,13 +152,13 @@ export default function SettingsPage() {
 // ===== BLOCK 8: STYLES =====
 const styles = {
   container: {
-    display: "flex",
-    height: "100vh",       // 🔥 FIX: lock to screen height
-    overflow: "hidden",    // 🔥 FIX: prevent full page scroll
-    background: "#f8fafc",
-    borderRadius: "20px",
-  },
-
+  display: "flex",
+  height: "100%",      // 👈 CRITICAL
+  minHeight: 0,        // 👈 THIS fixes overflow issues
+  background: "#f8fafc",
+  borderRadius: "20px",
+  overflow: "hidden",
+},
   sidebar: {
     width: "260px",
     background: "#fff",
@@ -140,17 +166,13 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "100%",        // 🔥 FIX: fill container height
   },
-
   brandBox: {
     padding: "10px",
   },
-
   brand: {
     width: "100%",
   },
-
   menuItem: {
     display: "flex",
     alignItems: "center",
@@ -158,15 +180,11 @@ const styles = {
     borderRadius: "10px",
     cursor: "pointer",
   },
-
   content: {
     flex: 1,
     padding: "25px",
-    overflowY: "auto",     // 🔥 ONLY this scrolls
-    height: "100%",
-    minHeight: 0,          // 🔥 prevents flex overflow bugs
+    overflowY: "auto",
   },
-
   logout: {
     padding: "12px",
     borderRadius: "10px",
