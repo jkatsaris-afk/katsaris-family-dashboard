@@ -7,6 +7,7 @@ export default function AboutSettings() {
 
   const [dbStatus, setDbStatus] = useState("Checking...");
   const [householdId, setHouseholdId] = useState("Loading...");
+  const [profiles, setProfiles] = useState([]); // ✅ NEW
 
   const [info, setInfo] = useState({
     ip: "Loading...",
@@ -69,7 +70,7 @@ export default function AboutSettings() {
     );
   };
 
-  // 🔑 GET HOUSEHOLD ID
+  // 🔑 GET HOUSEHOLD + PROFILES
   const getHousehold = async () => {
     try {
       const {
@@ -87,11 +88,21 @@ export default function AboutSettings() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (member?.household_id) {
-        setHouseholdId(member.household_id);
-      } else {
+      if (!member?.household_id) {
         setHouseholdId("Not Found");
+        return;
       }
+
+      const hid = member.household_id;
+      setHouseholdId(hid);
+
+      // ✅ GET ALL PROFILES FOR HOUSEHOLD
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id, first_name")
+        .eq("household_id", hid);
+
+      setProfiles(profileData || []);
 
     } catch (err) {
       console.error("HOUSEHOLD ERROR:", err);
@@ -99,7 +110,7 @@ export default function AboutSettings() {
     }
   };
 
-  // 🔌 DB CHECK + INIT
+  // 🔌 INIT
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -117,7 +128,7 @@ export default function AboutSettings() {
     checkConnection();
     getLocalIP().then((ip) => setInfo((p) => ({ ...p, ip })));
     getLocation();
-    getHousehold(); // ✅ NEW
+    getHousehold();
 
   }, []);
 
@@ -143,9 +154,21 @@ export default function AboutSettings() {
           </span>
         </div>
 
-        {/* 🔥 NEW */}
         <div style={styles.infoRow}>
           <strong>Household ID:</strong> {householdId}
+        </div>
+
+        {/* 🔥 NEW PROFILE LIST */}
+        <div style={styles.infoRow}>
+          <strong>Profiles:</strong>
+          <div style={{ marginTop: "6px", paddingLeft: "10px" }}>
+            {profiles.length === 0 && <div>No profiles found</div>}
+            {profiles.map((p) => (
+              <div key={p.id} style={{ fontSize: "13px" }}>
+                {p.first_name} → {p.id}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={styles.infoRow}><strong>Local IP:</strong> {info.ip}</div>
