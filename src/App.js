@@ -253,18 +253,22 @@ const isVisible = (pageName) => {
         </div>
       </div>
 
-      {/* ===== BLOCK 12C: PAGE CONTENT ===== */}
-   div style={{ padding: "10px 20px 120px", height: "100%" }}>
-        {page === "home" && <HomePage displaySettings={displaySettings} />}
-        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
-        {page === "chores" && isVisible("chores") && <ChoresPage />}
-        {page === "weather" && isVisible("weather") && <WeatherPage />}
-        {page === "lists" && isVisible("lists") && <ShoppingPage />}
-        {page === "settings" && <SettingsPage />}
-        {page === "family" && isVisible("family") && <FamilyPage />}
-        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-      </div>
-
+      {// ===== BLOCK 12C: PAGE CONTENT =====
+<div
+  style={{
+    padding: "10px 20px 120px",
+    height: "100%",
+  }}
+>
+  {page === "home" && <HomePage displaySettings={displaySettings} />}
+  {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
+  {page === "chores" && isVisible("chores") && <ChoresPage />}
+  {page === "weather" && isVisible("weather") && <WeatherPage />}
+  {page === "lists" && isVisible("lists") && <ShoppingPage />}
+  {page === "settings" && <SettingsPage />}
+  {page === "family" && isVisible("family") && <FamilyPage />}
+  {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
+</div>
       {/* ===== BLOCK 12D: DOCK ===== */}
       <div
         style={{
