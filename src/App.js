@@ -147,28 +147,18 @@ const apps = [
   return true;
 });
 
-  // ===== BLOCK 9: PAGE VISIBILITY GUARD =====
-  const isVisible = (pageName) => {
-    const tiles = displaySettings?.visible_tiles;
+  // ===== BLOCK 9: PAGE VISIBILITY (OBJECT-BASED) =====
+const isVisible = (pageName) => {
+  const tiles = displaySettings?.visible_tiles;
 
-    if (!tiles) return true;
+  if (!tiles) return true;
 
-    if (typeof tiles === "string") {
-      try {
-        const parsed = JSON.parse(tiles);
-        return Array.isArray(parsed) ? parsed.includes(pageName) : true;
-      } catch {
-        return true;
-      }
-    }
+  if (typeof tiles === "object") {
+    return tiles[pageName] !== false;
+  }
 
-    if (Array.isArray(tiles)) {
-      return tiles.includes(pageName);
-    }
-
-    return true;
-  };
-
+  return true;
+};
 
   // ===== BLOCK 10: AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
