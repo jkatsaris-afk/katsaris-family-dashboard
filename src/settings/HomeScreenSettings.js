@@ -90,22 +90,21 @@ const updateSettings = async (updates) => {
   if (!settings) return;
 
   try {
-    const { data, error } = await supabase
+    // 🔥 update DB
+    const { error } = await supabase
       .from("settings")
       .update(updates)
-      .eq("household_id", settings.household_id) // 🔥 FIX
-      .select()
-      .single();
+      .eq("id", settings.id);
 
     if (error) {
       console.error("UPDATE ERROR:", error);
       return;
     }
 
+    // 🔥 IMMEDIATE UI UPDATE (THIS FIXES YOUR TOGGLE)
     setSettings((prev) => ({
       ...prev,
-      ...data,
-      visible_tiles: data.visible_tiles || prev.visible_tiles,
+      ...updates,
     }));
 
   } catch (err) {
