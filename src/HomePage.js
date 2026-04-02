@@ -1,39 +1,45 @@
-import React, { useState, useEffect } from "react";
-import defaultLogo from "./assets/oikos-brand.png";
-import { supabase } from "./lib/supabase";
+function AppContent() {
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [page, setPage] = useState("home");
 
-export default function HomePage() {
+  const [nightMode, setNightMode] = useState(false);
+  const [autoNightEnabled, setAutoNightEnabled] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [displaySettings, setDisplaySettings] = useState(null);
   const [now, setNow] = useState(new Date());
-  const [logo, setLogo] = useState(defaultLogo);
 
-  const [weather, setWeather] = useState({
-    temp: "--",
-    feels: "--",
-    high: "--",
-    low: "--",
-    condition: "Loading...",
-    tomorrowHigh: "--",
-    tomorrowLow: "--",
-    tomorrowCondition: "",
-  });
-
-  // 🕒 CLOCK
+  // AUTH
   useEffect(() => {
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoadingUser(false);
+    };
+
+    getUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoadingUser(false);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // CLOCK
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 🔥 LOAD LOGO
+  // SETTINGS LOAD
   useEffect(() => {
-    const loadLogo = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    if (!user) return;
 
-      if (!user) return;
-
+    const loadSettings = async () => {
       const { data: member } = await supabase
         .from("household_members")
         .select("*")
@@ -48,150 +54,218 @@ export default function HomePage() {
         .eq("household_id", member.household_id)
         .maybeSingle();
 
-      if (data?.logo_url) {
-        setLogo(data.logo_url);
+      if (data) {
+        setSettings(data);
+        setAutoNightEnabled(data.auto_night_mode);
+        setDisplaySettings(data);
       }
     };
 
-    loadLogo();
-  }, []);
+    loadSettings();
+  }, [user]);
 
-  // 🌤️ WEATHER
+  // REALTIME SETTINGS
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const apiKey = "f6de6fbfb3a1f3c55abe8b3f60d4a0eb";
+    if (!user || !settings) return;
 
-        const currentRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
-        );
-        const current = await currentRes.json();
+    const channel = supabase
+      .channel("settings-live")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+        },
+        (payload) => {
+          if (payload.new?.id === settings.id) {
+            setDisplaySettings(payload.new);
+          }
+        }
+      )
+      .subscribe();
 
-        const forecastRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
-        );
-        const forecast = await forecastRes.json();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, settings]);
 
-        const tomorrow = forecast.list.find(item =>
-          item.dt_txt.includes("12:00:00")
-        );
+  // 🌙 AUTO NIGHT MODE
+  useEffect(() => {
+    if (!autoNightEnabled) return;
 
-        setWeather({
-          temp: Math.round(current.main.temp),
-          feels: Math.round(current.main.feels_like),
-          high: Math.round(current.main.temp_max),
-          low: Math.round(current.main.temp_min),
-          condition: current.weather[0].description,
-          tomorrowHigh: tomorrow ? Math.round(tomorrow.main.temp_max) : "--",
-          tomorrowLow: tomorrow ? Math.round(tomorrow.main.temp_min) : "--",
-          tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
-        });
-
-      } catch {
-        setWeather({
-          temp: "--",
-          feels: "--",
-          high: "--",
-          low: "--",
-          condition: "Unavailable",
-          tomorrowHigh: "--",
-          tomorrowLow: "--",
-          tomorrowCondition: "",
-        });
-      }
+    const checkTime = () => {
+      const hour = new Date().getHours();
+      setNightMode(hour >= 20 || hour < 6);
     };
 
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 600000);
+    checkTime();
+    const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [autoNightEnabled]);
 
-  const formattedDate = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const allApps = [
+    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
+    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
+    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
+  ];
 
-  const formattedTime = now.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const apps = displaySettings?.visible_tiles
+    ? allApps.filter((app) => displaySettings.visible_tiles[app.page])
+    : allApps;
+
+  if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (!user) return <LoginPage />;
 
   return (
     <div
       style={{
-        minHeight: "70vh",
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        paddingTop: "80px",
+
+        // 🔥 BACKGROUND CONTROL
+        background: nightMode
+          ? "#000"
+          : displaySettings?.background_url
+          ? `url(${displaySettings.background_url}) center/cover no-repeat`
+          : "#eef1f5",
       }}
     >
-
-      {/* 🔥 GLASS TILE */}
+      {/* HEADER */}
       <div
         style={{
-          padding: "40px 60px",
-          borderRadius: "24px",
-          background: "rgba(255,255,255,0.15)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-          textAlign: "center",
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          zIndex: 10,
         }}
       >
+        <img src={brand} alt="Oikos Display" style={{ height: "38px" }} />
 
-        {/* 🕒 TIME */}
-        <div style={{
-          fontSize: "110px",
-          fontWeight: "700",
-          color: "#111827",
-          lineHeight: "1",
-        }}>
-          {formattedTime}
-        </div>
-
-        {/* 📅 DATE */}
-        <div style={{
-          fontSize: "24px",
-          color: "#374151",
-          marginBottom: "20px",
-        }}>
-          {formattedDate}
-        </div>
-
-        {/* 🌤️ WEATHER */}
-        <div style={{ color: "#374151" }}>
-          <div style={{ fontSize: "28px", fontWeight: "600" }}>
-            {weather.temp}° • {weather.condition}
+        <div style={{ display: "flex", gap: "10px" }}>
+          <div
+            onClick={() => setNightMode(!nightMode)}
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: nightMode ? "#111" : "#fff",
+            }}
+          >
+            <Moon size={18} />
           </div>
 
-          <div style={{ fontSize: "16px", color: "#6b7280" }}>
-            Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
-          </div>
-
-          <div style={{
-            marginTop: "12px",
-            fontSize: "15px",
-            color: "#6b7280",
-          }}>
-            Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+          <div
+            onClick={() =>
+              setPage((prev) => (prev === "settings" ? "home" : "settings"))
+            }
+            style={{
+              cursor: "pointer",
+              padding: "8px",
+              borderRadius: "10px",
+              background: page === "settings" ? PRIMARY : "#fff",
+              color: page === "settings" ? "#fff" : "#000",
+            }}
+          >
+            <Settings size={20} />
           </div>
         </div>
-
       </div>
 
-      {/* ✅ LOGO BELOW TILE */}
-      <img
-        src={logo}
-        alt="Oikos Brand"
+      {/* CONTENT */}
+      <div
         style={{
-          width: "200px",
-          marginTop: "25px",
-          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
-        }}
-      />
+          flex: 1,
+          overflowY: "auto",
 
+          padding: nightMode ? "0px" : "10px 20px 120px",
+
+          display: nightMode ? "flex" : "block",
+          alignItems: nightMode ? "center" : "unset",
+          justifyContent: nightMode ? "center" : "unset",
+
+          zIndex: 5,
+        }}
+      >
+        {page === "home" && <HomePage />}
+        {page === "calendar" && <UpcomingEvents />}
+        {page === "chores" && <ChoresPage />}
+        {page === "weather" && <WeatherPage />}
+        {page === "lists" && <ShoppingPage />}
+        {page === "settings" && <SettingsPage />}
+        {page === "family" && <FamilyPage />}
+        {page === "homeControls" && <HomeControlsPage />}
+      </div>
+
+      {/* DOCK */}
+      {!nightMode && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: "95%",
+              maxWidth: "1400px",
+              background: "#eef1f5",
+              padding: "12px",
+              marginBottom: "10px",
+              borderRadius: "20px",
+              boxShadow: "0 -5px 15px rgba(0,0,0,0.1)",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${apps.length}, 1fr)`,
+                gap: "12px",
+              }}
+            >
+              {apps.map((app, i) => {
+                const isActive = page === app.page;
+
+                return (
+                  <motion.div
+                    key={i}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setPage(app.page)}
+                    style={{
+                      background: app.color,
+                      color: "white",
+                      padding: "14px",
+                      borderRadius: "14px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      opacity: isActive ? 1 : 0.85,
+                    }}
+                  >
+                    <div style={{ fontSize: "22px", marginBottom: "6px" }}>
+                      {app.icon}
+                    </div>
+                    <div style={{ fontSize: "12px", fontWeight: "600" }}>
+                      {app.name}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
