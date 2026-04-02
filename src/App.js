@@ -125,8 +125,8 @@ function AppContent() {
 
   return (
     <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget && nightMode && !autoNightEnabled) {
+      onClick={() => {
+        if (nightMode && !autoNightEnabled) {
           setNightMode(false);
         }
       }}
@@ -151,7 +151,7 @@ function AppContent() {
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             zIndex: 1,
-            pointerEvents: "none", // 🔥 FIX CLICK
+            pointerEvents: "none",
           }}
         />
       )}
