@@ -1,111 +1,111 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { setProfile } from "./profileStore";
-import { Plus } from "lucide-react";
-
-const PRIMARY = "#2f6ea6";
 
 export default function ProfilesPage({ onClose }) {
+
   const [profiles, setProfiles] = useState([]);
   const [householdId, setHouseholdId] = useState(null);
-  const [newName, setNewName] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  // ===== LOAD PROFILES =====
   useEffect(() => {
     const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        setLoading(true);
 
-      if (!user) return;
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      const { data: member } = await supabase
-        .from("household_members")
-        .select("household_id")
-        .eq("user_id", user.id)
-        .single();
+        if (!user) return;
 
-      if (!member) return;
+        // GET HOUSEHOLD
+        const { data: member, error: memberError } = await supabase
+          .from("household_members")
+          .select("household_id")
+          .eq("user_id", user.id)
+          .single();
 
-      setHouseholdId(member.household_id);
+        if (memberError || !member) {
+          console.error("No household found");
+          return;
+        }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("household_id", member.household_id);
+        setHouseholdId(member.household_id);
 
-      setProfiles(data || []);
+        // GET PROFILES
+        const { data: profileData, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("household_id", member.household_id);
 
-      // ✅ AUTO LOAD FIRST PROFILE IF NONE
-      const saved = localStorage.getItem("activeProfile");
-      if (!saved && data?.length > 0) {
-        setProfile(data[0]);
+        if (error) {
+          console.error("Profile load error:", error);
+          return;
+        }
+
+        setProfiles(profileData || []);
+
+      } catch (err) {
+        console.error("Load error:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     load();
   }, []);
 
+  // ===== SELECT PROFILE =====
   const selectProfile = (profile) => {
+    if (!profile) return;
+
     setProfile(profile);
-    localStorage.setItem("activeProfile", JSON.stringify(profile)); // ✅ persist
+
+    // persist selected profile
+    localStorage.setItem("activeProfile", JSON.stringify(profile));
+
     onClose && onClose();
   };
 
-  const addProfile = async () => {
-    if (!newName || !householdId) return;
-
-    const { data } = await supabase
-      .from("profiles")
-      .insert({
-        household_id: householdId,
-        first_name: newName,
-      })
-      .select()
-      .single();
-
-    setProfiles((prev) => [...prev, data]);
-    setNewName("");
-  };
-
+  // ===== UI =====
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
 
         <h2 style={styles.title}>Select Profile</h2>
 
-        {profiles.length === 0 && (
-          <div style={{ marginBottom: 20 }}>No profiles yet</div>
+        {/* LOADING */}
+        {loading && <div style={styles.message}>Loading profiles...</div>}
+
+        {/* EMPTY */}
+        {!loading && profiles.length === 0 && (
+          <div style={styles.message}>No profiles yet</div>
         )}
 
-        <div style={styles.grid}>
+        {/* ===== VERTICAL LIST ===== */}
+        <div style={styles.list}>
           {profiles.map((p) => (
             <div
               key={p.id}
-              style={styles.tile}
+              style={styles.row}
               onClick={() => selectProfile(p)}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
+              }
             >
               <img
                 src={p.avatar_url || "/default-avatar.png"}
                 style={styles.avatar}
               />
-              <div>{p.first_name}</div>
+
+              <div style={styles.name}>{p.first_name}</div>
             </div>
           ))}
-        </div>
-
-        <div style={styles.addRow}>
-          <input
-            placeholder="New profile"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            style={styles.input}
-          />
-
-          <button onClick={addProfile} style={styles.addBtn}>
-            <Plus size={16} />
-          </button>
         </div>
 
       </div>
@@ -113,6 +113,8 @@ export default function ProfilesPage({ onClose }) {
   );
 }
 
+
+// ===== STYLES =====
 const styles = {
   overlay: {
     position: "fixed",
@@ -124,53 +126,52 @@ const styles = {
     justifyContent: "center",
     zIndex: 9999,
   },
+
   modal: {
     width: "100%",
-    maxWidth: "700px",
+    maxWidth: "500px",
     padding: "30px",
     textAlign: "center",
     color: "#fff",
   },
+
   title: {
     marginBottom: "25px",
-    fontSize: "24px",
+    fontSize: "26px",
+    fontWeight: "600",
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-    gap: "20px",
-    marginBottom: "25px",
+
+  list: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
   },
-  tile: {
-    background: "rgba(255,255,255,0.12)",
-    padding: "20px",
-    borderRadius: "16px",
+
+  row: {
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    padding: "14px 16px",
+    borderRadius: "14px",
+    background: "rgba(255,255,255,0.1)",
     cursor: "pointer",
     transition: "0.2s",
   },
+
   avatar: {
-    width: "70px",
-    height: "70px",
+    width: "55px",
+    height: "55px",
     borderRadius: "50%",
-    marginBottom: "10px",
     objectFit: "cover",
   },
-  addRow: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "10px",
+
+  name: {
+    fontSize: "18px",
+    fontWeight: "500",
   },
-  input: {
-    padding: "10px",
-    borderRadius: "8px",
-    border: "none",
-  },
-  addBtn: {
-    background: PRIMARY,
-    border: "none",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    color: "#fff",
+
+  message: {
+    marginBottom: "15px",
+    color: "#ccc",
   },
 };
