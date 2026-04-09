@@ -7,9 +7,6 @@ import OnboardingPage from "./OnboardingPage";
 import LoadingPage from "./LoadingPage";
 import LoginPage from "./LoginPage";
 
-// ✅ ADDED
-import SportsLogin from "./Sports Mode/sportslogin";
-
 import {
   Home,
   Calendar,
@@ -237,45 +234,15 @@ function AppContent() {
     return true;
   });
 
-  // ===== VISIBILITY =====
-  const isVisible = (pageName) => {
-    const tiles = displaySettings?.visible_tiles;
-    if (!tiles) return true;
-    if (typeof tiles === "object") {
-      return tiles[pageName] === undefined ? true : tiles[pageName];
-    }
-    return true;
-  };
-
   // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        background: displaySettings?.background_url
-          ? `url(${displaySettings.background_url}) center/cover no-repeat`
-          : "#eef1f5",
-      }}
-    >
-      {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <img src={brand} style={{ height: "38px" }} />
-      </div>
-
-      {/* CONTENT */}
-      <div style={{ padding: "10px 20px 120px", height: "100%" }}>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "10px 20px 120px" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
       </div>
-
-      {showProfiles && (
-        <ProfilesPage onClose={() => setShowProfiles(false)} />
-      )}
     </div>
   );
 }
@@ -286,15 +253,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* ✅ ONLY CHANGE */}
         <Route
           path="/"
           element={
             window.location.hostname.includes("oikossports")
-              ? <SportsLogin />
+              ? <AppContent />
               : <LoginPage />
           }
         />
+
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
