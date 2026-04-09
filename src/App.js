@@ -46,7 +46,11 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
-
+  useEffect(() => {
+  if (window.location.pathname === "/sports") {
+    setPage("sports");
+  }
+}, []);
   const [showProfiles, setShowProfiles] = useState(false);
 
   const [nightMode, setNightMode] = useState(false);
@@ -303,6 +307,7 @@ useEffect(() => {
       {/* CONTENT */}
       <div style={{ padding: "10px 20px 120px", height: "100%" }}>
         {page === "home" && <HomePage displaySettings={displaySettings} />}
+        {page === "sports" && <SportsHomePage />}
         {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
         {page === "chores" && isVisible("chores") && <ChoresPage />}
         {page === "weather" && isVisible("weather") && <WeatherPage />}
@@ -363,7 +368,7 @@ export default function App() {
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
-        <Route path="/sports" element={<SportsHomePage />} />
+        <Route path="/sports" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
   );
