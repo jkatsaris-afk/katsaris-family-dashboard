@@ -1,7 +1,6 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
-import logo from "../assets/sports-logo.png";
-import background from "../assets/sports-background.png";
+import { supabase } from "./lib/supabase";
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
@@ -9,6 +8,7 @@ export default function HomePage({ displaySettings }) {
 
   // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
+  const [logo, setLogo] = useState(null);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -21,19 +21,95 @@ export default function HomePage({ displaySettings }) {
     tomorrowCondition: "",
   });
 
+  // 🔥 NEW: BIBLE VERSE STATE
   const [verse, setVerse] = useState(null);
 
 
-  // ===== CLOCK =====
+  // ===== BLOCK 4: CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
 
-  // ===== WEATHER =====
+  // ===== BLOCK 5: LOAD SETTINGS + REALTIME =====
+  useEffect(() => {
+
+    let householdId = null;
+
+    const loadSettings = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) return;
+
+        const { data: member } = await supabase
+          .from("household_members")
+          .select("household_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!member) return;
+
+        householdId = member.household_id;
+
+        const { data } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("household_id", householdId)
+          .maybeSingle();
+
+        if (data) {
+          if (data.logo_url) {
+            setLogo(data.logo_url);
+          } else {
+            setLogo(null);
+          }
+        }
+
+      } catch (err) {
+        console.error("LOAD SETTINGS ERROR:", err);
+      }
+    };
+
+    loadSettings();
+
+    const channel = supabase
+      .channel("settings-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+        },
+        (payload) => {
+          const updated = payload.new;
+
+          if (updated?.household_id === householdId) {
+            if (updated.logo_url) {
+              setLogo(updated.logo_url);
+            } else {
+              setLogo(null);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
+  }, []);
+
+
+  // ===== BLOCK 6: WEATHER =====
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -44,12 +120,24 @@ export default function HomePage({ displaySettings }) {
         );
         const current = await currentRes.json();
 
+        const forecastRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=39.4735&lon=-118.7774&units=imperial&appid=${apiKey}`
+        );
+        const forecast = await forecastRes.json();
+
+        const tomorrow = forecast.list.find(item =>
+          item.dt_txt.includes("12:00:00")
+        );
+
         setWeather({
           temp: Math.round(current.main.temp),
           feels: Math.round(current.main.feels_like),
           high: Math.round(current.main.temp_max),
           low: Math.round(current.main.temp_min),
           condition: current.weather[0].description,
+          tomorrowHigh: tomorrow ? Math.round(tomorrow.main.temp_max) : "--",
+          tomorrowLow: tomorrow ? Math.round(tomorrow.main.temp_min) : "--",
+          tomorrowCondition: tomorrow ? tomorrow.weather[0].description : "",
         });
 
       } catch {
@@ -59,21 +147,28 @@ export default function HomePage({ displaySettings }) {
           high: "--",
           low: "--",
           condition: "Unavailable",
+          tomorrowHigh: "--",
+          tomorrowLow: "--",
+          tomorrowCondition: "",
         });
       }
     };
 
     fetchWeather();
+    const interval = setInterval(fetchWeather, 600000);
+
+    return () => clearInterval(interval);
   }, []);
 
 
-  // ===== BIBLE =====
+  // 🔥 ===== BLOCK 6B: BIBLE VERSE (CACHED DAILY) =====
   useEffect(() => {
     const fetchVerse = async () => {
       try {
         const today = new Date().toDateString();
         const cached = JSON.parse(localStorage.getItem("dailyVerse"));
 
+        // ✅ use cached verse if same day
         if (cached && cached.date === today) {
           setVerse(cached);
           return;
@@ -103,6 +198,7 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
+  // ===== BLOCK 7: FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -115,34 +211,61 @@ export default function HomePage({ displaySettings }) {
   });
 
 
-  // ===== UI =====
+  // ===== BLOCK 8: MAIN UI =====
   return (
     <div style={styles.container}>
 
-      {/* BACKGROUND */}
-      <div style={styles.background} />
-
-      {/* HEADER */}
-      <div style={styles.header}>
-        <img src={logo} style={styles.logo} />
-
-        <div style={styles.settings}>
-          ⚙️
-        </div>
-      </div>
-
-      {/* MAIN TILE */}
+      {/* ===== BLOCK 8A: GLASS TILE ===== */}
       <div style={styles.glassTile}>
 
-        <div style={styles.time}>{formattedTime}</div>
-        <div style={styles.date}>{formattedDate}</div>
+        {/* CLOCK */}
+        {displaySettings?.visible_widgets?.clock !== false && (
+          <div style={styles.time}>
+            {formattedTime}
+          </div>
+        )}
 
-        <div style={styles.weather}>
-          {weather.temp}° • {weather.condition}
-        </div>
+        {/* DATE */}
+        {displaySettings?.visible_widgets?.date !== false && (
+          <div style={styles.date}>
+            {formattedDate}
+          </div>
+        )}
 
+        {/* WEATHER */}
+        {displaySettings?.visible_widgets?.weather !== false && (
+          <div style={styles.weather}>
+            <div style={styles.weatherMain}>
+              {weather.temp}° • {weather.condition}
+            </div>
+
+            <div style={styles.weatherSub}>
+              Feels like {weather.feels}° • H {weather.high}° / L {weather.low}°
+            </div>
+
+            <div style={styles.weatherTomorrow}>
+              Tomorrow: {weather.tomorrowHigh}° / {weather.tomorrowLow}° • {weather.tomorrowCondition}
+            </div>
+          </div>
+        )}
+
+        {/* EVENTS */}
+        {displaySettings?.visible_widgets?.events && (
+          <div style={{ marginTop: "15px", color: "#6b7280" }}>
+            📅 No events today
+          </div>
+        )}
+
+        {/* COUNTDOWN */}
+        {displaySettings?.visible_widgets?.countdown && (
+          <div style={{ marginTop: "10px", color: "#6b7280" }}>
+            ⏳ Countdown not set
+          </div>
+        )}
+
+        {/* 🔥 BIBLE (NOW REAL) */}
         {displaySettings?.visible_widgets?.bible && verse && (
-          <div style={styles.verse}>
+          <div style={{ marginTop: "15px", color: "#374151" }}>
             <div style={{ fontStyle: "italic" }}>
               "{verse.text}"
             </div>
@@ -154,61 +277,28 @@ export default function HomePage({ displaySettings }) {
 
       </div>
 
-      {/* DOCK */}
-      <div style={styles.dock}>
-        <div style={styles.dockItemActive}>
-          🏠
-          <div style={styles.dockLabel}>Home</div>
-        </div>
-      </div>
+      {/* ===== BLOCK 8B: LOGO ===== */}
+      {logo && (
+        <img
+          src={logo}
+          alt="Oikos Brand"
+          style={styles.logo}
+        />
+      )}
 
     </div>
   );
 }
 
 
-// ===== STYLES =====
+// ===== BLOCK 9: STYLES =====
 const styles = {
   container: {
-    height: "100vh",
-    width: "100vw",
-    position: "relative",
+    minHeight: "70vh",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-
-  background: {
-    position: "absolute",
-    inset: 0,
-    backgroundImage: `url(${background})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    zIndex: 0,
-  },
-
-  header: {
-    position: "absolute",
-    top: "20px",
-    left: "20px",
-    right: "20px",
-    display: "flex",
-    justifyContent: "space-between",
-    zIndex: 3,
-  },
-
-  logo: {
-    width: "140px",
-  },
-
-  settings: {
-    padding: "10px 14px",
-    borderRadius: "12px",
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(10px)",
-    color: "#fff",
-    cursor: "pointer",
+    paddingTop: "80px",
   },
 
   glassTile: {
@@ -216,52 +306,47 @@ const styles = {
     borderRadius: "24px",
     background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
     textAlign: "center",
-    zIndex: 2,
   },
 
   time: {
     fontSize: "110px",
     fontWeight: "700",
-    color: "#fff",
+    color: "#111827",
+    lineHeight: "1",
   },
 
   date: {
     fontSize: "24px",
-    color: "#e5e7eb",
-    marginBottom: "15px",
+    color: "#374151",
+    marginBottom: "20px",
   },
 
   weather: {
-    color: "#e5e7eb",
+    color: "#374151",
   },
 
-  verse: {
-    marginTop: "15px",
-    color: "#e5e7eb",
+  weatherMain: {
+    fontSize: "28px",
+    fontWeight: "600",
   },
 
-  dock: {
-    position: "absolute",
-    bottom: "25px",
-    padding: "12px 24px",
-    borderRadius: "24px",
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(12px)",
-    display: "flex",
-    zIndex: 3,
+  weatherSub: {
+    fontSize: "16px",
+    color: "#6b7280",
   },
 
-  dockItemActive: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    color: "#fff",
+  weatherTomorrow: {
+    marginTop: "12px",
+    fontSize: "15px",
+    color: "#6b7280",
   },
 
-  dockLabel: {
-    fontSize: "12px",
-    marginTop: "4px",
+  logo: {
+    width: "200px",
+    marginTop: "25px",
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
   },
 };
