@@ -7,9 +7,6 @@ import OnboardingPage from "./OnboardingPage";
 import LoadingPage from "./LoadingPage";
 import LoginPage from "./LoginPage";
 
-// ✅ ADDED
-import SportsLogin from "./Sports Mode/sportslogin";
-
 import {
   Home,
   Calendar,
@@ -79,7 +76,7 @@ function AppContent() {
     }
   }, []);
 
-  // ===== FORCE PROFILE SELECT =====
+  // ===== FORCE PROFILE SELECT (ADDED) =====
   useEffect(() => {
     if (!profile) {
       console.log("⚠️ No profile selected → opening profile picker");
@@ -148,7 +145,7 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
-  // ===== LIVE SETTINGS UPDATE =====
+  // ===== 🔥 LIVE SETTINGS UPDATE (ADDED) =====
   useEffect(() => {
     const handleUpdate = async () => {
       if (!profile) return;
@@ -189,45 +186,161 @@ function AppContent() {
   }, [autoNightEnabled]);
 
   // ===== INACTIVITY TIMER =====
-  useEffect(() => {
-    if (!displaySettings?.inactivity_enabled) return;
+useEffect(() => {
+  if (!displaySettings?.inactivity_enabled) return;
 
-    let timeout;
+  let timeout;
 
-    const resetTimer = () => {
-      clearTimeout(timeout);
+  const resetTimer = () => {
+    clearTimeout(timeout);
 
-      timeout = setTimeout(() => {
-        console.log("⏱ Inactivity → returning home");
-        setPage("home");
-      }, 10 * 60 * 1000);
-    };
+    timeout = setTimeout(() => {
+      console.log("⏱ Inactivity → returning home");
+      setPage("home");
+    }, 10 * 60 * 1000); // 10 minutes
+  };
 
-    const events = ["mousemove", "mousedown", "touchstart", "keydown"];
+  const events = ["mousemove", "mousedown", "touchstart", "keydown"];
 
+  events.forEach((event) =>
+    window.addEventListener(event, resetTimer)
+  );
+
+  resetTimer();
+
+  return () => {
+    clearTimeout(timeout);
     events.forEach((event) =>
-      window.addEventListener(event, resetTimer)
+      window.removeEventListener(event, resetTimer)
     );
+  };
+}, [displaySettings]);
+  
+  // ===== APP FILTER =====
+  const apps = [
+    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
+    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
+    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
+    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
+    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
+    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
+    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
+  ].filter(app => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") {
+      return tiles[app.page] === undefined ? true : tiles[app.page];
+    }
+    return true;
+  });
 
-    resetTimer();
-
-    return () => {
-      clearTimeout(timeout);
-      events.forEach((event) =>
-        window.removeEventListener(event, resetTimer)
-      );
-    };
-  }, [displaySettings]);
+  // ===== VISIBILITY =====
+  const isVisible = (pageName) => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") {
+      return tiles[pageName] === undefined ? true : tiles[pageName];
+    }
+    return true;
+  };
 
   // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "10px 20px 120px" }}>
-        {page === "home" && <HomePage displaySettings={displaySettings} />}
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        background: displaySettings?.background_url
+          ? `url(${displaySettings.background_url}) center/cover no-repeat`
+          : "#eef1f5",
+      }}
+    >
+
+      {/* HEADER */}
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <img src={brand} style={{ height: "38px" }} />
+
+        <div style={{ display: "flex", gap: "10px" }}>
+
+          <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
+            <img
+              src={profile?.avatar_url || "/default-avatar.png"}
+              style={styles.profileAvatar}
+            />
+            <span>{profile?.first_name || "Profile"}</span>
+          </div>
+
+          <div
+            onClick={() => {
+              setAutoNightEnabled(false);
+              setNightMode(true);
+            }}
+            style={{ background: "#fff", padding: 8, borderRadius: 10 }}
+          >
+            <Moon size={18} />
+          </div>
+
+          <div
+            onClick={() => setPage(p => p === "settings" ? "home" : "settings")}
+            style={{
+              background: page === "settings" ? PRIMARY : "#fff",
+              padding: 8,
+              borderRadius: 10
+            }}
+          >
+            <Settings size={20} />
+          </div>
+
+        </div>
       </div>
+
+      {/* CONTENT */}
+      <div style={{ padding: "10px 20px 120px", height: "100%" }}>
+        {page === "home" && <HomePage displaySettings={displaySettings} />}
+        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
+        {page === "chores" && isVisible("chores") && <ChoresPage />}
+        {page === "weather" && isVisible("weather") && <WeatherPage />}
+        {page === "lists" && isVisible("lists") && <ShoppingPage />}
+        {page === "settings" && <SettingsPage />}
+        {page === "family" && isVisible("family") && <FamilyPage />}
+        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
+      </div>
+
+      {/* DOCK */}
+      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
+            {apps.map((app, i) => (
+              <motion.div
+                key={i}
+                onClick={() => setPage(app.page)}
+                style={{
+                  background: app.color,
+                  color: "white",
+                  padding: "14px",
+                  borderRadius: "14px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {app.icon}
+                <div>{app.name}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* PROFILE OVERLAY */}
+      {showProfiles && (
+        <ProfilesPage onClose={() => setShowProfiles(false)} />
+      )}
+
     </div>
   );
 }
@@ -238,18 +351,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* ✅ ONLY CHANGE */}
-        <Route
-          path="/"
-          element={
-            typeof window !== "undefined" &&
-            window.location.hostname === "oikossports.app"
-              ? <SportsLogin />
-              : <LoginPage />
-          }
-        />
-
+        <Route path="/" element={<LoginPage />} />
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
