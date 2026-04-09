@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import OnboardingPage from "./OnboardingPage";
 import LoadingPage from "./LoadingPage";
 import LoginPage from "./LoginPage";
-
+import SportsLogin from "./Sports Mode/sportslogin";
 import {
   Home,
   Calendar,
@@ -351,7 +351,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route
+  path="/"
+  element={
+    window.location.hostname.includes("oikossports")
+      ? <SportsLogin />
+      : <LoginPage />
+  }
+/>
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
