@@ -36,8 +36,8 @@ import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
 
-// ✅ ADDED (FIXED PATH — NO SPACE IN FOLDER NAME)
-import SportsHomePage from "./SportsMode/sportshomepage";
+// ✅ FIXED IMPORT (MATCHES YOUR FOLDER WITH SPACE)
+import SportsHomePage from "./Sports Mode/sportshomepage";
 
 const PRIMARY = "#2f6ea6";
 
@@ -218,7 +218,7 @@ function AppContent() {
       );
     };
   }, [displaySettings]);
-  
+
   // ===== APP FILTER =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -267,39 +267,6 @@ function AppContent() {
       {/* HEADER */}
       <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} style={{ height: "38px" }} />
-
-        <div style={{ display: "flex", gap: "10px" }}>
-
-          <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
-            <img
-              src={profile?.avatar_url || "/default-avatar.png"}
-              style={styles.profileAvatar}
-            />
-            <span>{profile?.first_name || "Profile"}</span>
-          </div>
-
-          <div
-            onClick={() => {
-              setAutoNightEnabled(false);
-              setNightMode(true);
-            }}
-            style={{ background: "#fff", padding: 8, borderRadius: 10 }}
-          >
-            <Moon size={18} />
-          </div>
-
-          <div
-            onClick={() => setPage(p => p === "settings" ? "home" : "settings")}
-            style={{
-              background: page === "settings" ? PRIMARY : "#fff",
-              padding: 8,
-              borderRadius: 10
-            }}
-          >
-            <Settings size={20} />
-          </div>
-
-        </div>
       </div>
 
       {/* CONTENT */}
@@ -316,31 +283,6 @@ function AppContent() {
         {page === "settings" && <SettingsPage />}
         {page === "family" && isVisible("family") && <FamilyPage />}
         {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
-      </div>
-
-      {/* DOCK */}
-      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
-        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
-            {apps.map((app, i) => (
-              <motion.div
-                key={i}
-                onClick={() => setPage(app.page)}
-                style={{
-                  background: app.color,
-                  color: "white",
-                  padding: "14px",
-                  borderRadius: "14px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-              >
-                {app.icon}
-                <div>{app.name}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* PROFILE OVERLAY */}
