@@ -18,7 +18,7 @@ export default function SportsHomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  // WEATHER (simple version)
+  // WEATHER
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -59,10 +59,18 @@ export default function SportsHomePage() {
       {/* BACKGROUND */}
       <div style={styles.background} />
 
-      {/* LOGO TOP */}
-      <img src={logo} style={styles.topLogo} />
+      {/* ===== HEADER ===== */}
+      <div style={styles.header}>
+        {/* LEFT LOGO */}
+        <img src={logo} style={styles.headerLogo} />
 
-      {/* MAIN GLASS TILE */}
+        {/* RIGHT SETTINGS */}
+        <div style={styles.settings}>
+          ⚙️
+        </div>
+      </div>
+
+      {/* ===== MAIN TILE ===== */}
       <div style={styles.glassTile}>
         <div style={styles.time}>{formattedTime}</div>
         <div style={styles.date}>{formattedDate}</div>
@@ -72,11 +80,14 @@ export default function SportsHomePage() {
         </div>
       </div>
 
-      {/* DOCK */}
+      {/* ===== DOCK ===== */}
       <div style={styles.dock}>
-        <div style={styles.dockItemActive}>Home</div>
-        <div style={styles.dockItem}>Settings</div>
+        <div style={styles.dockItemActive}>
+          🏠
+          <div style={styles.dockLabel}>Home</div>
+        </div>
       </div>
+
     </div>
   );
 }
@@ -91,7 +102,6 @@ const styles = {
     width: "100vw",
     position: "relative",
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -106,21 +116,40 @@ const styles = {
     zIndex: 0,
   },
 
-  topLogo: {
+  /* ===== HEADER ===== */
+  header: {
     position: "absolute",
-    top: "30px",
-    width: "180px",
-    zIndex: 2,
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))",
+    top: "20px",
+    left: "20px",
+    right: "20px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 3,
   },
 
+  headerLogo: {
+    width: "140px",
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
+  },
+
+  settings: {
+    fontSize: "26px",
+    cursor: "pointer",
+    background: "rgba(0,0,0,0.4)",
+    padding: "10px 14px",
+    borderRadius: "12px",
+    backdropFilter: "blur(8px)",
+    color: "#fff",
+  },
+
+  /* ===== MAIN TILE ===== */
   glassTile: {
     zIndex: 2,
     padding: "40px 60px",
     borderRadius: "24px",
     background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
     boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
     textAlign: "center",
   },
@@ -143,26 +172,30 @@ const styles = {
     color: "#e5e7eb",
   },
 
+  /* ===== DOCK ===== */
   dock: {
     position: "absolute",
     bottom: "25px",
     display: "flex",
-    gap: "20px",
-    padding: "10px 20px",
-    borderRadius: "20px",
+    gap: "25px",
+    padding: "14px 28px",
+    borderRadius: "22px",
     background: "rgba(0,0,0,0.4)",
-    backdropFilter: "blur(10px)",
-    zIndex: 2,
-  },
-
-  dockItem: {
-    color: "#ccc",
-    fontWeight: "600",
-    cursor: "pointer",
+    backdropFilter: "blur(12px)",
+    zIndex: 3,
   },
 
   dockItemActive: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     color: "#fff",
-    fontWeight: "700",
+    fontSize: "22px",
+    fontWeight: "600",
+  },
+
+  dockLabel: {
+    fontSize: "12px",
+    marginTop: "4px",
   },
 };
