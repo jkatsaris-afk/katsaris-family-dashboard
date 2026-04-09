@@ -36,8 +36,8 @@ import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
 
-// ✅ FIXED IMPORT (correct filename)
-import SportsHomePage from "./Sports Mode/sportshomepage";
+// ✅ ADDED (FIXED PATH — NO SPACE IN FOLDER NAME)
+import SportsHomePage from "./SportsMode/sportshomepage";
 
 const PRIMARY = "#2f6ea6";
 
@@ -57,10 +57,6 @@ function AppContent() {
   const [displaySettings, setDisplaySettings] = useState(null);
   const [now, setNow] = useState(new Date());
   const [profile, setProfileState] = useState(null);
-
-  // ✅ DOMAIN MODE DETECTION
-  const domain = window.location.hostname;
-  const isSportsMode = domain.includes("oikossports");
 
   // ===== CLOCK =====
   useEffect(() => {
@@ -157,6 +153,8 @@ function AppContent() {
     const handleUpdate = async () => {
       if (!profile) return;
 
+      console.log("🔄 Refreshing settings live...");
+
       const { data } = await supabase
         .from("profile_settings")
         .select("*")
@@ -220,7 +218,7 @@ function AppContent() {
       );
     };
   }, [displaySettings]);
-
+  
   // ===== APP FILTER =====
   const apps = [
     { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
@@ -239,6 +237,7 @@ function AppContent() {
     return true;
   });
 
+  // ===== VISIBILITY =====
   const isVisible = (pageName) => {
     const tiles = displaySettings?.visible_tiles;
     if (!tiles) return true;
@@ -253,17 +252,60 @@ function AppContent() {
   if (!user) return <LoginPage />;
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        background: displaySettings?.background_url
+          ? `url(${displaySettings.background_url}) center/cover no-repeat`
+          : "#eef1f5",
+      }}
+    >
 
       {/* HEADER */}
-      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={brand} style={{ height: "38px" }} />
+
+        <div style={{ display: "flex", gap: "10px" }}>
+
+          <div onClick={() => setShowProfiles(true)} style={styles.profileBtn}>
+            <img
+              src={profile?.avatar_url || "/default-avatar.png"}
+              style={styles.profileAvatar}
+            />
+            <span>{profile?.first_name || "Profile"}</span>
+          </div>
+
+          <div
+            onClick={() => {
+              setAutoNightEnabled(false);
+              setNightMode(true);
+            }}
+            style={{ background: "#fff", padding: 8, borderRadius: 10 }}
+          >
+            <Moon size={18} />
+          </div>
+
+          <div
+            onClick={() => setPage(p => p === "settings" ? "home" : "settings")}
+            style={{
+              background: page === "settings" ? PRIMARY : "#fff",
+              padding: 8,
+              borderRadius: 10
+            }}
+          >
+            <Settings size={20} />
+          </div>
+
+        </div>
       </div>
 
       {/* CONTENT */}
       <div style={{ padding: "10px 20px 120px", height: "100%" }}>
         {page === "home" && (
-          isSportsMode
+          window.location.hostname.includes("oikossports")
             ? <SportsHomePage />
             : <HomePage displaySettings={displaySettings} />
         )}
@@ -274,6 +316,31 @@ function AppContent() {
         {page === "settings" && <SettingsPage />}
         {page === "family" && isVisible("family") && <FamilyPage />}
         {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
+      </div>
+
+      {/* DOCK */}
+      <div style={{ position: "fixed", bottom: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "95%", maxWidth: "1400px", background: "#eef1f5", padding: "12px", marginBottom: "10px", borderRadius: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${apps.length}, 1fr)`, gap: "12px" }}>
+            {apps.map((app, i) => (
+              <motion.div
+                key={i}
+                onClick={() => setPage(app.page)}
+                style={{
+                  background: app.color,
+                  color: "white",
+                  padding: "14px",
+                  borderRadius: "14px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {app.icon}
+                <div>{app.name}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* PROFILE OVERLAY */}
@@ -311,6 +378,7 @@ const styles = {
     padding: "6px 10px",
     borderRadius: "20px",
     cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
   },
   profileAvatar: {
     width: "26px",
