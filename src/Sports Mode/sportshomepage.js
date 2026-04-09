@@ -1,6 +1,5 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
-import background from "../assets/sports-background.png"; // ✅ FIXED PATH
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
@@ -85,7 +84,7 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
-  // ===== BIBLE VERSE =====
+  // 🔥 ===== BIBLE VERSE =====
   useEffect(() => {
     const fetchVerse = async () => {
       try {
@@ -121,7 +120,7 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
-  // ===== FORMATTERS =====
+  // ===== BLOCK 7: FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -134,12 +133,9 @@ export default function HomePage({ displaySettings }) {
   });
 
 
-  // ===== MAIN UI =====
+  // ===== BLOCK 8: MAIN UI =====
   return (
     <div style={styles.container}>
-
-      {/* ✅ BACKGROUND */}
-      <div style={styles.background} />
 
       <div style={styles.glassTile}>
 
@@ -171,6 +167,18 @@ export default function HomePage({ displaySettings }) {
           </div>
         )}
 
+        {displaySettings?.visible_widgets?.events && (
+          <div style={{ marginTop: "15px", color: "#6b7280" }}>
+            📅 No events today
+          </div>
+        )}
+
+        {displaySettings?.visible_widgets?.countdown && (
+          <div style={{ marginTop: "10px", color: "#6b7280" }}>
+            ⏳ Countdown not set
+          </div>
+        )}
+
         {displaySettings?.visible_widgets?.bible && verse && (
           <div style={{ marginTop: "15px", color: "#374151" }}>
             <div style={{ fontStyle: "italic" }}>
@@ -189,24 +197,14 @@ export default function HomePage({ displaySettings }) {
 }
 
 
-// ===== STYLES =====
+// ===== BLOCK 9: STYLES =====
 const styles = {
   container: {
-    minHeight: "100vh",
+    minHeight: "70vh",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    overflow: "hidden",
-  },
-
-  background: {
-    position: "absolute",
-    inset: 0,
-    backgroundImage: `url(${background})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    zIndex: 0,
+    paddingTop: "80px",
   },
 
   glassTile: {
@@ -214,26 +212,25 @@ const styles = {
     borderRadius: "24px",
     background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
     textAlign: "center",
-    zIndex: 2,
   },
 
   time: {
     fontSize: "110px",
     fontWeight: "700",
-    color: "#fff",
+    color: "#111827",
     lineHeight: "1",
   },
 
   date: {
     fontSize: "24px",
-    color: "#e5e7eb",
+    color: "#374151",
     marginBottom: "20px",
   },
 
   weather: {
-    color: "#e5e7eb",
+    color: "#374151",
   },
 
   weatherMain: {
@@ -243,12 +240,12 @@ const styles = {
 
   weatherSub: {
     fontSize: "16px",
-    color: "#cbd5e1",
+    color: "#6b7280",
   },
 
   weatherTomorrow: {
     marginTop: "12px",
     fontSize: "15px",
-    color: "#cbd5e1",
+    color: "#6b7280",
   },
 };
