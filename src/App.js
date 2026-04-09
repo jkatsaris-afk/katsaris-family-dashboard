@@ -176,9 +176,16 @@ function AppContent() {
 }
 
 
-// ===== ✅ ADDED SAFE DOMAIN SWITCH =====
+// ===== ✅ SAFE DOMAIN LOGIN SWITCH =====
 function DomainLogin() {
-  const isSports = typeof window !== "undefined" && window.location.hostname.includes("oikossports");
+  const [isSports, setIsSports] = React.useState(false);
+
+  React.useEffect(() => {
+    if (window.location.hostname.includes("oikossports")) {
+      setIsSports(true);
+    }
+  }, []);
+
   return isSports ? <SportsLogin /> : <LoginPage />;
 }
 
@@ -188,7 +195,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ ONLY LINE CHANGED */}
+        {/* ✅ ONLY CHANGE */}
         <Route path="/" element={<DomainLogin />} />
 
         <Route path="/loading" element={<LoadingPage />} />
