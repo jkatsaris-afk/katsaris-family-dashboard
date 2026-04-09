@@ -9,8 +9,6 @@ export default function SportsLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // ✅ NEW STATE
   const [noAccess, setNoAccess] = useState(false);
 
   // ✅ AUTO LOGIN CHECK (WITH ACCESS CONTROL)
@@ -57,7 +55,7 @@ export default function SportsLogin() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // ✅ CHECK SPORTS ACCESS
+    // ✅ CHECK ACCESS
     const { data: profile } = await supabase
       .from("profiles")
       .select("sports_access")
@@ -66,14 +64,29 @@ export default function SportsLogin() {
 
     setLoading(false);
 
-    // 🚫 BLOCK
     if (!profile?.sports_access) {
       setNoAccess(true);
       return;
     }
 
-    // ✅ ALLOW
     navigate("/sports");
+  };
+
+  // ✅ REQUEST ACCESS FUNCTION
+  const handleRequestAccess = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    await supabase.from("sports_access_requests").insert({
+      user_id: user.id,
+      email: user.email,
+    });
+
+    alert("Request sent! Admin will review your access.");
+    setNoAccess(false);
   };
 
   return (
@@ -206,11 +219,12 @@ export default function SportsLogin() {
             </h3>
 
             <p style={{ marginBottom: "20px", color: "#555" }}>
-              Your account does not have access to Oikos Sports.
+              You don’t currently have access to Oikos Sports.
             </p>
 
+            {/* ✅ REQUEST BUTTON */}
             <button
-              onClick={() => setNoAccess(false)}
+              onClick={handleRequestAccess}
               style={{
                 width: "100%",
                 padding: "12px",
@@ -220,9 +234,25 @@ export default function SportsLogin() {
                 color: "#fff",
                 fontWeight: "600",
                 cursor: "pointer",
+                marginBottom: "10px",
               }}
             >
-              OK
+              Request Access
+            </button>
+
+            <button
+              onClick={() => setNoAccess(false)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "10px",
+                border: "1px solid #e5e7eb",
+                background: "#fff",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Close
             </button>
           </div>
         </div>
