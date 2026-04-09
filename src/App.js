@@ -35,7 +35,7 @@ import ProfilesPage from "./ProfilesPage";
 import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
-
+import SportsAccessPage from "./adminportal/SportsAccessPage";
 const PRIMARY = "#2f6ea6";
 
 
