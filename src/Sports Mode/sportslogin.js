@@ -10,22 +10,30 @@ export default function SportsLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ If already logged in → go to sports
+  // ✅ AUTO LOGIN CHECK (WITH ACCESS CONTROL)
   useEffect(() => {
     const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (session) {
-        navigate("/sports");
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("sports_access")
+          .eq("id", session.user.id)
+          .single();
+
+        if (profile?.sports_access) {
+          navigate("/sports");
+        }
       }
     };
 
     checkSession();
   }, [navigate]);
 
-  // 🔐 LOGIN
+  // 🔐 LOGIN WITH ACCESS CHECK
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -35,13 +43,33 @@ export default function SportsLogin() {
       password,
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       alert(error.message);
       return;
     }
 
+    // ✅ GET USER
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // ✅ CHECK SPORTS ACCESS
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("sports_access")
+      .eq("id", user.id)
+      .single();
+
+    setLoading(false);
+
+    // 🚫 BLOCK
+    if (!profile?.sports_access) {
+      alert("No access to Oikos Sports");
+      return;
+    }
+
+    // ✅ ALLOW
     navigate("/sports");
   };
 
@@ -71,7 +99,7 @@ export default function SportsLogin() {
           <img
             src={logo}
             alt="Oikos Sports"
-            style={{ width: "100%", maxWidth: "260px" }} // ✅ UPDATED SIZE
+            style={{ width: "100%", maxWidth: "260px" }}
           />
         </div>
 
@@ -135,6 +163,7 @@ export default function SportsLogin() {
           </button>
         </form>
 
+        {/* FOOTER */}
         <p
           style={{
             color: "#666",
