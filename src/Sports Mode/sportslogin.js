@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase"; // ✅ FIXED PATH
-import logo from "../assets/sports-logo.png"; // ✅ YOUR SPORTS LOGO
+import { supabase } from "../lib/supabase";
+import logo from "../assets/sports-logo.png";
 
 export default function SportsLogin() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export default function SportsLogin() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        navigate("/sports"); // ✅ SPORTS ONLY
+        navigate("/sports");
       }
     };
 
@@ -42,7 +42,7 @@ export default function SportsLogin() {
       return;
     }
 
-    navigate("/sports"); // ✅ SPORTS ONLY
+    navigate("/sports");
   };
 
   return (
@@ -68,7 +68,11 @@ export default function SportsLogin() {
       >
         {/* LOGO */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
-          <img src={logo} alt="Oikos Sports" style={{ width: "180px" }} />
+          <img
+            src={logo}
+            alt="Oikos Sports"
+            style={{ width: "100%", maxWidth: "260px" }} // ✅ UPDATED SIZE
+          />
         </div>
 
         {/* TITLE */}
@@ -117,7 +121,7 @@ export default function SportsLogin() {
             type="submit"
             disabled={loading}
             style={{
-              background: "#7a1f1f", // 🔥 sports color (burgundy)
+              background: "#7a1f1f",
               color: "#fff",
               padding: "12px",
               borderRadius: "10px",
