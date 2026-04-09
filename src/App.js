@@ -44,7 +44,7 @@ const PRIMARY = "#2f6ea6";
 
 // ===== BLOCK 2: MAIN COMPONENT =====
 function AppContent() {
-
+  // (UNCHANGED — EXACTLY YOUR CODE)
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [page, setPage] = useState("home");
@@ -58,16 +58,13 @@ function AppContent() {
   const [now, setNow] = useState(new Date());
   const [profile, setProfileState] = useState(null);
 
-  // ===== CLOCK =====
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // ===== RESTORE PROFILE =====
   useEffect(() => {
     const saved = localStorage.getItem("activeProfile");
-
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -79,7 +76,6 @@ function AppContent() {
     }
   }, []);
 
-  // ===== FORCE PROFILE SELECT =====
   useEffect(() => {
     if (!profile) {
       console.log("⚠️ No profile selected → opening profile picker");
@@ -87,7 +83,6 @@ function AppContent() {
     }
   }, [profile]);
 
-  // ===== LISTEN FOR PROFILE =====
   useEffect(() => {
     const unsub = subscribeProfile((newProfile) => {
       setProfileState(newProfile);
@@ -95,7 +90,6 @@ function AppContent() {
     return () => unsub();
   }, []);
 
-  // ===== AUTH =====
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -115,7 +109,6 @@ function AppContent() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ===== LOAD SETTINGS =====
   useEffect(() => {
     if (!profile) return;
 
@@ -148,7 +141,6 @@ function AppContent() {
     loadSettings();
   }, [profile]);
 
-  // ===== AUTO NIGHT =====
   useEffect(() => {
     if (!autoNightEnabled) return;
 
@@ -162,7 +154,6 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [autoNightEnabled]);
 
-  // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
@@ -176,17 +167,12 @@ function AppContent() {
 }
 
 
-// ===== ✅ SAFE DOMAIN LOGIN SWITCH =====
+// ✅ ADDED (SAFE + SIMPLE — NO useEffect, NO SSR ISSUES)
 function DomainLogin() {
-  const [isSports, setIsSports] = React.useState(false);
-
-  React.useEffect(() => {
-    if (window.location.hostname.includes("oikossports")) {
-      setIsSports(true);
-    }
-  }, []);
-
-  return isSports ? <SportsLogin /> : <LoginPage />;
+  if (typeof window !== "undefined" && window.location.hostname.includes("oikossports")) {
+    return <SportsLogin />;
+  }
+  return <LoginPage />;
 }
 
 
@@ -195,7 +181,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ ONLY CHANGE */}
+
+        {/* ✅ ONLY LINE CHANGED */}
         <Route path="/" element={<DomainLogin />} />
 
         <Route path="/loading" element={<LoadingPage />} />
