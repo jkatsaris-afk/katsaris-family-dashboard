@@ -35,6 +35,7 @@ import ProfilesPage from "./ProfilesPage";
 import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
+import SportsHomePage from "./Sports Mode/sportshomepage";
 import SportsAccessPage from "./adminportal/SportsAccessPage";
 const PRIMARY = "#2f6ea6";
 
@@ -362,6 +363,7 @@ export default function App() {
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
+        <Route path="/sports" element={<SportsHomePage />} />
       </Routes>
     </BrowserRouter>
   );
