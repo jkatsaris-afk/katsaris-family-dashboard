@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import background from "../assets/sports-background.png";
 
 
-// ===== BLOCK 2: MAIN COMPONENT =====
+// ===== MAIN COMPONENT =====
 export default function HomePage({ displaySettings }) {
 
   const [now, setNow] = useState(new Date());
@@ -14,9 +14,6 @@ export default function HomePage({ displaySettings }) {
     high: "--",
     low: "--",
     condition: "Loading...",
-    tomorrowHigh: "--",
-    tomorrowLow: "--",
-    tomorrowCondition: "",
   });
 
   const [verse, setVerse] = useState(null);
@@ -115,10 +112,10 @@ export default function HomePage({ displaySettings }) {
   return (
     <div style={styles.container}>
 
-      {/* BACKGROUND */}
+      {/* 🔥 FULL SCREEN BACKGROUND */}
       <div style={styles.background} />
 
-      {/* CONTENT CENTER */}
+      {/* CONTENT */}
       <div style={styles.centerWrap}>
         <div style={styles.glassTile}>
 
@@ -150,10 +147,11 @@ export default function HomePage({ displaySettings }) {
 
 // ===== STYLES =====
 const styles = {
+  // 🔥 THIS IS THE KEY FIX
   container: {
-    width: "100%",
-    height: "100%",
-    position: "relative",
+    position: "fixed",
+    inset: 0,
+    zIndex: 0,
   },
 
   background: {
@@ -162,7 +160,7 @@ const styles = {
     backgroundImage: `url(${background})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
-    zIndex: 0,
+    backgroundRepeat: "no-repeat",
   },
 
   centerWrap: {
