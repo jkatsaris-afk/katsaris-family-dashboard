@@ -8,10 +8,9 @@ export default function SportsLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-
-  // ✅ NEW STATE
   const [pendingApproval, setPendingApproval] = useState(false);
 
   // ✅ AUTO LOGIN CHECK
@@ -29,7 +28,7 @@ export default function SportsLogin() {
         if (profile && profile.sports_access) {
           navigate("/sports");
         } else {
-          setPendingApproval(true); // ✅ SHOW SCREEN
+          setPendingApproval(true);
         }
       }
     };
@@ -64,7 +63,7 @@ export default function SportsLogin() {
     setLoading(false);
 
     if (!profile || !profile.sports_access) {
-      setPendingApproval(true); // ✅ SHOW SCREEN
+      setPendingApproval(true);
       return;
     }
 
@@ -74,6 +73,12 @@ export default function SportsLogin() {
   // 🆕 SIGNUP
   const handleSignup = async (e) => {
     e.preventDefault();
+
+    if (!reason || reason.length < 5) {
+      alert("Please tell us why you want access.");
+      return;
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -97,54 +102,29 @@ export default function SportsLogin() {
     await supabase.from("sports_access_requests").insert({
       user_id: user.id,
       email: user.email,
+      reason: reason,
     });
 
     setLoading(false);
-
-    setPendingApproval(true); // ✅ SHOW SCREEN
+    setPendingApproval(true);
   };
 
   // =========================
-  // 🔥 PENDING APPROVAL SCREEN
+  // 🔥 PENDING SCREEN
   // =========================
   if (pendingApproval) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#eef1f5",
-          textAlign: "center",
-          padding: "20px",
-        }}
-      >
+      <div style={pendingContainer}>
         <img src={logo} style={{ width: "220px", marginBottom: "30px" }} />
 
-        <h2 style={{ marginBottom: "10px" }}>
-          Pending Approval
-        </h2>
+        <h2>Pending Approval</h2>
 
-        <p style={{ color: "#666", maxWidth: "300px" }}>
+        <p style={{ color: "#666", maxWidth: "320px" }}>
           Your account has been created and is waiting for approval.
           You’ll gain access once an admin approves your request.
         </p>
 
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            marginTop: "25px",
-            padding: "12px 20px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#7a1f1f",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
+        <button onClick={() => window.location.reload()} style={primaryBtn}>
           Refresh
         </button>
       </div>
@@ -152,28 +132,11 @@ export default function SportsLogin() {
   }
 
   // =========================
-  // 🔐 NORMAL LOGIN SCREEN
+  // 🔐 LOGIN / SIGNUP
   // =========================
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#eef1f5",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          padding: "32px",
-          borderRadius: "20px",
-          width: "380px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-        }}
-      >
+    <div style={page}>
+      <div style={card}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
           <img src={logo} style={{ width: "100%", maxWidth: "260px" }} />
         </div>
@@ -192,7 +155,7 @@ export default function SportsLogin() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ padding: "12px", borderRadius: "10px" }}
+            style={input}
           />
 
           <input
@@ -201,21 +164,20 @@ export default function SportsLogin() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{ padding: "12px", borderRadius: "10px" }}
+            style={input}
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: "#7a1f1f",
-              color: "#fff",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "none",
-              fontWeight: "600",
-            }}
-          >
+          {showSignup && (
+            <textarea
+              placeholder="Why do you want access?"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+              style={textarea}
+            />
+          )}
+
+          <button type="submit" disabled={loading} style={primaryBtn}>
             {loading
               ? "Please wait..."
               : showSignup
@@ -224,35 +186,85 @@ export default function SportsLogin() {
           </button>
         </form>
 
+        {/* ✅ CLEAN BUTTONS */}
         {!showSignup ? (
-          <button
-            onClick={() => setShowSignup(true)}
-            style={{
-              marginTop: "10px",
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #e5e7eb",
-              background: "#fff",
-              fontWeight: "600",
-            }}
-          >
+          <button onClick={() => setShowSignup(true)} style={secondaryBtn}>
             Create Account
           </button>
         ) : (
-          <button
-            onClick={() => setShowSignup(false)}
-            style={{
-              marginTop: "10px",
-              background: "transparent",
-              border: "none",
-              color: "#555",
-            }}
-          >
-            Back to Sign In
+          <button onClick={() => setShowSignup(false)} style={secondaryBtn}>
+            ← Back to Sign In
           </button>
         )}
       </div>
     </div>
   );
 }
+
+/* =========================
+   🎨 STYLES
+========================= */
+
+const page = {
+  position: "fixed",
+  inset: 0,
+  background: "#eef1f5",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const card = {
+  background: "#fff",
+  padding: "32px",
+  borderRadius: "20px",
+  width: "380px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+};
+
+const input = {
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #e5e7eb",
+};
+
+const textarea = {
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #e5e7eb",
+  minHeight: "80px",
+  resize: "none",
+};
+
+const primaryBtn = {
+  background: "#7a1f1f",
+  color: "#fff",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "none",
+  fontWeight: "600",
+  marginTop: "5px",
+  cursor: "pointer",
+};
+
+const secondaryBtn = {
+  marginTop: "10px",
+  width: "100%",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #e5e7eb",
+  background: "#fff",
+  fontWeight: "600",
+  cursor: "pointer",
+};
+
+const pendingContainer = {
+  height: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "#eef1f5",
+  textAlign: "center",
+  padding: "20px",
+};
