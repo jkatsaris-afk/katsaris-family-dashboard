@@ -1,5 +1,6 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
+import background from "../assets/sports-background.png"; // ✅ ADDED
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
@@ -137,6 +138,9 @@ export default function HomePage({ displaySettings }) {
   return (
     <div style={styles.container}>
 
+      {/* ✅ BACKGROUND LAYER */}
+      <div style={styles.background} />
+
       <div style={styles.glassTile}>
 
         {displaySettings?.visible_widgets?.clock !== false && (
@@ -201,6 +205,18 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     paddingTop: "80px",
+    position: "relative", // ✅ ADDED
+    overflow: "hidden",   // ✅ ADDED
+  },
+
+  // ✅ BACKGROUND STYLE
+  background: {
+    position: "absolute",
+    inset: 0,
+    backgroundImage: `url(${background})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    zIndex: 0,
   },
 
   glassTile: {
@@ -210,22 +226,23 @@ const styles = {
     backdropFilter: "blur(12px)",
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
     textAlign: "center",
+    zIndex: 1, // ✅ ensures it's above background
   },
 
   time: {
     fontSize: "110px",
     fontWeight: "700",
-    color: "#111827",
+    color: "#fff", // 🔥 changed for dark background
   },
 
   date: {
     fontSize: "24px",
-    color: "#374151",
+    color: "#e5e7eb",
     marginBottom: "20px",
   },
 
   weather: {
-    color: "#374151",
+    color: "#e5e7eb",
   },
 
   weatherMain: {
@@ -235,12 +252,12 @@ const styles = {
 
   weatherSub: {
     fontSize: "16px",
-    color: "#6b7280",
+    color: "#cbd5e1",
   },
 
   weatherTomorrow: {
     marginTop: "12px",
     fontSize: "15px",
-    color: "#6b7280",
+    color: "#cbd5e1",
   },
 };
