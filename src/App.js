@@ -176,17 +176,21 @@ function AppContent() {
 }
 
 
+// ===== ✅ ADDED SAFE DOMAIN SWITCH =====
+function DomainLogin() {
+  const isSports = typeof window !== "undefined" && window.location.hostname.includes("oikossports");
+  return isSports ? <SportsLogin /> : <LoginPage />;
+}
+
+
 // ===== ROUTER =====
 export default function App() {
-  const isSportsDomain = window.location.hostname.includes("oikossports"); // ✅ ADDED
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={isSportsDomain ? <SportsLogin /> : <LoginPage />} // ✅ ADDED
-        />
+        {/* ✅ ONLY LINE CHANGED */}
+        <Route path="/" element={<DomainLogin />} />
+
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
