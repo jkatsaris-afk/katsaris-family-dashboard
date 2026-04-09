@@ -61,16 +61,14 @@ export default function SportsHomePage() {
 
       {/* ===== HEADER ===== */}
       <div style={styles.header}>
-        {/* LEFT LOGO */}
         <img src={logo} style={styles.headerLogo} />
 
-        {/* RIGHT SETTINGS */}
         <div style={styles.settings}>
           ⚙️
         </div>
       </div>
 
-      {/* ===== MAIN TILE ===== */}
+      {/* ===== MAIN GLASS TILE ===== */}
       <div style={styles.glassTile}>
         <div style={styles.time}>{formattedTime}</div>
         <div style={styles.date}>{formattedDate}</div>
@@ -80,10 +78,10 @@ export default function SportsHomePage() {
         </div>
       </div>
 
-      {/* ===== DOCK ===== */}
+      {/* ===== DOCK (MATCHED STYLE) ===== */}
       <div style={styles.dock}>
         <div style={styles.dockItemActive}>
-          🏠
+          <div style={styles.dockIcon}>🏠</div>
           <div style={styles.dockLabel}>Home</div>
         </div>
       </div>
@@ -93,7 +91,7 @@ export default function SportsHomePage() {
 }
 
 /* =========================
-   🎨 STYLES
+   🎨 STYLES (MATCH HOME)
 ========================= */
 
 const styles = {
@@ -129,28 +127,31 @@ const styles = {
   },
 
   headerLogo: {
-    width: "140px",
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
+    width: "150px",
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))",
   },
 
   settings: {
-    fontSize: "26px",
-    cursor: "pointer",
-    background: "rgba(0,0,0,0.4)",
     padding: "10px 14px",
     borderRadius: "12px",
-    backdropFilter: "blur(8px)",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+    cursor: "pointer",
+    fontSize: "20px",
     color: "#fff",
   },
 
-  /* ===== MAIN TILE ===== */
+  /* ===== GLASS TILE ===== */
   glassTile: {
     zIndex: 2,
     padding: "40px 60px",
     borderRadius: "24px",
     background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
     textAlign: "center",
   },
 
@@ -178,10 +179,12 @@ const styles = {
     bottom: "25px",
     display: "flex",
     gap: "25px",
-    padding: "14px 28px",
-    borderRadius: "22px",
-    background: "rgba(0,0,0,0.4)",
+    padding: "12px 28px",
+    borderRadius: "24px",
+    background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
     zIndex: 3,
   },
 
@@ -190,8 +193,11 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     color: "#fff",
-    fontSize: "22px",
     fontWeight: "600",
+  },
+
+  dockIcon: {
+    fontSize: "22px",
   },
 
   dockLabel: {
