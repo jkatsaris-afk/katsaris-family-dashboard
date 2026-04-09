@@ -9,7 +9,7 @@ export default function SportsLayout() {
   return (
     <div style={styles.container}>
 
-      {/* HEADER */}
+      {/* ===== HEADER ===== */}
       <div style={styles.header}>
         <img src={sportsLogo} style={styles.logo} />
 
@@ -18,16 +18,20 @@ export default function SportsLayout() {
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* ===== CONTENT ===== */}
       <div style={styles.content}>
         {page === "home" && <SportsHomePage />}
       </div>
 
-      {/* DOCK */}
-      <div style={styles.dock}>
-        <div style={styles.dockItem} onClick={() => setPage("home")}>
-          <Home />
-          <div>Home</div>
+      {/* ===== DOCK ===== */}
+      <div style={styles.dockWrapper}>
+        <div style={styles.dockInner}>
+          <div style={styles.dockGrid}>
+            <div style={styles.dockItem} onClick={() => setPage("home")}>
+              <Home />
+              <div>Home</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -35,40 +39,76 @@ export default function SportsLayout() {
   );
 }
 
+
+/* =========================
+   🎨 STYLES (MATCH HOME)
+========================= */
+
 const styles = {
   container: {
     height: "100vh",
     display: "flex",
     flexDirection: "column",
+    position: "relative",
     background: "#eef1f5",
   },
+
+  /* ===== HEADER ===== */
   header: {
+    padding: "15px 20px",
     display: "flex",
     justifyContent: "space-between",
-    padding: "15px 20px",
+    alignItems: "center",
   },
+
   logo: {
     height: "38px",
   },
+
   settings: {
     background: "#fff",
     padding: 8,
     borderRadius: 10,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    cursor: "pointer",
   },
+
+  /* ===== CONTENT ===== */
   content: {
-    flex: 1,
-    padding: "10px 20px",
+    padding: "10px 20px 120px", // 🔥 matches Home spacing exactly
+    height: "100%",
   },
-  dock: {
-    padding: "12px",
+
+  /* ===== DOCK ===== */
+  dockWrapper: {
+    position: "fixed",
+    bottom: 0,
+    width: "100%",
     display: "flex",
     justifyContent: "center",
   },
+
+  dockInner: {
+    width: "95%",
+    maxWidth: "1400px",
+    background: "#eef1f5",
+    padding: "12px",
+    marginBottom: "10px",
+    borderRadius: "20px",
+  },
+
+  dockGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(1, 1fr)",
+    gap: "12px",
+  },
+
   dockItem: {
-    background: "#7a1f1f",
-    color: "#fff",
-    padding: "12px 20px",
-    borderRadius: "12px",
+    background: "#7a1f1f", // 🔥 sports theme color
+    color: "white",
+    padding: "14px",
+    borderRadius: "14px",
+    textAlign: "center",
     cursor: "pointer",
   },
 };
