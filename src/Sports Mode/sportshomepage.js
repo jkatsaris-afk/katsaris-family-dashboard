@@ -1,6 +1,5 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
-import { supabase } from "./lib/supabase";
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
@@ -8,7 +7,6 @@ export default function HomePage({ displaySettings }) {
 
   // ===== BLOCK 3: STATE =====
   const [now, setNow] = useState(new Date());
-  const [logo, setLogo] = useState(null);
 
   const [weather, setWeather] = useState({
     temp: "--",
@@ -21,7 +19,6 @@ export default function HomePage({ displaySettings }) {
     tomorrowCondition: "",
   });
 
-  // 🔥 NEW: BIBLE VERSE STATE
   const [verse, setVerse] = useState(null);
 
 
@@ -32,80 +29,6 @@ export default function HomePage({ displaySettings }) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
-
-
-  // ===== BLOCK 5: LOAD SETTINGS + REALTIME =====
-  useEffect(() => {
-
-    let householdId = null;
-
-    const loadSettings = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) return;
-
-        const { data: member } = await supabase
-          .from("household_members")
-          .select("household_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!member) return;
-
-        householdId = member.household_id;
-
-        const { data } = await supabase
-          .from("settings")
-          .select("*")
-          .eq("household_id", householdId)
-          .maybeSingle();
-
-        if (data) {
-          if (data.logo_url) {
-            setLogo(data.logo_url);
-          } else {
-            setLogo(null);
-          }
-        }
-
-      } catch (err) {
-        console.error("LOAD SETTINGS ERROR:", err);
-      }
-    };
-
-    loadSettings();
-
-    const channel = supabase
-      .channel("settings-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "settings",
-        },
-        (payload) => {
-          const updated = payload.new;
-
-          if (updated?.household_id === householdId) {
-            if (updated.logo_url) {
-              setLogo(updated.logo_url);
-            } else {
-              setLogo(null);
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-
   }, []);
 
 
@@ -161,14 +84,13 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
-  // 🔥 ===== BLOCK 6B: BIBLE VERSE (CACHED DAILY) =====
+  // ===== BIBLE VERSE =====
   useEffect(() => {
     const fetchVerse = async () => {
       try {
         const today = new Date().toDateString();
         const cached = JSON.parse(localStorage.getItem("dailyVerse"));
 
-        // ✅ use cached verse if same day
         if (cached && cached.date === today) {
           setVerse(cached);
           return;
@@ -198,7 +120,7 @@ export default function HomePage({ displaySettings }) {
   }, []);
 
 
-  // ===== BLOCK 7: FORMATTERS =====
+  // ===== FORMATTERS =====
   const formattedDate = now.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -211,28 +133,20 @@ export default function HomePage({ displaySettings }) {
   });
 
 
-  // ===== BLOCK 8: MAIN UI =====
+  // ===== MAIN UI =====
   return (
     <div style={styles.container}>
 
-      {/* ===== BLOCK 8A: GLASS TILE ===== */}
       <div style={styles.glassTile}>
 
-        {/* CLOCK */}
         {displaySettings?.visible_widgets?.clock !== false && (
-          <div style={styles.time}>
-            {formattedTime}
-          </div>
+          <div style={styles.time}>{formattedTime}</div>
         )}
 
-        {/* DATE */}
         {displaySettings?.visible_widgets?.date !== false && (
-          <div style={styles.date}>
-            {formattedDate}
-          </div>
+          <div style={styles.date}>{formattedDate}</div>
         )}
 
-        {/* WEATHER */}
         {displaySettings?.visible_widgets?.weather !== false && (
           <div style={styles.weather}>
             <div style={styles.weatherMain}>
@@ -249,21 +163,18 @@ export default function HomePage({ displaySettings }) {
           </div>
         )}
 
-        {/* EVENTS */}
         {displaySettings?.visible_widgets?.events && (
           <div style={{ marginTop: "15px", color: "#6b7280" }}>
             📅 No events today
           </div>
         )}
 
-        {/* COUNTDOWN */}
         {displaySettings?.visible_widgets?.countdown && (
           <div style={{ marginTop: "10px", color: "#6b7280" }}>
             ⏳ Countdown not set
           </div>
         )}
 
-        {/* 🔥 BIBLE (NOW REAL) */}
         {displaySettings?.visible_widgets?.bible && verse && (
           <div style={{ marginTop: "15px", color: "#374151" }}>
             <div style={{ fontStyle: "italic" }}>
@@ -277,21 +188,12 @@ export default function HomePage({ displaySettings }) {
 
       </div>
 
-      {/* ===== BLOCK 8B: LOGO ===== */}
-      {logo && (
-        <img
-          src={logo}
-          alt="Oikos Brand"
-          style={styles.logo}
-        />
-      )}
-
     </div>
   );
 }
 
 
-// ===== BLOCK 9: STYLES =====
+// ===== STYLES =====
 const styles = {
   container: {
     minHeight: "70vh",
@@ -306,7 +208,6 @@ const styles = {
     borderRadius: "24px",
     background: "rgba(255,255,255,0.15)",
     backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
     textAlign: "center",
   },
@@ -315,7 +216,6 @@ const styles = {
     fontSize: "110px",
     fontWeight: "700",
     color: "#111827",
-    lineHeight: "1",
   },
 
   date: {
@@ -342,11 +242,5 @@ const styles = {
     marginTop: "12px",
     fontSize: "15px",
     color: "#6b7280",
-  },
-
-  logo: {
-    width: "200px",
-    marginTop: "25px",
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
   },
 };
