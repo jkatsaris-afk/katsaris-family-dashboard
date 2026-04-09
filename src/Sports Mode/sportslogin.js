@@ -9,8 +9,10 @@ export default function SportsLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [noAccess, setNoAccess] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+
+  // ✅ NEW STATE
+  const [pendingApproval, setPendingApproval] = useState(false);
 
   // ✅ AUTO LOGIN CHECK
   useEffect(() => {
@@ -26,6 +28,8 @@ export default function SportsLogin() {
 
         if (profile && profile.sports_access) {
           navigate("/sports");
+        } else {
+          setPendingApproval(true); // ✅ SHOW SCREEN
         }
       }
     };
@@ -60,7 +64,7 @@ export default function SportsLogin() {
     setLoading(false);
 
     if (!profile || !profile.sports_access) {
-      setNoAccess(true);
+      setPendingApproval(true); // ✅ SHOW SCREEN
       return;
     }
 
@@ -85,13 +89,11 @@ export default function SportsLogin() {
 
     const user = data.user;
 
-    // ✅ create profile
     await supabase.from("profiles").insert({
       id: user.id,
       email: user.email,
     });
 
-    // ✅ create access request
     await supabase.from("sports_access_requests").insert({
       user_id: user.id,
       email: user.email,
@@ -99,24 +101,59 @@ export default function SportsLogin() {
 
     setLoading(false);
 
-    alert("Account created! Awaiting approval.");
-    setShowSignup(false);
+    setPendingApproval(true); // ✅ SHOW SCREEN
   };
 
-  // ✅ REQUEST ACCESS (existing user)
-  const handleRequestAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  // =========================
+  // 🔥 PENDING APPROVAL SCREEN
+  // =========================
+  if (pendingApproval) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#eef1f5",
+          textAlign: "center",
+          padding: "20px",
+        }}
+      >
+        <img src={logo} style={{ width: "220px", marginBottom: "30px" }} />
 
-    await supabase.from("sports_access_requests").insert({
-      user_id: user.id,
-      email: user.email,
-    });
+        <h2 style={{ marginBottom: "10px" }}>
+          Pending Approval
+        </h2>
 
-    alert("Request sent! Admin will review your access.");
-    setNoAccess(false);
-  };
+        <p style={{ color: "#666", maxWidth: "300px" }}>
+          Your account has been created and is waiting for approval.
+          You’ll gain access once an admin approves your request.
+        </p>
 
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: "25px",
+            padding: "12px 20px",
+            borderRadius: "10px",
+            border: "none",
+            background: "#7a1f1f",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Refresh
+        </button>
+      </div>
+    );
+  }
+
+  // =========================
+  // 🔐 NORMAL LOGIN SCREEN
+  // =========================
   return (
     <div
       style={{
@@ -128,7 +165,6 @@ export default function SportsLogin() {
         justifyContent: "center",
       }}
     >
-      {/* CARD */}
       <div
         style={{
           background: "#fff",
@@ -138,28 +174,17 @@ export default function SportsLogin() {
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
         }}
       >
-        {/* LOGO */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
-          <img
-            src={logo}
-            alt="Oikos Sports"
-            style={{ width: "100%", maxWidth: "260px" }}
-          />
+          <img src={logo} style={{ width: "100%", maxWidth: "260px" }} />
         </div>
 
-        {/* TITLE */}
         <h2 style={{ textAlign: "center", marginBottom: "24px" }}>
           {showSignup ? "Create Sports Account" : "Sign in to Oikos Sports"}
         </h2>
 
-        {/* FORM */}
         <form
           onSubmit={showSignup ? handleSignup : handleLogin}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
+          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
         >
           <input
             type="email"
@@ -189,7 +214,6 @@ export default function SportsLogin() {
               borderRadius: "10px",
               border: "none",
               fontWeight: "600",
-              cursor: "pointer",
             }}
           >
             {loading
@@ -200,7 +224,6 @@ export default function SportsLogin() {
           </button>
         </form>
 
-        {/* TOGGLE BUTTON */}
         {!showSignup ? (
           <button
             onClick={() => setShowSignup(true)}
@@ -212,7 +235,6 @@ export default function SportsLogin() {
               border: "1px solid #e5e7eb",
               background: "#fff",
               fontWeight: "600",
-              cursor: "pointer",
             }}
           >
             Create Account
@@ -224,74 +246,13 @@ export default function SportsLogin() {
               marginTop: "10px",
               background: "transparent",
               border: "none",
-              cursor: "pointer",
               color: "#555",
             }}
           >
             Back to Sign In
           </button>
         )}
-
-        <p style={{ textAlign: "center", marginTop: "20px", color: "#666" }}>
-          Welcome to Oikos Sports
-        </p>
       </div>
-
-      {/* NO ACCESS MODAL */}
-      {noAccess && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: "28px",
-              borderRadius: "16px",
-              width: "320px",
-              textAlign: "center",
-            }}
-          >
-            <h3 style={{ color: "#7a1f1f" }}>Access Restricted</h3>
-
-            <p style={{ margin: "15px 0" }}>
-              You don’t have access to Oikos Sports.
-            </p>
-
-            <button
-              onClick={handleRequestAccess}
-              style={{
-                width: "100%",
-                padding: "12px",
-                marginBottom: "10px",
-                background: "#7a1f1f",
-                color: "#fff",
-                border: "none",
-                borderRadius: "10px",
-              }}
-            >
-              Request Access
-            </button>
-
-            <button
-              onClick={() => setNoAccess(false)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "10px",
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
