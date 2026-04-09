@@ -11,7 +11,7 @@ export default function SportsLogin() {
   const [loading, setLoading] = useState(false);
   const [noAccess, setNoAccess] = useState(false);
 
-  // ✅ AUTO LOGIN CHECK (WITH ACCESS CONTROL)
+  // ✅ AUTO LOGIN CHECK
   useEffect(() => {
     const checkSession = async () => {
       const {
@@ -19,11 +19,15 @@ export default function SportsLogin() {
       } = await supabase.auth.getSession();
 
       if (session?.user) {
-        const { data: profile } = await supabase
+        console.log("AUTO LOGIN USER:", session.user);
+
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("sports_access")
           .eq("id", session.user.id)
-          .maybeSingle(); // ✅ FIXED
+          .maybeSingle();
+
+        console.log("AUTO LOGIN PROFILE:", profile, error);
 
         if (profile && profile.sports_access) {
           navigate("/sports");
@@ -34,7 +38,7 @@ export default function SportsLogin() {
     checkSession();
   }, [navigate]);
 
-  // 🔐 LOGIN WITH ACCESS CHECK
+  // 🔐 LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -55,12 +59,16 @@ export default function SportsLogin() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // ✅ CHECK ACCESS
-    const { data: profile } = await supabase
+    console.log("LOGIN USER:", user);
+
+    // ✅ CHECK PROFILE
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("sports_access")
       .eq("id", user.id)
-      .maybeSingle(); // ✅ FIXED
+      .maybeSingle();
+
+    console.log("LOGIN PROFILE:", profile, profileError);
 
     setLoading(false);
 
@@ -74,7 +82,7 @@ export default function SportsLogin() {
     navigate("/sports");
   };
 
-  // ✅ REQUEST ACCESS FUNCTION
+  // ✅ REQUEST ACCESS
   const handleRequestAccess = async () => {
     const {
       data: { user },
@@ -140,13 +148,12 @@ export default function SportsLogin() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
             style={{
-              background: "#fff",
               border: "1px solid #e5e7eb",
               padding: "12px",
               borderRadius: "10px",
             }}
-            required
           />
 
           <input
@@ -154,13 +161,12 @@ export default function SportsLogin() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
             style={{
-              background: "#fff",
               border: "1px solid #e5e7eb",
               padding: "12px",
               borderRadius: "10px",
             }}
-            required
           />
 
           <button
@@ -172,28 +178,20 @@ export default function SportsLogin() {
               padding: "12px",
               borderRadius: "10px",
               fontWeight: "600",
-              marginTop: "10px",
-              cursor: "pointer",
               border: "none",
+              cursor: "pointer",
             }}
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        {/* FOOTER */}
-        <p
-          style={{
-            color: "#666",
-            textAlign: "center",
-            marginTop: "20px",
-          }}
-        >
+        <p style={{ textAlign: "center", marginTop: "20px", color: "#666" }}>
           Welcome to Oikos Sports
         </p>
       </div>
 
-      {/* ✅ NO ACCESS MODAL */}
+      {/* NO ACCESS MODAL */}
       {noAccess && (
         <div
           style={{
@@ -203,7 +201,6 @@ export default function SportsLogin() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
           }}
         >
           <div
@@ -213,15 +210,12 @@ export default function SportsLogin() {
               borderRadius: "16px",
               width: "320px",
               textAlign: "center",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
             }}
           >
-            <h3 style={{ marginBottom: "12px", color: "#7a1f1f" }}>
-              Access Restricted
-            </h3>
+            <h3 style={{ color: "#7a1f1f" }}>Access Restricted</h3>
 
-            <p style={{ marginBottom: "20px", color: "#555" }}>
-              You don’t currently have access to Oikos Sports.
+            <p style={{ margin: "15px 0" }}>
+              You don’t have access to Oikos Sports.
             </p>
 
             <button
@@ -229,13 +223,11 @@ export default function SportsLogin() {
               style={{
                 width: "100%",
                 padding: "12px",
-                borderRadius: "10px",
-                border: "none",
+                marginBottom: "10px",
                 background: "#7a1f1f",
                 color: "#fff",
-                fontWeight: "600",
-                cursor: "pointer",
-                marginBottom: "10px",
+                border: "none",
+                borderRadius: "10px",
               }}
             >
               Request Access
@@ -247,10 +239,6 @@ export default function SportsLogin() {
                 width: "100%",
                 padding: "12px",
                 borderRadius: "10px",
-                border: "1px solid #e5e7eb",
-                background: "#fff",
-                fontWeight: "600",
-                cursor: "pointer",
               }}
             >
               Close
