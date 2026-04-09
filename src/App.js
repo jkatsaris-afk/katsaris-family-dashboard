@@ -7,6 +7,9 @@ import OnboardingPage from "./OnboardingPage";
 import LoadingPage from "./LoadingPage";
 import LoginPage from "./LoginPage";
 
+// ✅ ADDED
+import SportsLogin from "./Sports Mode/sportslogin";
+
 import {
   Home,
   Calendar,
@@ -216,24 +219,6 @@ function AppContent() {
     };
   }, [displaySettings]);
 
-  // ===== APP FILTER =====
-  const apps = [
-    { name: "Home", icon: <Home />, page: "home", color: "#3b82f6" },
-    { name: "Calendar", icon: <Calendar />, page: "calendar", color: "#10b981" },
-    { name: "Chores", icon: <ClipboardList />, page: "chores", color: "#f97316" },
-    { name: "Weather", icon: <CloudSun />, page: "weather", color: "#0ea5e9" },
-    { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
-    { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
-    { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-  ].filter(app => {
-    const tiles = displaySettings?.visible_tiles;
-    if (!tiles) return true;
-    if (typeof tiles === "object") {
-      return tiles[app.page] === undefined ? true : tiles[app.page];
-    }
-    return true;
-  });
-
   // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
@@ -258,8 +243,9 @@ export default function App() {
         <Route
           path="/"
           element={
-            window.location.hostname.includes("oikossports")
-              ? <AppContent />
+            typeof window !== "undefined" &&
+            window.location.hostname === "oikossports.app"
+              ? <SportsLogin />
               : <LoginPage />
           }
         />
