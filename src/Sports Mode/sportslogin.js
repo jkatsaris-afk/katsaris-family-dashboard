@@ -23,9 +23,9 @@ export default function SportsLogin() {
           .from("profiles")
           .select("sports_access")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle(); // ✅ FIXED
 
-        if (profile?.sports_access) {
+        if (profile && profile.sports_access) {
           navigate("/sports");
         }
       }
@@ -60,15 +60,17 @@ export default function SportsLogin() {
       .from("profiles")
       .select("sports_access")
       .eq("id", user.id)
-      .single();
+      .maybeSingle(); // ✅ FIXED
 
     setLoading(false);
 
-    if (!profile?.sports_access) {
+    // 🚫 BLOCK
+    if (!profile || !profile.sports_access) {
       setNoAccess(true);
       return;
     }
 
+    // ✅ ALLOW
     navigate("/sports");
   };
 
@@ -222,7 +224,6 @@ export default function SportsLogin() {
               You don’t currently have access to Oikos Sports.
             </p>
 
-            {/* ✅ REQUEST BUTTON */}
             <button
               onClick={handleRequestAccess}
               style={{
