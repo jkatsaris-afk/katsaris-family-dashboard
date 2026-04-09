@@ -1,6 +1,6 @@
 // ===== BLOCK 1: IMPORTS =====
 import React, { useState, useEffect } from "react";
-import background from "./assets/sports-background.png"; // ✅ ADDED
+import background from "../assets/sports-background.png"; // ✅ FIXED PATH
 
 
 // ===== BLOCK 2: MAIN COMPONENT =====
@@ -138,7 +138,7 @@ export default function HomePage({ displaySettings }) {
   return (
     <div style={styles.container}>
 
-      {/* ✅ BACKGROUND ADDED */}
+      {/* ✅ BACKGROUND */}
       <div style={styles.background} />
 
       <div style={styles.glassTile}>
@@ -200,7 +200,6 @@ const styles = {
     overflow: "hidden",
   },
 
-  // ✅ NEW BACKGROUND
   background: {
     position: "absolute",
     inset: 0,
