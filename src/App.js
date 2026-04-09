@@ -36,8 +36,8 @@ import { getProfile, subscribeProfile, setProfile } from "./profileStore";
 
 import brand from "./assets/oikos-brand.png";
 
-// ✅ ADDED: Sports Mode Homepage
-import SportsHomePage from "./Sports Mode/homepage";
+// ✅ FIXED IMPORT (correct filename)
+import SportsHomePage from "./Sports Mode/sportshomepage";
 
 const PRIMARY = "#2f6ea6";
 
@@ -58,7 +58,7 @@ function AppContent() {
   const [now, setNow] = useState(new Date());
   const [profile, setProfileState] = useState(null);
 
-  // ✅ ADDED: DOMAIN MODE DETECTION
+  // ✅ DOMAIN MODE DETECTION
   const domain = window.location.hostname;
   const isSportsMode = domain.includes("oikossports");
 
@@ -200,6 +200,7 @@ function AppContent() {
       clearTimeout(timeout);
 
       timeout = setTimeout(() => {
+        console.log("⏱ Inactivity → returning home");
         setPage("home");
       }, 10 * 60 * 1000);
     };
@@ -229,37 +230,57 @@ function AppContent() {
     { name: "Lists", icon: <List />, page: "lists", color: "#8b5cf6" },
     { name: "Family", icon: <Users />, page: "family", color: "#6366f1" },
     { name: "Home Controls", icon: <SlidersHorizontal />, page: "homeControls", color: "#22c55e" },
-  ];
+  ].filter(app => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") {
+      return tiles[app.page] === undefined ? true : tiles[app.page];
+    }
+    return true;
+  });
+
+  const isVisible = (pageName) => {
+    const tiles = displaySettings?.visible_tiles;
+    if (!tiles) return true;
+    if (typeof tiles === "object") {
+      return tiles[pageName] === undefined ? true : tiles[pageName];
+    }
+    return true;
+  };
 
   // ===== AUTH GUARD =====
   if (loadingUser) return <div style={{ padding: 20 }}>Loading...</div>;
   if (!user) return <LoginPage />;
 
-  // ✅ ADDED: FORCE SPORTS MODE
-  if (isSportsMode) {
-    return <SportsHomePage />;
-  }
-
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "15px 20px" }}>
+
+      {/* HEADER */}
+      <div style={{ padding: "15px 20px", display: "flex", justifyContent: "space-between" }}>
         <img src={brand} style={{ height: "38px" }} />
       </div>
 
-      <div style={{ padding: "10px 20px" }}>
-        {page === "home" && <HomePage displaySettings={displaySettings} />}
-        {page === "calendar" && <UpcomingEvents />}
-        {page === "chores" && <ChoresPage />}
-        {page === "weather" && <WeatherPage />}
-        {page === "lists" && <ShoppingPage />}
+      {/* CONTENT */}
+      <div style={{ padding: "10px 20px 120px", height: "100%" }}>
+        {page === "home" && (
+          isSportsMode
+            ? <SportsHomePage />
+            : <HomePage displaySettings={displaySettings} />
+        )}
+        {page === "calendar" && isVisible("calendar") && <UpcomingEvents />}
+        {page === "chores" && isVisible("chores") && <ChoresPage />}
+        {page === "weather" && isVisible("weather") && <WeatherPage />}
+        {page === "lists" && isVisible("lists") && <ShoppingPage />}
         {page === "settings" && <SettingsPage />}
-        {page === "family" && <FamilyPage />}
-        {page === "homeControls" && <HomeControlsPage />}
+        {page === "family" && isVisible("family") && <FamilyPage />}
+        {page === "homeControls" && isVisible("homeControls") && <HomeControlsPage />}
       </div>
 
+      {/* PROFILE OVERLAY */}
       {showProfiles && (
         <ProfilesPage onClose={() => setShowProfiles(false)} />
       )}
+
     </div>
   );
 }
@@ -270,8 +291,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔥 OPTIONAL: make root go straight into app */}
-        <Route path="/" element={<AppContent />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/loading" element={<LoadingPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/app" element={<AppContent />} />
