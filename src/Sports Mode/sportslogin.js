@@ -10,6 +10,9 @@ export default function SportsLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ NEW STATE
+  const [noAccess, setNoAccess] = useState(false);
+
   // ✅ AUTO LOGIN CHECK (WITH ACCESS CONTROL)
   useEffect(() => {
     const checkSession = async () => {
@@ -65,7 +68,7 @@ export default function SportsLogin() {
 
     // 🚫 BLOCK
     if (!profile?.sports_access) {
-      alert("No access to Oikos Sports");
+      setNoAccess(true);
       return;
     }
 
@@ -174,6 +177,56 @@ export default function SportsLogin() {
           Welcome to Oikos Sports
         </p>
       </div>
+
+      {/* ✅ NO ACCESS MODAL */}
+      {noAccess && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: "28px",
+              borderRadius: "16px",
+              width: "320px",
+              textAlign: "center",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h3 style={{ marginBottom: "12px", color: "#7a1f1f" }}>
+              Access Restricted
+            </h3>
+
+            <p style={{ marginBottom: "20px", color: "#555" }}>
+              Your account does not have access to Oikos Sports.
+            </p>
+
+            <button
+              onClick={() => setNoAccess(false)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "10px",
+                border: "none",
+                background: "#7a1f1f",
+                color: "#fff",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
