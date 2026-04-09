@@ -6,7 +6,6 @@ import { Settings, Home, Users, Calendar } from "lucide-react";
 export default function SportsLayout() {
   const [page, setPage] = useState("home");
 
-  // 🔥 TILE SYSTEM (like your main app)
   const tiles = [
     { name: "Home", icon: <Home />, page: "home", color: "#7a1f1f" },
     { name: "Teams", icon: <Users />, page: "teams", color: "#991b1b" },
@@ -59,18 +58,21 @@ export default function SportsLayout() {
 
 
 /* =========================
-   🎨 STYLES
+   🎨 STYLES (MATCH HOME)
 ========================= */
 
 const styles = {
   container: {
     height: "100vh",
+    width: "100vw",                 // ✅ FIX
     display: "flex",
     flexDirection: "column",
     position: "relative",
     background: "#eef1f5",
+    overflow: "hidden",             // ✅ FIX
   },
 
+  /* ===== HEADER ===== */
   header: {
     padding: "15px 20px",
     display: "flex",
@@ -90,9 +92,17 @@ const styles = {
     cursor: "pointer",
   },
 
+  /* ===== CONTENT ===== */
   content: {
-    padding: "10px 20px 120px",
+    padding: "10px 20px 120px",   // ✅ CRITICAL FIX (matches Home)
     height: "100%",
+  },
+
+  pagePlaceholder: {
+    padding: "40px",
+    textAlign: "center",
+    fontSize: "20px",
+    color: "#333",
   },
 
   /* ===== DOCK ===== */
@@ -107,7 +117,7 @@ const styles = {
   dockInner: {
     width: "95%",
     maxWidth: "1400px",
-    background: "#eef1f5",
+    background: "#eef1f5",       // ✅ matches Home exactly
     padding: "12px",
     marginBottom: "10px",
     borderRadius: "20px",
@@ -115,7 +125,7 @@ const styles = {
 
   dockGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)", // 🔥 auto based on tiles count
+    gridTemplateColumns: "repeat(3, 1fr)",
     gap: "12px",
   },
 
@@ -126,12 +136,5 @@ const styles = {
     textAlign: "center",
     cursor: "pointer",
     fontWeight: "600",
-  },
-
-  pagePlaceholder: {
-    padding: "40px",
-    textAlign: "center",
-    fontSize: "20px",
-    color: "#333",
   },
 };
