@@ -10,24 +10,19 @@ export default function SportsLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [noAccess, setNoAccess] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
   // ✅ AUTO LOGIN CHECK
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user) {
-        console.log("AUTO LOGIN USER:", session.user);
-
-        const { data: profile, error } = await supabase
+        const { data: profile } = await supabase
           .from("profiles")
           .select("sports_access")
           .eq("id", session.user.id)
           .maybeSingle();
-
-        console.log("AUTO LOGIN PROFILE:", profile, error);
 
         if (profile && profile.sports_access) {
           navigate("/sports");
@@ -54,40 +49,63 @@ export default function SportsLogin() {
       return;
     }
 
-    // ✅ GET USER
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    console.log("LOGIN USER:", user);
-
-    // ✅ CHECK PROFILE
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
       .select("sports_access")
       .eq("id", user.id)
       .maybeSingle();
 
-    console.log("LOGIN PROFILE:", profile, profileError);
-
     setLoading(false);
 
-    // 🚫 BLOCK
     if (!profile || !profile.sports_access) {
       setNoAccess(true);
       return;
     }
 
-    // ✅ ALLOW
     navigate("/sports");
   };
 
-  // ✅ REQUEST ACCESS
-  const handleRequestAccess = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  // 🆕 SIGNUP
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      setLoading(false);
+      alert(error.message);
+      return;
+    }
+
+    const user = data.user;
+
+    // ✅ create profile
+    await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email,
+    });
+
+    // ✅ create access request
+    await supabase.from("sports_access_requests").insert({
+      user_id: user.id,
+      email: user.email,
+    });
+
+    setLoading(false);
+
+    alert("Account created! Awaiting approval.");
+    setShowSignup(false);
+  };
+
+  // ✅ REQUEST ACCESS (existing user)
+  const handleRequestAccess = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     await supabase.from("sports_access_requests").insert({
@@ -130,13 +148,13 @@ export default function SportsLogin() {
         </div>
 
         {/* TITLE */}
-        <h2 style={{ color: "#000", textAlign: "center", marginBottom: "24px" }}>
-          Sign in to Oikos Sports
+        <h2 style={{ textAlign: "center", marginBottom: "24px" }}>
+          {showSignup ? "Create Sports Account" : "Sign in to Oikos Sports"}
         </h2>
 
         {/* FORM */}
         <form
-          onSubmit={handleLogin}
+          onSubmit={showSignup ? handleSignup : handleLogin}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -149,11 +167,7 @@ export default function SportsLogin() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{
-              border: "1px solid #e5e7eb",
-              padding: "12px",
-              borderRadius: "10px",
-            }}
+            style={{ padding: "12px", borderRadius: "10px" }}
           />
 
           <input
@@ -162,11 +176,7 @@ export default function SportsLogin() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{
-              border: "1px solid #e5e7eb",
-              padding: "12px",
-              borderRadius: "10px",
-            }}
+            style={{ padding: "12px", borderRadius: "10px" }}
           />
 
           <button
@@ -177,14 +187,50 @@ export default function SportsLogin() {
               color: "#fff",
               padding: "12px",
               borderRadius: "10px",
-              fontWeight: "600",
               border: "none",
+              fontWeight: "600",
               cursor: "pointer",
             }}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading
+              ? "Please wait..."
+              : showSignup
+              ? "Create Account"
+              : "Sign In"}
           </button>
         </form>
+
+        {/* TOGGLE BUTTON */}
+        {!showSignup ? (
+          <button
+            onClick={() => setShowSignup(true)}
+            style={{
+              marginTop: "10px",
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Create Account
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowSignup(false)}
+            style={{
+              marginTop: "10px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "#555",
+            }}
+          >
+            Back to Sign In
+          </button>
+        )}
 
         <p style={{ textAlign: "center", marginTop: "20px", color: "#666" }}>
           Welcome to Oikos Sports
